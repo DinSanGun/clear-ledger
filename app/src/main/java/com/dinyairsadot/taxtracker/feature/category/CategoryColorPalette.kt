@@ -15,6 +15,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import android.graphics.Color as AndroidColor
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+
 
 
 
@@ -26,16 +39,33 @@ private data class PresetCategoryColor(
 // Shared preset colors for categories.
 // Hex values are valid #RRGGBB and work with existing validation.
 private val presetCategoryColors = listOf(
-    PresetCategoryColor("#FF9800", Color(0xFFFF9800)), // Orange
-    PresetCategoryColor("#F44336", Color(0xFFF44336)), // Red
-    PresetCategoryColor("#E91E63", Color(0xFFE91E63)), // Pink
-    PresetCategoryColor("#9C27B0", Color(0xFF9C27B0)), // Purple
-    PresetCategoryColor("#3F51B5", Color(0xFF3F51B5)), // Indigo
-    PresetCategoryColor("#03A9F4", Color(0xFF03A9F4)), // Light Blue
-    PresetCategoryColor("#4CAF50", Color(0xFF4CAF50)), // Green
-    PresetCategoryColor("#CDDC39", Color(0xFFCDDC39)), // Lime
-    PresetCategoryColor("#795548", Color(0xFF795548))  // Brown
+    PresetCategoryColor("#F8BBD0", Color(0xFFF8BBD0)), // pastel pink
+    PresetCategoryColor("#E1BEE7", Color(0xFFE1BEE7)), // pastel purple
+    PresetCategoryColor("#BBDEFB", Color(0xFFBBDEFB)), // pastel blue
+    PresetCategoryColor("#B2EBF2", Color(0xFFB2EBF2)), // pastel cyan
+    PresetCategoryColor("#C8E6C9", Color(0xFFC8E6C9)), // pastel green
+    PresetCategoryColor("#FFF9C4", Color(0xFFFFF9C4)), // pastel yellow
+    PresetCategoryColor("#FFE0B2", Color(0xFFFFE0B2))  // pastel orange
 )
+
+// 7x7 predefined extended palette (49 colors)
+private val extendedCategoryColorHexes = listOf(
+    // Row 1 - Reds/Pinks
+    "#FFCDD2", "#EF9A9A", "#E57373", "#EF5350", "#F44336", "#E53935", "#D32F2F",
+    // Row 2 - Oranges/Deep Orange
+    "#FFE0B2", "#FFCC80", "#FFB74D", "#FFA726", "#FF9800", "#FB8C00", "#F57C00",
+    // Row 3 - Yellows/Amber
+    "#FFF9C4", "#FFF59D", "#FFF176", "#FFEE58", "#FFEB3B", "#FDD835", "#FBC02D",
+    // Row 4 - Greens
+    "#C8E6C9", "#A5D6A7", "#81C784", "#66BB6A", "#4CAF50", "#43A047", "#388E3C",
+    // Row 5 - Cyans/Teals
+    "#B2EBF2", "#80DEEA", "#4DD0E1", "#26C6DA", "#00BCD4", "#00ACC1", "#0097A7",
+    // Row 6 - Blues
+    "#BBDEFB", "#90CAF9", "#64B5F6", "#42A5F5", "#2196F3", "#1E88E5", "#1976D2",
+    // Row 7 - Purples
+    "#E1BEE7", "#CE93D8", "#BA68C8", "#AB47BC", "#9C27B0", "#8E24AA", "#7B1FA2"
+)
+
 
 
 @Composable
@@ -44,10 +74,12 @@ fun CategoryColorOptionsRow(
     onColorSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showMoreColors by remember { mutableStateOf(false) }
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+
         presetCategoryColors.forEach { preset ->
             val isSelected = selectedColorHex.equals(preset.hex, ignoreCase = true)
 
@@ -58,18 +90,78 @@ fun CategoryColorOptionsRow(
                     .background(preset.color)
                     .border(
                         width = if (isSelected) 3.dp else 1.dp,
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.outline
-                        },
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                         shape = CircleShape
                     )
-                    .clickable {
-                        onColorSelected(preset.hex)
-                    }
+                    .clickable { onColorSelected(preset.hex) }
             )
         }
+        // Extra circle to open extended palette
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline,
+                    shape = CircleShape
+                )
+                .clickable { showMoreColors = true }
+        ) {
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier.matchParentSize(),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text("+")
+            }
+        }
+    }
+    if (showMoreColors) {
+        AlertDialog(
+            onDismissRequest = { showMoreColors = false },
+            title = { Text("Choose a color") },
+            text = {
+                Column {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(7),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        items(extendedCategoryColorHexes) { hex ->
+                            val color = parseCategoryColorOrNull(hex) ?: return@items
+                            val isSelected = selectedColorHex.equals(hex, ignoreCase = true)
+
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .border(
+                                        width = if (isSelected) 3.dp else 1.dp,
+                                        color = if (isSelected) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.outline
+                                        },
+                                        shape = CircleShape
+                                    )
+                                    .clickable {
+                                        onColorSelected(hex)
+                                        showMoreColors = false
+                                    }
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showMoreColors = false }) {
+                    Text("Close")
+                }
+            }
+        )
     }
 }
 
