@@ -3,6 +3,45 @@
 This changelog documents incremental development steps of the Tax Tracker app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
 
+## 2026-01-06
+### Update category color picker with pastel defaults and extended palette
+- Category color picker now shows **7 pastel colors** by default
+- Added a **“More colors”** option opening a **7×7 predefined color grid**
+- Improves visual consistency while allowing advanced customization
+
+---
+
+## 2025-12-30
+### Improve category list card styling
+- Added a **subtle category-colored border** to category list cards
+- Adjusted card background to be **slightly darker than screen background** for better contrast
+- Enhances visual hierarchy without overpowering the UI
+
+---
+
+## 2025-12-29
+### Apply category color to edit screens with contrast
+- **Edit Category** top bar now reflects the category color
+- **Edit Invoice** top bar now reflects the category color
+- Automatic contrast applied to titles and icons for readability
+
+---
+
+## 2025-12-28
+### Apply category color across invoice screens
+- Invoice list top bar now reflects the selected category color
+- Invoice details top bar updated to use category color
+- Add Invoice top bar updated to use category color
+- Contrast-aware text and icons applied consistently across invoice screens
+- Improves visual coherence when navigating Category → Invoices
+
+---
+
+## 2025-12-28
+### Add project changelog
+- Introduced `CHANGELOG.md` to track user-visible changes and feature evolution
+
+
 ---
 
 ## 2025-12-16
