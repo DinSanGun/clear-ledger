@@ -132,8 +132,8 @@ fun TaxTrackerNavHost(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onSaveCategory = { name, colorHex, description ->
-                    viewModel.addCategory(name, colorHex, description)
+                onSaveCategory = { name, colorHex, description, t1, t2, t3 ->
+                    viewModel.addCategory(name, colorHex, description, t1, t2, t3)
                 },
                 existingNamesLower = existingNamesLower,
                 onCategorySaved = {
@@ -184,20 +184,26 @@ fun TaxTrackerNavHost(
                 initialName = category.name,
                 initialColorHex = category.colorHex,
                 initialDescription = category.description,
+                categoryColorHex = category.colorHex,
+                initialCustomFieldTitle1 = category.customFieldTitle1,
+                initialCustomFieldTitle2 = category.customFieldTitle2,
+                initialCustomFieldTitle3 = category.customFieldTitle3,
                 otherNamesLower = otherNamesLower,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onSaveCategory = { name, colorHex, description ->
+                onSaveCategory = { name, colorHex, description, t1, t2, t3 ->
                     viewModel.updateCategory(
                         id = category.id,
                         name = name,
                         colorHex = colorHex,
-                        description = description
+                        description = description,
+                        customFieldTitle1 = t1,
+                        customFieldTitle2 = t2,
+                        customFieldTitle3 = t3
                     )
-                },
-                categoryColorHex = category.colorHex
-            )
+                }
+                )
         }
         // -------------------------
         // Invoice list screen

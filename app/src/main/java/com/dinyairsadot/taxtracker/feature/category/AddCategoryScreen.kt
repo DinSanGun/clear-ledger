@@ -17,12 +17,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCategoryScreen(
     onNavigateBack: () -> Unit,
-    onSaveCategory: (name: String, colorHex: String, description: String) -> Unit,
+    onSaveCategory: (
+        name: String,
+        colorHex: String,
+        description: String,
+        customFieldTitle1: String?,
+        customFieldTitle2: String?,
+        customFieldTitle3: String?
+    ) -> Unit,
     existingNamesLower: Set<String>,
     onCategorySaved: () -> Unit
 ) {
@@ -30,8 +40,32 @@ fun AddCategoryScreen(
     var colorHex by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
 
+    var visibleCustomFieldCount by rememberSaveable { mutableStateOf(0) }
+    var customFieldTitle1 by rememberSaveable { mutableStateOf("") }
+    var customFieldTitle2 by rememberSaveable { mutableStateOf("") }
+    var customFieldTitle3 by rememberSaveable { mutableStateOf("") }
+    var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+
     var nameError by remember { mutableStateOf<String?>(null) }
     var colorError by remember { mutableStateOf<String?>(null) }
+
+    fun removeCustomFieldAt(index: Int) {
+        when (index) {
+            1 -> {
+                customFieldTitle1 = customFieldTitle2
+                customFieldTitle2 = customFieldTitle3
+                customFieldTitle3 = ""
+            }
+            2 -> {
+                customFieldTitle2 = customFieldTitle3
+                customFieldTitle3 = ""
+            }
+            3 -> {
+                customFieldTitle3 = ""
+            }
+        }
+        visibleCustomFieldCount = (visibleCustomFieldCount - 1).coerceAtLeast(0)
+    }
 
     fun onSaveClicked() {
         var hasError = false
@@ -56,8 +90,12 @@ fun AddCategoryScreen(
             onSaveCategory(
                 name.trim(),
                 colorHex.trim(),
-                description.trim()
+                description.trim(),
+                customFieldTitle1.trim().ifBlank { null },
+                customFieldTitle2.trim().ifBlank { null },
+                customFieldTitle3.trim().ifBlank { null }
             )
+
             onCategorySaved()
             onNavigateBack()
         }
@@ -68,7 +106,11 @@ fun AddCategoryScreen(
         nameError = nameError,
         colorHex = colorHex,
         colorError = colorError,
-        description = description
+        description = description,
+        visibleCustomFieldCount = visibleCustomFieldCount,
+        customFieldTitle1 = customFieldTitle1,
+        customFieldTitle2 = customFieldTitle2,
+        customFieldTitle3 = customFieldTitle3
     )
 
     val formCallbacks = CategoryFormCallbacks(
@@ -83,8 +125,17 @@ fun AddCategoryScreen(
         onDescriptionChange = { newDesc ->
             description = newDesc
         },
-        onSaveClick = { onSaveClicked() }
-    )
+        onSaveClick = { onSaveClicked() },
+        onCustomFieldTitle1Change = { customFieldTitle1 = it },
+        onCustomFieldTitle2Change = { customFieldTitle2 = it },
+        onCustomFieldTitle3Change = { customFieldTitle3 = it },
+        onAddCustomFieldClick = {
+            visibleCustomFieldCount = (visibleCustomFieldCount + 1).coerceAtMost(3)
+        },
+        onRequestRemoveCustomField = { index ->
+            pendingRemoveFieldIndex = index
+        }
+        )
 
     Scaffold(
         topBar = {
@@ -101,6 +152,31 @@ fun AddCategoryScreen(
             )
         }
     ) { innerPadding ->
+        if (pendingRemoveFieldIndex != null) {
+            AlertDialog(
+                onDismissRequest = { pendingRemoveFieldIndex = null },
+                title = { Text("Remove custom field?") },
+                text = {
+                    Text(
+                        "Removing a custom field may delete information stored in invoices for this category. " +
+                                "Are you sure you want to remove it?"
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        removeCustomFieldAt(pendingRemoveFieldIndex!!)
+                        pendingRemoveFieldIndex = null
+                    }) {
+                        Text("Remove")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingRemoveFieldIndex = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
         CategoryForm(
             state = formState,
             callbacks = formCallbacks,

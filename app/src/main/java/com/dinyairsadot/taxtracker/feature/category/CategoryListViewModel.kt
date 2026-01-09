@@ -67,7 +67,14 @@ class CategoryListViewModel(
         // Add analytics / logging later
     }
 
-    fun addCategory(name: String, colorHex: String, description: String) {
+    fun addCategory(
+        name: String,
+        colorHex: String,
+        description: String,
+        customFieldTitle1: String?,
+        customFieldTitle2: String?,
+        customFieldTitle3: String?
+    ) {
         viewModelScope.launch {
             try {
                 val current = categoryRepository.getCategories()
@@ -80,7 +87,10 @@ class CategoryListViewModel(
                     id = nextId,
                     name = name,
                     colorHex = safeColorHex,
-                    description = description.ifBlank { null }
+                    description = description.ifBlank { null },
+                    customFieldTitle1 = customFieldTitle1,
+                    customFieldTitle2 = customFieldTitle2,
+                    customFieldTitle3 = customFieldTitle3
                 )
 
                 categoryRepository.addCategory(newCategory)
@@ -120,7 +130,10 @@ class CategoryListViewModel(
         id: Long,
         name: String,
         colorHex: String,
-        description: String
+        description: String,
+        customFieldTitle1: String?,
+        customFieldTitle2: String?,
+        customFieldTitle3: String?
     ) {
         viewModelScope.launch {
             try {
@@ -131,7 +144,10 @@ class CategoryListViewModel(
                     id = id,
                     name = name.trim(),
                     colorHex = safeColorHex,
-                    description = description.trim().ifBlank { null }
+                    description = description.trim().ifBlank { null },
+                    customFieldTitle1 = customFieldTitle1,
+                    customFieldTitle2 = customFieldTitle2,
+                    customFieldTitle3 = customFieldTitle3
                 )
 
                 categoryRepository.updateCategory(updatedCategory)

@@ -15,7 +15,11 @@ data class CategoryFormState(
     val nameError: String? = null,
     val colorHex: String = "",
     val colorError: String? = null,
-    val description: String = ""
+    val description: String = "",
+    val visibleCustomFieldCount: Int = 0,
+    val customFieldTitle1: String = "",
+    val customFieldTitle2: String = "",
+    val customFieldTitle3: String = ""
 )
 
 data class CategoryFormCallbacks(
@@ -23,6 +27,11 @@ data class CategoryFormCallbacks(
     val onColorHexChange: (String) -> Unit,
     val onDescriptionChange: (String) -> Unit,
     val onSaveClick: () -> Unit,
+    val onCustomFieldTitle1Change: (String) -> Unit,
+    val onCustomFieldTitle2Change: (String) -> Unit,
+    val onCustomFieldTitle3Change: (String) -> Unit,
+    val onAddCustomFieldClick: () -> Unit,
+    val onRequestRemoveCustomField: (index: Int) -> Unit
 )
 
 @Composable
@@ -93,6 +102,69 @@ fun CategoryForm(
             label = { Text("Description (optional)") },
             modifier = Modifier.fillMaxWidth()
         )
+
+        // Custom fields (titles only; up to 3)
+        Text(text = "Custom fields (up to 3)")
+
+        if (state.visibleCustomFieldCount < 3) {
+            TextButton(onClick = callbacks.onAddCustomFieldClick) {
+                Text("Add custom field")
+            }
+        }
+
+        if (state.visibleCustomFieldCount >= 1) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = state.customFieldTitle1,
+                    onValueChange = callbacks.onCustomFieldTitle1Change,
+                    label = { Text("Field 1 title (optional)") },
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(onClick = { callbacks.onRequestRemoveCustomField(1) }) {
+                    Text("Remove")
+                }
+            }
+        }
+
+        if (state.visibleCustomFieldCount >= 2) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = state.customFieldTitle2,
+                    onValueChange = callbacks.onCustomFieldTitle2Change,
+                    label = { Text("Field 2 title (optional)") },
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(onClick = { callbacks.onRequestRemoveCustomField(2) }) {
+                    Text("Remove")
+                }
+            }
+        }
+
+        if (state.visibleCustomFieldCount >= 3) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = state.customFieldTitle3,
+                    onValueChange = callbacks.onCustomFieldTitle3Change,
+                    label = { Text("Field 3 title (optional)") },
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(onClick = { callbacks.onRequestRemoveCustomField(3) }) {
+                    Text("Remove")
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
