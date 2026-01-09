@@ -13,7 +13,10 @@ data class CategoryUi(
     val id: Long,
     val name: String,
     val colorHex: String,
-    val description: String
+    val description: String,
+    val customFieldTitle1: String? = null,
+    val customFieldTitle2: String? = null,
+    val customFieldTitle3: String? = null
 )
 
 data class CategoryListUiState(
@@ -153,6 +156,9 @@ private fun Category.toUi(): CategoryUi {
         id = this.id.toLong(),
         name = this.name,
         colorHex = this.colorHex,
-        description = this.description ?: ""
+        description = this.description ?: "",
+        customFieldTitle1 = this.customFieldTitle1,
+        customFieldTitle2 = this.customFieldTitle2,
+        customFieldTitle3 = this.customFieldTitle3
     )
 }

@@ -20,7 +20,11 @@ data class Category(
     val id: Long,
     val name: String,
     val colorHex: String,
-    val description: String? = null
+    val description: String? = null,
+    val customFieldTitle1: String? = null,
+    val customFieldTitle2: String? = null,
+    val customFieldTitle3: String? = null
+
 )
 
 /**
@@ -50,7 +54,10 @@ data class Invoice(
     val paymentDate: LocalDate? = null,
     val consumptionValue: Double? = null,
     val consumptionUnit: String? = null, // e.g. "kWh", "m³"
-    val notes: String? = null
+    val notes: String? = null,
+    val customFieldValue1: String? = null,
+    val customFieldValue2: String? = null,
+    val customFieldValue3: String? = null
 )
 
 /**
