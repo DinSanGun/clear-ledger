@@ -61,34 +61,8 @@ fun CategoryForm(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Color + preview (center vertically so the circle isn't "floating")
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = state.colorHex,
-                onValueChange = callbacks.onColorHexChange,
-                label = { Text("Color hex (#RRGGBB, optional)") },
-                placeholder = { Text("#FF9800") },
-                isError = state.colorError != null,
-                supportingText = if (state.colorError != null) {
-                    { Text(state.colorError) }
-                } else {
-                    null
-                },
-                modifier = Modifier.weight(1f)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            CategoryColorPreview(
-                colorHex = state.colorHex,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-
-        Text(text = "Quick color presets")
+        // Color selection
+        Text(text = "Color")
 
         CategoryColorOptionsRow(
             selectedColorHex = state.colorHex,

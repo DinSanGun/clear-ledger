@@ -75,6 +75,12 @@ fun CategoryColorOptionsRow(
     modifier: Modifier = Modifier
 ) {
     var showMoreColors by remember { mutableStateOf(false) }
+    
+    // Check if selected color is from extended palette (not in preset colors)
+    val isExtendedPaletteSelected = selectedColorHex.isNotBlank() && 
+        !presetCategoryColors.any { it.hex.equals(selectedColorHex, ignoreCase = true) } &&
+        extendedCategoryColorHexes.any { it.equals(selectedColorHex, ignoreCase = true) }
+    
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -89,7 +95,7 @@ fun CategoryColorOptionsRow(
                     .clip(CircleShape)
                     .background(preset.color)
                     .border(
-                        width = if (isSelected) 3.dp else 1.dp,
+                        width = if (isSelected) 5.dp else 1.dp,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                         shape = CircleShape
                     )
@@ -103,8 +109,8 @@ fun CategoryColorOptionsRow(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline,
+                    width = if (isExtendedPaletteSelected) 5.dp else 1.dp,
+                    color = if (isExtendedPaletteSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                     shape = CircleShape
                 )
                 .clickable { showMoreColors = true }
@@ -139,7 +145,7 @@ fun CategoryColorOptionsRow(
                                     .clip(CircleShape)
                                     .background(color)
                                     .border(
-                                        width = if (isSelected) 3.dp else 1.dp,
+                                        width = if (isSelected) 5.dp else 1.dp,
                                         color = if (isSelected) {
                                             MaterialTheme.colorScheme.primary
                                         } else {

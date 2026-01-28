@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,6 +127,7 @@ fun AddCategoryScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Add category") },
+                colors = categoryTopAppBarColors(colorHex.takeIf { it.isNotBlank() }),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

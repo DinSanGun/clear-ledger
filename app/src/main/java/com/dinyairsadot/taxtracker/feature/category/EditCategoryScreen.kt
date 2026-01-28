@@ -143,7 +143,7 @@ fun EditCategoryScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Edit category") },
-                colors = categoryTopAppBarColors(categoryColorHex),
+                colors = categoryTopAppBarColors(colorHex.takeIf { it.isNotBlank() }),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
