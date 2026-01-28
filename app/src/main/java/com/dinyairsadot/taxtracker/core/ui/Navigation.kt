@@ -47,6 +47,11 @@ import com.dinyairsadot.taxtracker.feature.invoice.EditInvoiceScreen
 import com.dinyairsadot.taxtracker.feature.invoice.InvoiceListUiState
 import com.dinyairsadot.taxtracker.feature.invoice.InvoiceUi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
+import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
+import com.dinyairsadot.taxtracker.feature.category.CategoryListViewModelFactory
+import com.dinyairsadot.taxtracker.feature.invoice.InvoiceListViewModelFactory
 
 
 
@@ -82,6 +87,8 @@ sealed class Screen(val route: String) {
 @Composable
 fun TaxTrackerNavHost(
     navController: NavHostController,
+    categoryRepository: CategoryRepository,
+    invoiceRepository: InvoiceRepository,
     modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier
 ) {
     NavHost(
@@ -93,7 +100,10 @@ fun TaxTrackerNavHost(
         // Category list screen
         // -------------------------
         composable(Screen.CategoryList.route) { backStackEntry ->
-            val viewModel: CategoryListViewModel = viewModel(backStackEntry)
+            val viewModel: CategoryListViewModel = viewModel(
+                backStackEntry,
+                factory = CategoryListViewModelFactory(categoryRepository, invoiceRepository)
+            )
 
             // Read "category_added" flag from saved state (for snackbar)
             val categoryAdded =
@@ -122,7 +132,10 @@ fun TaxTrackerNavHost(
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Screen.CategoryList.route)
             }
-            val viewModel: CategoryListViewModel = viewModel(parentEntry)
+            val viewModel: CategoryListViewModel = viewModel(
+                parentEntry,
+                factory = CategoryListViewModelFactory(categoryRepository, invoiceRepository)
+            )
 
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -166,7 +179,10 @@ fun TaxTrackerNavHost(
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Screen.CategoryList.route)
             }
-            val viewModel: CategoryListViewModel = viewModel(parentEntry)
+            val viewModel: CategoryListViewModel = viewModel(
+                parentEntry,
+                factory = CategoryListViewModelFactory(categoryRepository, invoiceRepository)
+            )
 
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -225,7 +241,10 @@ fun TaxTrackerNavHost(
         ) { backStackEntry ->
             val categoryId = backStackEntry.arguments?.getLong("categoryId") ?: return@composable
 
-            val viewModel: InvoiceListViewModel = viewModel(backStackEntry)
+            val viewModel: InvoiceListViewModel = viewModel(
+                backStackEntry,
+                factory = InvoiceListViewModelFactory(invoiceRepository, categoryRepository)
+            )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
             // Load invoices whenever the categoryId changes (or first time we enter)
@@ -268,7 +287,10 @@ fun TaxTrackerNavHost(
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Screen.InvoiceList.route)
             }
-            val viewModel: InvoiceListViewModel = viewModel(parentEntry)
+            val viewModel: InvoiceListViewModel = viewModel(
+                parentEntry,
+                factory = InvoiceListViewModelFactory(invoiceRepository, categoryRepository)
+            )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
             AddInvoiceScreen(
@@ -303,7 +325,10 @@ fun TaxTrackerNavHost(
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Screen.InvoiceList.route)
             }
-            val viewModel: InvoiceListViewModel = viewModel(parentEntry)
+            val viewModel: InvoiceListViewModel = viewModel(
+                parentEntry,
+                factory = InvoiceListViewModelFactory(invoiceRepository, categoryRepository)
+            )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
             val invoice = uiState.invoices.firstOrNull { it.id == invoiceId }
@@ -360,7 +385,10 @@ fun TaxTrackerNavHost(
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(Screen.InvoiceList.route)
             }
-            val viewModel: InvoiceListViewModel = viewModel(parentEntry)
+            val viewModel: InvoiceListViewModel = viewModel(
+                parentEntry,
+                factory = InvoiceListViewModelFactory(invoiceRepository, categoryRepository)
+            )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
             val invoiceUi = uiState.invoices.firstOrNull { it.id == invoiceId }

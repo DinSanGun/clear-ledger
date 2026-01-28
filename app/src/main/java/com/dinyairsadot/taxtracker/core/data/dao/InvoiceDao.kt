@@ -1,0 +1,32 @@
+package com.dinyairsadot.taxtracker.core.data.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import com.dinyairsadot.taxtracker.core.data.entities.InvoiceEntity
+
+@Dao
+interface InvoiceDao {
+    @Query("SELECT * FROM invoices WHERE categoryId = :categoryId ORDER BY dueDateEpochDay DESC, id DESC")
+    suspend fun getByCategoryId(categoryId: Long): List<InvoiceEntity>
+    
+    @Query("SELECT * FROM invoices WHERE id = :id")
+    suspend fun getById(id: Long): InvoiceEntity?
+    
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(invoice: InvoiceEntity): Long
+    
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(invoices: List<InvoiceEntity>)
+    
+    @Update
+    suspend fun update(invoice: InvoiceEntity)
+    
+    @Query("DELETE FROM invoices WHERE id = :id")
+    suspend fun deleteById(id: Long)
+    
+    @Query("DELETE FROM invoices WHERE categoryId = :categoryId")
+    suspend fun deleteByCategoryId(categoryId: Long)
+}

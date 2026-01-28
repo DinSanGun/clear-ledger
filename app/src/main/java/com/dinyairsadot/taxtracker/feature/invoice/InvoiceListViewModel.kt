@@ -13,7 +13,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
-import com.dinyairsadot.taxtracker.feature.category.InMemoryCategoryRepository
+import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
+import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
 
 
 data class InvoiceUi(
@@ -36,8 +37,8 @@ data class InvoiceListUiState(
 )
 
 class InvoiceListViewModel(
-    private val invoiceRepository: InvoiceRepository = InMemoryInvoiceRepository,
-    private val categoryRepository: CategoryRepository = InMemoryCategoryRepository
+    private val invoiceRepository: InvoiceRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InvoiceListUiState(isLoading = true))
@@ -98,10 +99,6 @@ class InvoiceListViewModel(
         customFieldValues: List<String> = emptyList()
     ) {
         viewModelScope.launch {
-            // Compute next id based on current invoices from repository
-            val existing = invoiceRepository.getInvoicesForCategory(categoryId)
-            val nextId = (existing.maxOfOrNull { it.id } ?: 0L) + 1L
-
             val parsedDate = dateText
                 .takeIf { it.isNotBlank() }
                 ?.let { text ->
@@ -116,8 +113,9 @@ class InvoiceListViewModel(
                         }.getOrNull()
                 }
 
+            // Use id=0 to let Room auto-generate the ID
             val newInvoice = Invoice(
-                id = nextId,
+                id = 0,
                 categoryId = categoryId,
                 invoiceNumber = "", // can be expanded later
                 amount = amount,

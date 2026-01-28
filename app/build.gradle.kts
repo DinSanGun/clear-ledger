@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -64,4 +65,12 @@ dependencies {
     
     // --- Material Icons Extended (for calendar icons) ---
     implementation("androidx.compose.material:material-icons-extended")
+    
+    // --- Room Database ---
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+    
+    // --- Gson for type converters ---
+    implementation(libs.gson)
 }

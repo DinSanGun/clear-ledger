@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
-import com.dinyairsadot.taxtracker.feature.invoice.InMemoryInvoiceRepository
+import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
+import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,8 +29,8 @@ data class CategoryListUiState(
 )
 
 class CategoryListViewModel(
-    private val categoryRepository: CategoryRepository = InMemoryCategoryRepository,
-    private val invoiceRepository: InvoiceRepository = InMemoryInvoiceRepository
+    private val categoryRepository: CategoryRepository,
+    private val invoiceRepository: InvoiceRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoryListUiState(isLoading = true))
@@ -78,14 +79,12 @@ class CategoryListViewModel(
     ) {
         viewModelScope.launch {
             try {
-                val current = categoryRepository.getCategories()
-                val nextId = (current.maxOfOrNull { it.id } ?: 0L) + 1L
-
                 // ✅ If color is blank, use a default
                 val safeColorHex = if (colorHex.isBlank()) "#FF9800" else colorHex.trim()
 
+                // Use id=0 to let Room auto-generate the ID
                 val newCategory = Category(
-                    id = nextId,
+                    id = 0,
                     name = name,
                     colorHex = safeColorHex,
                     description = description.ifBlank { null },
