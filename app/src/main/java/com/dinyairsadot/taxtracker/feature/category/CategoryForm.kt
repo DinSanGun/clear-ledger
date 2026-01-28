@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -12,7 +14,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.dinyairsadot.taxtracker.core.domain.Category
 
 data class CategoryFormState(
@@ -101,7 +105,8 @@ fun CategoryForm(
         if (state.customFieldTitles.size < Category.MAX_CUSTOM_FIELDS) {
             OutlinedButton(
                 onClick = callbacks.onAddCustomFieldClick,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(4.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -116,7 +121,11 @@ fun CategoryForm(
 
         Button(
             onClick = callbacks.onSaveClick,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF4CAF50) // Green color
+            )
         ) {
             Text(saveButtonLabel)
         }
