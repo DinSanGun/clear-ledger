@@ -272,6 +272,9 @@ fun TaxTrackerNavHost(
                     viewModel.deleteInvoice(invoiceId = invoiceId, categoryId = categoryId)
                 },
                 categoryColorHex = uiState.categoryColorHex,
+                onSortOptionChange = { sortOption ->
+                    viewModel.setSortOption(sortOption)
+                }
                 )
         }
         // -------------------------

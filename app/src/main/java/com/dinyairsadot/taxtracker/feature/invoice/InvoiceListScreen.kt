@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -33,6 +34,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.contentColorFor
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
@@ -49,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
+import com.dinyairsadot.taxtracker.feature.invoice.SortOption
 
 
 
@@ -62,12 +66,14 @@ fun InvoiceListScreen(
     onAddInvoiceClick: () -> Unit,
     onInvoiceClick: (Long) -> Unit,
     onDeleteInvoice: (Long) -> Unit,
-    categoryColorHex: String?
+    categoryColorHex: String?,
+    onSortOptionChange: (SortOption) -> Unit
     ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var pendingDeleteInvoiceId by remember { mutableStateOf<Long?>(null) }
+    var showSortMenu by remember { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -94,6 +100,49 @@ fun InvoiceListScreen(
                     }
                 },
                 actions = {
+                    // Sort menu
+                    Box {
+                        IconButton(onClick = { showSortMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Sort,
+                                contentDescription = "Sort"
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showSortMenu,
+                            onDismissRequest = { showSortMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Date (newest first)") },
+                                onClick = {
+                                    onSortOptionChange(SortOption.DATE_DESCENDING)
+                                    showSortMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Date (oldest first)") },
+                                onClick = {
+                                    onSortOptionChange(SortOption.DATE_ASCENDING)
+                                    showSortMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Amount (highest first)") },
+                                onClick = {
+                                    onSortOptionChange(SortOption.AMOUNT_DESCENDING)
+                                    showSortMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Amount (lowest first)") },
+                                onClick = {
+                                    onSortOptionChange(SortOption.AMOUNT_ASCENDING)
+                                    showSortMenu = false
+                                }
+                            )
+                        }
+                    }
+                    
                     TextButton(
                         onClick = onEditCategoryClick,
                         colors = ButtonDefaults.textButtonColors(

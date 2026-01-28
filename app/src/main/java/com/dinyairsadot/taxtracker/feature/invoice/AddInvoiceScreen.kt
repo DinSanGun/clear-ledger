@@ -278,7 +278,7 @@ fun AddInvoiceScreen(
                                 }
                             }
                         },
-                    label = { Text("Date (DD/MM/YYYY)") },
+                    label = { Text("Due date (DD/MM/YYYY)") },
                     isError = dateError != null,
                     supportingText = dateError?.let { msg -> { Text(msg) } }
                 )
@@ -647,7 +647,7 @@ fun EditInvoiceScreen(
                                 }
                             }
                         },
-                    label = { Text("Date (DD/MM/YYYY)") },
+                    label = { Text("Due date (DD/MM/YYYY)") },
                     isError = dateError != null,
                     supportingText = dateError?.let { msg -> { Text(msg) } }
                 )

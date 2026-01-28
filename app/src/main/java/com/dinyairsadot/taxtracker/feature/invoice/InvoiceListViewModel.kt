@@ -17,12 +17,20 @@ import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
 
 
+enum class SortOption {
+    DATE_DESCENDING,
+    DATE_ASCENDING,
+    AMOUNT_DESCENDING,
+    AMOUNT_ASCENDING
+}
+
 data class InvoiceUi(
     val id: Long,
     val invoiceNumber: String,
     val amount: Double,
     val paymentStatus: PaymentStatus,
     val dueDateText: String?,
+    val dueDate: LocalDate? = null, // Add for sorting
     val notes: String?,
     val customFieldValues: List<String> = emptyList()
 )
@@ -33,7 +41,8 @@ data class InvoiceListUiState(
     val categoryColorHex: String? = null,
     val categoryCustomFieldTitles: List<String> = emptyList(),
     val invoices: List<InvoiceUi> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val sortOption: SortOption = SortOption.DATE_DESCENDING
 )
 
 class InvoiceListViewModel(
@@ -75,9 +84,10 @@ class InvoiceListViewModel(
         viewModelScope.launch {
             try {
                 val invoices = invoiceRepository.getInvoicesForCategory(categoryId)
+                val sortedInvoices = sortInvoices(invoices.map { it.toUi() }, _uiState.value.sortOption)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    invoices = invoices.map { it.toUi() },
+                    invoices = sortedInvoices,
                     errorMessage = null
                 )
             } catch (_: Exception) {
@@ -87,6 +97,36 @@ class InvoiceListViewModel(
                     errorMessage = "Failed to load invoices"
                 )
             }
+        }
+    }
+    
+    fun setSortOption(sortOption: SortOption) {
+        val currentInvoices = _uiState.value.invoices
+        val sortedInvoices = sortInvoices(currentInvoices, sortOption)
+        _uiState.value = _uiState.value.copy(
+            sortOption = sortOption,
+            invoices = sortedInvoices
+        )
+    }
+    
+    private fun sortInvoices(invoices: List<InvoiceUi>, sortOption: SortOption): List<InvoiceUi> {
+        return when (sortOption) {
+            SortOption.DATE_DESCENDING -> invoices.sortedWith(
+                compareByDescending<InvoiceUi> { it.dueDate ?: LocalDate.MIN }
+                    .thenByDescending { it.id }
+            )
+            SortOption.DATE_ASCENDING -> invoices.sortedWith(
+                compareBy<InvoiceUi> { it.dueDate ?: LocalDate.MAX }
+                    .thenBy { it.id }
+            )
+            SortOption.AMOUNT_DESCENDING -> invoices.sortedWith(
+                compareByDescending<InvoiceUi> { it.amount }
+                    .thenByDescending { it.id }
+            )
+            SortOption.AMOUNT_ASCENDING -> invoices.sortedWith(
+                compareBy<InvoiceUi> { it.amount }
+                    .thenBy { it.id }
+            )
         }
     }
 
@@ -197,6 +237,7 @@ private fun Invoice.toUi(): InvoiceUi {
         amount = this.amount,
         paymentStatus = this.paymentStatus,
         dueDateText = this.dueDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+        dueDate = this.dueDate, // Include for sorting
         notes = this.notes,
         customFieldValues = this.customFieldValues
     )
