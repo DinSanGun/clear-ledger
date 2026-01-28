@@ -1,7 +1,11 @@
 package com.dinyairsadot.taxtracker.feature.category
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -102,12 +106,6 @@ fun CategoryForm(
         // Custom fields (titles only; up to 10)
         Text(text = "Custom fields (up to ${Category.MAX_CUSTOM_FIELDS})")
 
-        if (state.customFieldTitles.size < Category.MAX_CUSTOM_FIELDS) {
-            TextButton(onClick = callbacks.onAddCustomFieldClick) {
-                Text("Add custom field")
-            }
-        }
-
         // Render all custom fields dynamically
         state.customFieldTitles.forEachIndexed { index, title ->
             Row(
@@ -124,6 +122,21 @@ fun CategoryForm(
                 TextButton(onClick = { callbacks.onRequestRemoveCustomField(index) }) {
                     Text("Remove")
                 }
+            }
+        }
+
+        // Add custom field button (below existing fields)
+        if (state.customFieldTitles.size < Category.MAX_CUSTOM_FIELDS) {
+            OutlinedButton(
+                onClick = callbacks.onAddCustomFieldClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text("Add custom field")
             }
         }
 
