@@ -78,8 +78,6 @@ fun CategoryForm(
         )
 
         // Custom fields (titles only; up to 10)
-        Text(text = "Custom fields (up to ${Category.MAX_CUSTOM_FIELDS})")
-
         // Render all custom fields dynamically
         state.customFieldTitles.forEachIndexed { index, title ->
             Row(

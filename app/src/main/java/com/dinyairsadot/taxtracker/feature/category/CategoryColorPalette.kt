@@ -6,7 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -82,16 +84,16 @@ fun CategoryColorOptionsRow(
         extendedCategoryColorHexes.any { it.equals(selectedColorHex, ignoreCase = true) }
     
     Row(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-
         presetCategoryColors.forEach { preset ->
             val isSelected = selectedColorHex.equals(preset.hex, ignoreCase = true)
 
             Box(
                 modifier = Modifier
-                    .size(32.dp)
+                    .weight(1f)
+                    .aspectRatio(1f)
                     .clip(CircleShape)
                     .background(preset.color)
                     .border(
@@ -105,7 +107,8 @@ fun CategoryColorOptionsRow(
         // Extra circle to open extended palette
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .weight(1f)
+                .aspectRatio(1f)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(
