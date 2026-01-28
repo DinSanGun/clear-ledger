@@ -61,4 +61,7 @@ dependencies {
     // --- Navigation for Compose ---
     implementation("androidx.navigation:navigation-compose:2.9.6")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
+    
+    // --- Material Icons Extended (for calendar icons) ---
+    implementation("androidx.compose.material:material-icons-extended")
 }

@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.feature.category.InMemoryCategoryRepository
 
@@ -102,7 +104,17 @@ class InvoiceListViewModel(
 
             val parsedDate = dateText
                 .takeIf { it.isNotBlank() }
-                ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                ?.let { text ->
+                    val trimmed = text.trim()
+                    runCatching {
+                        // Try DD/MM/YYYY format
+                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    }.getOrNull()
+                        ?: runCatching {
+                            // Fallback to YYYY-MM-DD format (for backward compatibility)
+                            LocalDate.parse(trimmed)
+                        }.getOrNull()
+                }
 
             val newInvoice = Invoice(
                 id = nextId,
@@ -140,7 +152,17 @@ class InvoiceListViewModel(
 
             val parsedDate = dateText
                 .takeIf { it.isNotBlank() }
-                ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                ?.let { text ->
+                    val trimmed = text.trim()
+                    runCatching {
+                        // Try DD/MM/YYYY format
+                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    }.getOrNull()
+                        ?: runCatching {
+                            // Fallback to YYYY-MM-DD format (for backward compatibility)
+                            LocalDate.parse(trimmed)
+                        }.getOrNull()
+                }
 
             val updated = existing.copy(
                 amount = amount,
@@ -176,7 +198,7 @@ private fun Invoice.toUi(): InvoiceUi {
         invoiceNumber = this.invoiceNumber,
         amount = this.amount,
         paymentStatus = this.paymentStatus,
-        dueDateText = this.dueDate?.toString(), // later we can pretty-format
+        dueDateText = this.dueDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
         notes = this.notes,
         customFieldValues = this.customFieldValues
     )

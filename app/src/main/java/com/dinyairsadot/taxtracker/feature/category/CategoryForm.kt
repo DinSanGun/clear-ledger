@@ -3,12 +3,14 @@ package com.dinyairsadot.taxtracker.feature.category
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -66,7 +68,7 @@ fun CategoryForm(
         )
 
         // Color selection
-        Text(text = "Color")
+        Text(text = "Theme color")
 
         CategoryColorOptionsRow(
             selectedColorHex = state.colorHex,
@@ -92,11 +94,14 @@ fun CategoryForm(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { callbacks.onCustomFieldTitleChange(index, it) },
-                    label = { Text("Field ${index + 1} title (optional)") },
+                    label = { Text("Field ${index + 1} title") },
                     modifier = Modifier.weight(1f)
                 )
-                TextButton(onClick = { callbacks.onRequestRemoveCustomField(index) }) {
-                    Text("Remove")
+                IconButton(onClick = { callbacks.onRequestRemoveCustomField(index) }) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Remove field"
+                    )
                 }
             }
         }
