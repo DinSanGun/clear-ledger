@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.dinyairsadot.taxtracker.core.domain.Category
 
 data class CategoryFormState(
     val name: String = "",
@@ -16,10 +17,7 @@ data class CategoryFormState(
     val colorHex: String = "",
     val colorError: String? = null,
     val description: String = "",
-    val visibleCustomFieldCount: Int = 0,
-    val customFieldTitle1: String = "",
-    val customFieldTitle2: String = "",
-    val customFieldTitle3: String = ""
+    val customFieldTitles: List<String> = emptyList() // List of custom field titles (up to 10)
 )
 
 data class CategoryFormCallbacks(
@@ -27,9 +25,7 @@ data class CategoryFormCallbacks(
     val onColorHexChange: (String) -> Unit,
     val onDescriptionChange: (String) -> Unit,
     val onSaveClick: () -> Unit,
-    val onCustomFieldTitle1Change: (String) -> Unit,
-    val onCustomFieldTitle2Change: (String) -> Unit,
-    val onCustomFieldTitle3Change: (String) -> Unit,
+    val onCustomFieldTitleChange: (index: Int, value: String) -> Unit,
     val onAddCustomFieldClick: () -> Unit,
     val onRequestRemoveCustomField: (index: Int) -> Unit
 )
@@ -103,64 +99,29 @@ fun CategoryForm(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Custom fields (titles only; up to 3)
-        Text(text = "Custom fields (up to 3)")
+        // Custom fields (titles only; up to 10)
+        Text(text = "Custom fields (up to ${Category.MAX_CUSTOM_FIELDS})")
 
-        if (state.visibleCustomFieldCount < 3) {
+        if (state.customFieldTitles.size < Category.MAX_CUSTOM_FIELDS) {
             TextButton(onClick = callbacks.onAddCustomFieldClick) {
                 Text("Add custom field")
             }
         }
 
-        if (state.visibleCustomFieldCount >= 1) {
+        // Render all custom fields dynamically
+        state.customFieldTitles.forEachIndexed { index, title ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = state.customFieldTitle1,
-                    onValueChange = callbacks.onCustomFieldTitle1Change,
-                    label = { Text("Field 1 title (optional)") },
+                    value = title,
+                    onValueChange = { callbacks.onCustomFieldTitleChange(index, it) },
+                    label = { Text("Field ${index + 1} title (optional)") },
                     modifier = Modifier.weight(1f)
                 )
-                TextButton(onClick = { callbacks.onRequestRemoveCustomField(1) }) {
-                    Text("Remove")
-                }
-            }
-        }
-
-        if (state.visibleCustomFieldCount >= 2) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = state.customFieldTitle2,
-                    onValueChange = callbacks.onCustomFieldTitle2Change,
-                    label = { Text("Field 2 title (optional)") },
-                    modifier = Modifier.weight(1f)
-                )
-                TextButton(onClick = { callbacks.onRequestRemoveCustomField(2) }) {
-                    Text("Remove")
-                }
-            }
-        }
-
-        if (state.visibleCustomFieldCount >= 3) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = state.customFieldTitle3,
-                    onValueChange = callbacks.onCustomFieldTitle3Change,
-                    label = { Text("Field 3 title (optional)") },
-                    modifier = Modifier.weight(1f)
-                )
-                TextButton(onClick = { callbacks.onRequestRemoveCustomField(3) }) {
+                TextButton(onClick = { callbacks.onRequestRemoveCustomField(index) }) {
                     Text("Remove")
                 }
             }

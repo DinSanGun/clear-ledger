@@ -3,6 +3,8 @@ package com.dinyairsadot.taxtracker.core.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -132,8 +134,8 @@ fun TaxTrackerNavHost(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onSaveCategory = { name, colorHex, description, t1, t2, t3 ->
-                    viewModel.addCategory(name, colorHex, description, t1, t2, t3)
+                onSaveCategory = { name, colorHex, description, customFieldTitles ->
+                    viewModel.addCategory(name, colorHex, description, customFieldTitles)
                 },
                 existingNamesLower = existingNamesLower,
                 onCategorySaved = {
@@ -168,8 +170,8 @@ fun TaxTrackerNavHost(
 
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            val category = uiState.categories.firstOrNull { it.id == categoryId }
-            if (category == null) {
+            val categoryUi = uiState.categories.firstOrNull { it.id == categoryId }
+            if (categoryUi == null) {
                 // If category is missing (e.g. deleted), go back
                 navController.popBackStack()
                 return@composable
@@ -180,29 +182,38 @@ fun TaxTrackerNavHost(
                 .map { it.name.trim().lowercase() }
                 .toSet()
 
+            // Get the full category from repository to access all custom fields
+            var fullCategory by remember { mutableStateOf<com.dinyairsadot.taxtracker.core.domain.Category?>(null) }
+            LaunchedEffect(categoryId) {
+                fullCategory = viewModel.getCategoryById(categoryId)
+            }
+
+            if (fullCategory == null) {
+                // Loading or category not found
+                return@composable
+            }
+
             EditCategoryScreen(
-                initialName = category.name,
-                initialColorHex = category.colorHex,
-                initialDescription = category.description,
-                categoryColorHex = category.colorHex,
-                initialCustomFieldTitle1 = category.customFieldTitle1,
-                initialCustomFieldTitle2 = category.customFieldTitle2,
-                initialCustomFieldTitle3 = category.customFieldTitle3,
+                categoryId = categoryUi.id,
+                initialName = categoryUi.name,
+                initialColorHex = categoryUi.colorHex,
+                initialDescription = categoryUi.description,
+                categoryColorHex = categoryUi.colorHex,
+                initialCustomFieldTitles = fullCategory!!.customFieldTitles,
                 otherNamesLower = otherNamesLower,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onSaveCategory = { name, colorHex, description, t1, t2, t3 ->
+                onSaveCategory = { name, colorHex, description, customFieldTitles ->
                     viewModel.updateCategory(
-                        id = category.id,
+                        id = categoryUi.id,
                         name = name,
                         colorHex = colorHex,
                         description = description,
-                        customFieldTitle1 = t1,
-                        customFieldTitle2 = t2,
-                        customFieldTitle3 = t3
+                        customFieldTitles = customFieldTitles
                     )
-                }
+                },
+                viewModel = viewModel
                 )
         }
         // -------------------------

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
+import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
+import com.dinyairsadot.taxtracker.feature.invoice.InMemoryInvoiceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +28,8 @@ data class CategoryListUiState(
 )
 
 class CategoryListViewModel(
-    private val categoryRepository: CategoryRepository = InMemoryCategoryRepository
+    private val categoryRepository: CategoryRepository = InMemoryCategoryRepository,
+    private val invoiceRepository: InvoiceRepository = InMemoryInvoiceRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoryListUiState(isLoading = true))
@@ -71,9 +74,7 @@ class CategoryListViewModel(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitle1: String?,
-        customFieldTitle2: String?,
-        customFieldTitle3: String?
+        customFieldTitles: List<String>
     ) {
         viewModelScope.launch {
             try {
@@ -88,9 +89,7 @@ class CategoryListViewModel(
                     name = name,
                     colorHex = safeColorHex,
                     description = description.ifBlank { null },
-                    customFieldTitle1 = customFieldTitle1,
-                    customFieldTitle2 = customFieldTitle2,
-                    customFieldTitle3 = customFieldTitle3
+                    customFieldTitles = customFieldTitles
                 )
 
                 categoryRepository.addCategory(newCategory)
@@ -131,9 +130,7 @@ class CategoryListViewModel(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitle1: String?,
-        customFieldTitle2: String?,
-        customFieldTitle3: String?
+        customFieldTitles: List<String>
     ) {
         viewModelScope.launch {
             try {
@@ -145,9 +142,7 @@ class CategoryListViewModel(
                     name = name.trim(),
                     colorHex = safeColorHex,
                     description = description.trim().ifBlank { null },
-                    customFieldTitle1 = customFieldTitle1,
-                    customFieldTitle2 = customFieldTitle2,
-                    customFieldTitle3 = customFieldTitle3
+                    customFieldTitles = customFieldTitles
                 )
 
                 categoryRepository.updateCategory(updatedCategory)
@@ -164,6 +159,24 @@ class CategoryListViewModel(
             }
         }
     }
+
+    /**
+     * Checks if any invoices for the given category have data in the specified custom field index.
+     * Returns true if at least one invoice has a non-blank value at that index.
+     */
+    suspend fun hasInvoicesWithFieldData(categoryId: Long, fieldIndex: Int): Boolean {
+        val invoices = invoiceRepository.getInvoicesForCategory(categoryId)
+        return invoices.any { invoice ->
+            invoice.customFieldValues.getOrNull(fieldIndex)?.isNotBlank() == true
+        }
+    }
+
+    /**
+     * Gets a category by ID from the repository.
+     */
+    suspend fun getCategoryById(id: Long): Category? {
+        return categoryRepository.getCategories().firstOrNull { it.id == id }
+    }
 }
 
 // Mapping from domain model to UI model
@@ -173,8 +186,8 @@ private fun Category.toUi(): CategoryUi {
         name = this.name,
         colorHex = this.colorHex,
         description = this.description ?: "",
-        customFieldTitle1 = this.customFieldTitle1,
-        customFieldTitle2 = this.customFieldTitle2,
-        customFieldTitle3 = this.customFieldTitle3
+        customFieldTitle1 = this.customFieldTitles.getOrNull(0),
+        customFieldTitle2 = this.customFieldTitles.getOrNull(1),
+        customFieldTitle3 = this.customFieldTitles.getOrNull(2)
     )
 }

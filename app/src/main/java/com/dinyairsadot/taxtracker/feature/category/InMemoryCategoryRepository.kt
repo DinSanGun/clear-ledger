@@ -11,19 +11,22 @@ object InMemoryCategoryRepository : CategoryRepository {
             id = 1,
             name = "Electricity",
             colorHex = "#FF9800",
-            description = "Electricity provider bills"
+            description = "Electricity provider bills",
+            customFieldTitles = emptyList()
         ),
         Category(
             id = 2,
             name = "Water",
             colorHex = "#2196F3",
-            description = "Water and sewage"
+            description = "Water and sewage",
+            customFieldTitles = emptyList()
         ),
         Category(
             id = 3,
             name = "City Taxes",
             colorHex = "#4CAF50",
-            description = "Arnona / city hall payments"
+            description = "Arnona / city hall payments",
+            customFieldTitles = emptyList()
         )
     )
 

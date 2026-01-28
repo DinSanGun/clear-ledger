@@ -19,66 +19,54 @@ import androidx.compose.ui.Modifier
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dinyairsadot.taxtracker.feature.category.CategoryListViewModel
 
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCategoryScreen(
+    categoryId: Long,
     initialName: String,
     initialColorHex: String,
     categoryColorHex: String?,
     initialDescription: String?,
-    initialCustomFieldTitle1: String?,
-    initialCustomFieldTitle2: String?,
-    initialCustomFieldTitle3: String?,
+    initialCustomFieldTitles: List<String>,
     otherNamesLower: Set<String>,
     onNavigateBack: () -> Unit,
     onSaveCategory: (
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitle1: String?,
-        customFieldTitle2: String?,
-        customFieldTitle3: String?
+        customFieldTitles: List<String>
     ) -> Unit,
+    viewModel: CategoryListViewModel
 ) {
     var name by rememberSaveable { mutableStateOf(initialName) }
     var colorHex by rememberSaveable { mutableStateOf(initialColorHex) }
     var description by rememberSaveable { mutableStateOf(initialDescription.orEmpty()) }
 
-    var customFieldTitle1 by rememberSaveable { mutableStateOf(initialCustomFieldTitle1.orEmpty()) }
-    var customFieldTitle2 by rememberSaveable { mutableStateOf(initialCustomFieldTitle2.orEmpty()) }
-    var customFieldTitle3 by rememberSaveable { mutableStateOf(initialCustomFieldTitle3.orEmpty()) }
-
-    var visibleCustomFieldCount by rememberSaveable {
-        mutableStateOf(
-            listOf(customFieldTitle1, customFieldTitle2, customFieldTitle3)
-                .count { it.isNotBlank() }
-        )
-    }
-
+    var customFieldTitles by rememberSaveable { mutableStateOf(initialCustomFieldTitles) }
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var hasFieldData by rememberSaveable { mutableStateOf(false) }
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var colorError by remember { mutableStateOf<String?>(null) }
 
-    fun removeCustomFieldAt(index: Int) {
-        when (index) {
-            1 -> {
-                customFieldTitle1 = customFieldTitle2
-                customFieldTitle2 = customFieldTitle3
-                customFieldTitle3 = ""
-            }
-            2 -> {
-                customFieldTitle2 = customFieldTitle3
-                customFieldTitle3 = ""
-            }
-            3 -> {
-                customFieldTitle3 = ""
-            }
+    // Check if invoices have data in the field when removal is requested
+    LaunchedEffect(pendingRemoveFieldIndex) {
+        if (pendingRemoveFieldIndex != null) {
+            hasFieldData = viewModel.hasInvoicesWithFieldData(categoryId, pendingRemoveFieldIndex!!)
         }
-        visibleCustomFieldCount = (visibleCustomFieldCount - 1).coerceAtLeast(0)
+    }
+
+    fun removeCustomFieldAt(index: Int) {
+        val newList = customFieldTitles.toMutableList()
+        newList.removeAt(index)
+        customFieldTitles = newList
     }
 
     fun onSaveClicked() {
@@ -101,13 +89,12 @@ fun EditCategoryScreen(
         }
 
         if (!hasError) {
+            val trimmedTitles = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
             onSaveCategory(
                 name.trim(),
                 colorHex.trim(),
                 description.trim(),
-                customFieldTitle1.trim().ifBlank { null },
-                customFieldTitle2.trim().ifBlank { null },
-                customFieldTitle3.trim().ifBlank { null }
+                trimmedTitles
             )
             onNavigateBack()
         }
@@ -119,10 +106,7 @@ fun EditCategoryScreen(
         colorHex = colorHex,
         colorError = colorError,
         description = description,
-        visibleCustomFieldCount = visibleCustomFieldCount,
-        customFieldTitle1 = customFieldTitle1,
-        customFieldTitle2 = customFieldTitle2,
-        customFieldTitle3 = customFieldTitle3
+        customFieldTitles = customFieldTitles
     )
 
     val formCallbacks = CategoryFormCallbacks(
@@ -138,11 +122,17 @@ fun EditCategoryScreen(
             description = newDesc
         },
         onSaveClick = { onSaveClicked() },
-        onCustomFieldTitle1Change = { customFieldTitle1 = it },
-        onCustomFieldTitle2Change = { customFieldTitle2 = it },
-        onCustomFieldTitle3Change = { customFieldTitle3 = it },
+        onCustomFieldTitleChange = { index, value ->
+            val newList = customFieldTitles.toMutableList()
+            if (index < newList.size) {
+                newList[index] = value
+            } else {
+                newList.add(value)
+            }
+            customFieldTitles = newList
+        },
         onAddCustomFieldClick = {
-            visibleCustomFieldCount = (visibleCustomFieldCount + 1).coerceAtMost(3)
+            customFieldTitles = customFieldTitles + ""
         },
         onRequestRemoveCustomField = { index ->
             pendingRemoveFieldIndex = index
@@ -166,18 +156,27 @@ fun EditCategoryScreen(
         }
     ) { innerPadding ->
         if (pendingRemoveFieldIndex != null) {
+            val fieldIndex = pendingRemoveFieldIndex!!
+            val fieldTitle = customFieldTitles.getOrNull(fieldIndex)?.takeIf { it.isNotBlank() }
+                ?: "Field ${fieldIndex + 1}"
+            
+            val warningText = if (hasFieldData) {
+                "Removing \"$fieldTitle\" will delete information stored in invoices for this field. " +
+                        "Are you sure you want to remove it?"
+            } else {
+                "Removing \"$fieldTitle\" will delete any information stored in invoices for this field. " +
+                        "Are you sure you want to remove it?"
+            }
+            
             AlertDialog(
                 onDismissRequest = { pendingRemoveFieldIndex = null },
                 title = { Text("Remove custom field?") },
                 text = {
-                    Text(
-                        "Removing a custom field may delete information stored in invoices for this category. " +
-                                "Are you sure you want to remove it?"
-                    )
+                    Text(warningText)
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        removeCustomFieldAt(pendingRemoveFieldIndex!!)
+                        removeCustomFieldAt(fieldIndex)
                         pendingRemoveFieldIndex = null
                     }) {
                         Text("Remove")

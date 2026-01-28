@@ -29,9 +29,7 @@ fun AddCategoryScreen(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitle1: String?,
-        customFieldTitle2: String?,
-        customFieldTitle3: String?
+        customFieldTitles: List<String>
     ) -> Unit,
     existingNamesLower: Set<String>,
     onCategorySaved: () -> Unit
@@ -40,31 +38,16 @@ fun AddCategoryScreen(
     var colorHex by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
 
-    var visibleCustomFieldCount by rememberSaveable { mutableStateOf(0) }
-    var customFieldTitle1 by rememberSaveable { mutableStateOf("") }
-    var customFieldTitle2 by rememberSaveable { mutableStateOf("") }
-    var customFieldTitle3 by rememberSaveable { mutableStateOf("") }
+    var customFieldTitles by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var colorError by remember { mutableStateOf<String?>(null) }
 
     fun removeCustomFieldAt(index: Int) {
-        when (index) {
-            1 -> {
-                customFieldTitle1 = customFieldTitle2
-                customFieldTitle2 = customFieldTitle3
-                customFieldTitle3 = ""
-            }
-            2 -> {
-                customFieldTitle2 = customFieldTitle3
-                customFieldTitle3 = ""
-            }
-            3 -> {
-                customFieldTitle3 = ""
-            }
-        }
-        visibleCustomFieldCount = (visibleCustomFieldCount - 1).coerceAtLeast(0)
+        val newList = customFieldTitles.toMutableList()
+        newList.removeAt(index)
+        customFieldTitles = newList
     }
 
     fun onSaveClicked() {
@@ -87,13 +70,12 @@ fun AddCategoryScreen(
         }
 
         if (!hasError) {
+            val trimmedTitles = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
             onSaveCategory(
                 name.trim(),
                 colorHex.trim(),
                 description.trim(),
-                customFieldTitle1.trim().ifBlank { null },
-                customFieldTitle2.trim().ifBlank { null },
-                customFieldTitle3.trim().ifBlank { null }
+                trimmedTitles
             )
 
             onCategorySaved()
@@ -107,10 +89,7 @@ fun AddCategoryScreen(
         colorHex = colorHex,
         colorError = colorError,
         description = description,
-        visibleCustomFieldCount = visibleCustomFieldCount,
-        customFieldTitle1 = customFieldTitle1,
-        customFieldTitle2 = customFieldTitle2,
-        customFieldTitle3 = customFieldTitle3
+        customFieldTitles = customFieldTitles
     )
 
     val formCallbacks = CategoryFormCallbacks(
@@ -126,16 +105,22 @@ fun AddCategoryScreen(
             description = newDesc
         },
         onSaveClick = { onSaveClicked() },
-        onCustomFieldTitle1Change = { customFieldTitle1 = it },
-        onCustomFieldTitle2Change = { customFieldTitle2 = it },
-        onCustomFieldTitle3Change = { customFieldTitle3 = it },
+        onCustomFieldTitleChange = { index, value ->
+            val newList = customFieldTitles.toMutableList()
+            if (index < newList.size) {
+                newList[index] = value
+            } else {
+                newList.add(value)
+            }
+            customFieldTitles = newList
+        },
         onAddCustomFieldClick = {
-            visibleCustomFieldCount = (visibleCustomFieldCount + 1).coerceAtMost(3)
+            customFieldTitles = customFieldTitles + ""
         },
         onRequestRemoveCustomField = { index ->
             pendingRemoveFieldIndex = index
         }
-        )
+    )
 
     Scaffold(
         topBar = {
@@ -153,18 +138,22 @@ fun AddCategoryScreen(
         }
     ) { innerPadding ->
         if (pendingRemoveFieldIndex != null) {
+            val fieldIndex = pendingRemoveFieldIndex!!
+            val fieldTitle = customFieldTitles.getOrNull(fieldIndex)?.takeIf { it.isNotBlank() }
+                ?: "Field ${fieldIndex + 1}"
+            
             AlertDialog(
                 onDismissRequest = { pendingRemoveFieldIndex = null },
                 title = { Text("Remove custom field?") },
                 text = {
                     Text(
-                        "Removing a custom field may delete information stored in invoices for this category. " +
+                        "Removing \"$fieldTitle\" will delete any information stored in invoices for this field. " +
                                 "Are you sure you want to remove it?"
                     )
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        removeCustomFieldAt(pendingRemoveFieldIndex!!)
+                        removeCustomFieldAt(fieldIndex)
                         pendingRemoveFieldIndex = null
                     }) {
                         Text("Remove")

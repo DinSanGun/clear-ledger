@@ -20,7 +20,8 @@ object InMemoryInvoiceRepository : InvoiceRepository {
             paymentDate = LocalDate.now().minusDays(5),
             consumptionValue = 120.0,
             consumptionUnit = "kWh",
-            notes = "Sample paid electricity invoice"
+            notes = "Sample paid electricity invoice",
+            customFieldValues = emptyList()
         ),
         Invoice(
             id = 2L,
@@ -32,7 +33,8 @@ object InMemoryInvoiceRepository : InvoiceRepository {
             paymentDate = null,
             consumptionValue = 140.0,
             consumptionUnit = "kWh",
-            notes = "Upcoming invoice example"
+            notes = "Upcoming invoice example",
+            customFieldValues = emptyList()
         )
     )
 

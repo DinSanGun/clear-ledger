@@ -21,11 +21,17 @@ data class Category(
     val name: String,
     val colorHex: String,
     val description: String? = null,
-    val customFieldTitle1: String? = null,
-    val customFieldTitle2: String? = null,
-    val customFieldTitle3: String? = null
-
-)
+    val customFieldTitles: List<String> = emptyList() // Up to 10 custom field titles
+) {
+    // Backward compatibility: getters for old field names
+    val customFieldTitle1: String? get() = customFieldTitles.getOrNull(0)
+    val customFieldTitle2: String? get() = customFieldTitles.getOrNull(1)
+    val customFieldTitle3: String? get() = customFieldTitles.getOrNull(2)
+    
+    companion object {
+        const val MAX_CUSTOM_FIELDS = 10
+    }
+}
 
 /**
  * Defines a custom field in a given category's schema.
@@ -55,10 +61,13 @@ data class Invoice(
     val consumptionValue: Double? = null,
     val consumptionUnit: String? = null, // e.g. "kWh", "m³"
     val notes: String? = null,
-    val customFieldValue1: String? = null,
-    val customFieldValue2: String? = null,
-    val customFieldValue3: String? = null
-)
+    val customFieldValues: List<String> = emptyList() // Values for custom fields (up to 10)
+) {
+    // Backward compatibility: getters for old field names
+    val customFieldValue1: String? get() = customFieldValues.getOrNull(0)
+    val customFieldValue2: String? get() = customFieldValues.getOrNull(1)
+    val customFieldValue3: String? get() = customFieldValues.getOrNull(2)
+}
 
 /**
  * Stores the value of a custom field for a specific invoice.
