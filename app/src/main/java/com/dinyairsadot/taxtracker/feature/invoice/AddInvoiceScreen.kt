@@ -36,18 +36,23 @@ import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 fun AddInvoiceScreen(
     categoryId: Long,
     categoryColorHex: String?,
+    categoryCustomFieldTitles: List<String>,
     onNavigateBack: () -> Unit,
     onSaveInvoice: (
         amount: Double,
         dateText: String,
         paymentStatus: PaymentStatus,
-        notes: String
+        notes: String,
+        customFieldValues: List<String>
     ) -> Unit
 ) {
     var amountText by rememberSaveable { mutableStateOf("") }
     var dateText by rememberSaveable { mutableStateOf("") }
     var notes by rememberSaveable { mutableStateOf("") }
     var paymentStatus by rememberSaveable { mutableStateOf(PaymentStatus.NOT_PAID) }
+    var customFieldValues by rememberSaveable {
+        mutableStateOf(List(categoryCustomFieldTitles.size) { "" })
+    }
 
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
     var dateError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -69,7 +74,7 @@ fun AddInvoiceScreen(
             dateError = null
         }
 
-        onSaveInvoice(amount, dateText.trim(), paymentStatus, notes.trim())
+        onSaveInvoice(amount, dateText.trim(), paymentStatus, notes.trim(), customFieldValues)
         onNavigateBack()
     }
 
@@ -143,6 +148,30 @@ fun AddInvoiceScreen(
                 minLines = 3
             )
 
+            // Custom fields
+            if (categoryCustomFieldTitles.isNotEmpty()) {
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+                Text(text = "Custom fields", fontWeight = FontWeight.SemiBold)
+                
+                categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
+                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                    OutlinedTextField(
+                        value = customFieldValues.getOrNull(index) ?: "",
+                        onValueChange = { newValue ->
+                            val newList = customFieldValues.toMutableList()
+                            // Ensure list is large enough
+                            while (newList.size <= index) {
+                                newList.add("")
+                            }
+                            newList[index] = newValue
+                            customFieldValues = newList
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("$fieldTitle (optional)") }
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.padding(top = 16.dp))
 
             Button(
@@ -196,22 +225,33 @@ private fun PaymentStatusSelector(
 fun EditInvoiceScreen(
     invoiceId: Long,
     categoryColorHex: String?,
+    categoryCustomFieldTitles: List<String>,
     initialAmount: String,
     initialDateText: String,
     initialPaymentStatus: PaymentStatus,
     initialNotes: String,
+    initialCustomFieldValues: List<String>,
     onNavigateBack: () -> Unit,
     onSaveInvoice: (
         amount: Double,
         dateText: String,
         paymentStatus: PaymentStatus,
-        notes: String
+        notes: String,
+        customFieldValues: List<String>
     ) -> Unit
 ) {
     var amountText by rememberSaveable { mutableStateOf(initialAmount) }
     var dateText by rememberSaveable { mutableStateOf(initialDateText) }
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
     var paymentStatus by rememberSaveable { mutableStateOf(initialPaymentStatus) }
+    var customFieldValues by rememberSaveable {
+        mutableStateOf(
+            // Ensure we have values for all custom fields, padding with empty strings if needed
+            categoryCustomFieldTitles.mapIndexed { index, _ ->
+                initialCustomFieldValues.getOrNull(index) ?: ""
+            }
+        )
+    }
 
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
     var dateError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -232,7 +272,7 @@ fun EditInvoiceScreen(
             dateError = null
         }
 
-        onSaveInvoice(amount, dateText.trim(), paymentStatus, notes.trim())
+        onSaveInvoice(amount, dateText.trim(), paymentStatus, notes.trim(), customFieldValues)
         onNavigateBack()
     }
 
@@ -305,6 +345,30 @@ fun EditInvoiceScreen(
                 label = { Text("Notes (optional)") },
                 minLines = 3
             )
+
+            // Custom fields
+            if (categoryCustomFieldTitles.isNotEmpty()) {
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+                Text(text = "Custom fields", fontWeight = FontWeight.SemiBold)
+                
+                categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
+                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                    OutlinedTextField(
+                        value = customFieldValues.getOrNull(index) ?: "",
+                        onValueChange = { newValue ->
+                            val newList = customFieldValues.toMutableList()
+                            // Ensure list is large enough
+                            while (newList.size <= index) {
+                                newList.add("")
+                            }
+                            newList[index] = newValue
+                            customFieldValues = newList
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("$fieldTitle (optional)") }
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.padding(top = 16.dp))
 

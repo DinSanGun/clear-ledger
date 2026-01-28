@@ -38,6 +38,7 @@ import androidx.compose.material3.LocalContentColor
 @Composable
 fun InvoiceDetailsScreen(
     invoice: InvoiceUi,
+    categoryCustomFieldTitles: List<String>,
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
     categoryColorHex: String?
@@ -130,6 +131,25 @@ fun InvoiceDetailsScreen(
                             text = notes,
                             style = MaterialTheme.typography.bodyMedium
                         )
+                    }
+
+                    // Custom fields
+                    if (categoryCustomFieldTitles.isNotEmpty() && invoice.customFieldValues.isNotEmpty()) {
+                        categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
+                            invoice.customFieldValues.getOrNull(index)?.takeIf { it.isNotBlank() }?.let { value ->
+                                Spacer(modifier = Modifier.padding(top = 8.dp))
+                                Text(
+                                    text = "$fieldTitle:",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.padding(top = 2.dp))
+                                Text(
+                                    text = value,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -274,14 +274,16 @@ fun TaxTrackerNavHost(
             AddInvoiceScreen(
                 categoryId = categoryId,
                 categoryColorHex = uiState.categoryColorHex,
+                categoryCustomFieldTitles = uiState.categoryCustomFieldTitles,
                 onNavigateBack = { navController.popBackStack() },
-                onSaveInvoice = { amount, dateText, paymentStatus, notes ->
+                onSaveInvoice = { amount, dateText, paymentStatus, notes, customFieldValues ->
                     viewModel.addInvoice(
                         categoryId = categoryId,
                         amount = amount,
                         dateText = dateText,
                         paymentStatus = paymentStatus,
-                        notes = notes
+                        notes = notes,
+                        customFieldValues = customFieldValues
                     )
                     // AddInvoiceScreen will also call onNavigateBack() after this
                 }
@@ -334,6 +336,7 @@ fun TaxTrackerNavHost(
             } else {
                 InvoiceDetailsScreen(
                     invoice = invoice,
+                    categoryCustomFieldTitles = uiState.categoryCustomFieldTitles,
                     onBackClick = { navController.popBackStack() },
                     onEditClick = {
                         navController.navigate(
@@ -372,23 +375,26 @@ fun TaxTrackerNavHost(
 
             EditInvoiceScreen(
                 invoiceId = invoiceUi.id,
+                categoryColorHex = uiState.categoryColorHex,
+                categoryCustomFieldTitles = uiState.categoryCustomFieldTitles,
                 initialAmount = invoiceUi.amount.toString(),
                 initialDateText = invoiceUi.dueDateText ?: "",
                 initialPaymentStatus = invoiceUi.paymentStatus,
                 initialNotes = invoiceUi.notes ?: "",
+                initialCustomFieldValues = invoiceUi.customFieldValues,
                 onNavigateBack = { navController.popBackStack() },
-                onSaveInvoice = { amount, dateText, paymentStatus, notes ->
+                onSaveInvoice = { amount, dateText, paymentStatus, notes, customFieldValues ->
                     viewModel.updateInvoice(
                         invoiceId = invoiceUi.id,
                         amount = amount,
                         dateText = dateText,
                         paymentStatus = paymentStatus,
-                        notes = notes
+                        notes = notes,
+                        customFieldValues = customFieldValues
                     )
                     // EditInvoiceScreen itself calls onNavigateBack()
-                },
-                categoryColorHex = uiState.categoryColorHex,
-                )
+                }
+            )
         }
     }
 }

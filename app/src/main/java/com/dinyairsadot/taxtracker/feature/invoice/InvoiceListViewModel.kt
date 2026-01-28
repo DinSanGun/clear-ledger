@@ -20,13 +20,15 @@ data class InvoiceUi(
     val amount: Double,
     val paymentStatus: PaymentStatus,
     val dueDateText: String?,
-    val notes: String?
+    val notes: String?,
+    val customFieldValues: List<String> = emptyList()
 )
 
 data class InvoiceListUiState(
     val isLoading: Boolean = false,
     val categoryName: String? = null,
     val categoryColorHex: String? = null,
+    val categoryCustomFieldTitles: List<String> = emptyList(),
     val invoices: List<InvoiceUi> = emptyList(),
     val errorMessage: String? = null
 )
@@ -44,10 +46,18 @@ class InvoiceListViewModel(
         viewModelScope.launch {
             try {
                 val category = categoryRepository.getCategories().firstOrNull { it.id == categoryId }
-                _uiState.value = _uiState.value.copy(categoryName = category?.name, categoryColorHex = category?.colorHex)
+                _uiState.value = _uiState.value.copy(
+                    categoryName = category?.name,
+                    categoryColorHex = category?.colorHex,
+                    categoryCustomFieldTitles = category?.customFieldTitles ?: emptyList()
+                )
             } catch (_: Exception) {
                 // If category can't be loaded, keep title fallback in UI
-                _uiState.value = _uiState.value.copy(categoryName = null, categoryColorHex = null)
+                _uiState.value = _uiState.value.copy(
+                    categoryName = null,
+                    categoryColorHex = null,
+                    categoryCustomFieldTitles = emptyList()
+                )
             }
         }
     }
@@ -82,7 +92,8 @@ class InvoiceListViewModel(
         amount: Double,
         dateText: String,
         paymentStatus: PaymentStatus,
-        notes: String
+        notes: String,
+        customFieldValues: List<String> = emptyList()
     ) {
         viewModelScope.launch {
             // Compute next id based on current invoices from repository
@@ -103,7 +114,8 @@ class InvoiceListViewModel(
                 paymentDate = null,
                 consumptionValue = null,
                 consumptionUnit = null,
-                notes = notes.ifBlank { null }
+                notes = notes.ifBlank { null },
+                customFieldValues = customFieldValues.map { it.trim() }.filter { it.isNotBlank() }
             )
 
             invoiceRepository.addInvoice(newInvoice)
@@ -120,7 +132,8 @@ class InvoiceListViewModel(
         amount: Double,
         dateText: String,
         paymentStatus: PaymentStatus,
-        notes: String
+        notes: String,
+        customFieldValues: List<String> = emptyList()
     ) {
         viewModelScope.launch {
             val existing = invoiceRepository.getInvoiceById(invoiceId) ?: return@launch
@@ -133,7 +146,8 @@ class InvoiceListViewModel(
                 amount = amount,
                 paymentStatus = paymentStatus,
                 dueDate = parsedDate,
-                notes = notes.ifBlank { null }
+                notes = notes.ifBlank { null },
+                customFieldValues = customFieldValues.map { it.trim() }.filter { it.isNotBlank() }
             )
 
             invoiceRepository.updateInvoice(updated)
@@ -163,6 +177,7 @@ private fun Invoice.toUi(): InvoiceUi {
         amount = this.amount,
         paymentStatus = this.paymentStatus,
         dueDateText = this.dueDate?.toString(), // later we can pretty-format
-        notes = this.notes
+        notes = this.notes,
+        customFieldValues = this.customFieldValues
     )
 }
