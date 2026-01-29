@@ -89,6 +89,13 @@
     <string name="due_date_label">תאריך תשלום: %1$s</string>
     <string name="notes_label">הערות:</string>
     
+    <!-- Document Type -->
+    <string name="document_type">סוג מסמך</string>
+    <string name="document_type_bill_demand">חשבון/דרישה</string>
+    <string name="document_type_tax_invoice">חשבונית מס</string>
+    <string name="document_type_invoice_receipt">חשבונית/קבלה</string>
+    <string name="document_type_label">סוג מסמך: %1$s</string>
+    
     <!-- Navigation -->
     <string name="invoice_not_found">חשבונית לא נמצאה</string>
     <string name="invoice_could_not_be_loaded">לא ניתן לטעון חשבונית זו.</string>
@@ -98,12 +105,46 @@
     <string name="plus">+</string>
     
     <!-- Default Categories (for seeding) -->
+    <string name="default_category_arnona">ארנונה</string>
+    <string name="default_category_arnona_description">תשלומי ארנונה / עירייה</string>
     <string name="default_category_electricity">חשמל</string>
     <string name="default_category_electricity_description">חשבוניות ספק חשמל</string>
     <string name="default_category_water">מים</string>
     <string name="default_category_water_description">מים וביוב</string>
-    <string name="default_category_city_taxes">ארנונה</string>
-    <string name="default_category_city_taxes_description">תשלומי ארנונה / עירייה</string>
+    <string name="default_category_gas">גז</string>
+    <string name="default_category_gas_description">חשבוניות ספק גז</string>
+    <string name="default_category_phone_internet">טלפון/אינטרנט</string>
+    <string name="default_category_phone_internet_description">שירותי טלפון ואינטרנט</string>
+    <string name="default_category_national_insurance">ביטוח לאומי</string>
+    <string name="default_category_national_insurance_description">תשלומי ביטוח לאומי</string>
+    <string name="default_category_business_expenses">הוצאות עסקיות</string>
+    <string name="default_category_business_expenses_description">חשבוניות הוצאות עסקיות</string>
+    <string name="default_category_other">אחר</string>
+    <string name="default_category_other_description">חשבוניות וחשבונות אחרים</string>
+    
+    <!-- Custom Field Labels -->
+    <string name="field_property_id">מספר נכס</string>
+    <string name="field_meter_id">מספר מונה</string>
+    <string name="field_consumption_kwh">צריכה (קוט\"ש)</string>
+    <string name="field_consumption_cubic_meters">צריכה (מ\"ק)</string>
+    <string name="field_account_number">מספר חשבון</string>
+    <string name="field_id_number">מספר ת.ז.</string>
+    <string name="field_vendor_name">שם ספק</string>
+    <string name="field_invoice_number">מספר חשבונית</string>
+    <string name="field_vat_number">מספר ע.מ.נ.</string>
+    <string name="field_billing_period_start">תחילת תקופת חיוב</string>
+    <string name="field_billing_period_end">סוף תקופת חיוב</string>
+    
+    <!-- Invoice Fields -->
+    <string name="vendor_name">שם ספק/גוף</string>
+    <string name="issue_date_dd_mm_yyyy">תאריך הנפקה (DD/MM/YYYY)</string>
+    <string name="paid_date_dd_mm_yyyy">תאריך תשלום (DD/MM/YYYY)</string>
+    <string name="service_period_start">תחילת תקופת שירות (DD/MM/YYYY)</string>
+    <string name="service_period_end">סוף תקופת שירות (DD/MM/YYYY)</string>
+    <string name="issue_date_label">תאריך הנפקה: %1$s</string>
+    <string name="paid_date_label">תאריך תשלום: %1$s</string>
+    <string name="service_period_label">תקופת שירות: %1$s - %2$s</string>
+    <string name="vendor_name_label">ספק: %1$s</string>
     
     <!-- Currency Symbols -->
     <string name="currency_usd">$</string>

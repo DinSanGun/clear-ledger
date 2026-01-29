@@ -174,27 +174,103 @@ class MainActivity : ComponentActivity() {
         
         // Only seed if database is empty
         if (categories.isEmpty()) {
-            // Seed 3 default categories
+            // Seed 8 default categories with their custom fields
             val defaultCategories = listOf(
+                // Arnona
                 Category(
                     id = 0, // Room will auto-generate
+                    name = getString(R.string.default_category_arnona),
+                    colorHex = "#4CAF50",
+                    description = getString(R.string.default_category_arnona_description),
+                    customFieldTitles = listOf(
+                        getString(R.string.field_property_id),
+                        getString(R.string.field_billing_period_start),
+                        getString(R.string.field_billing_period_end)
+                    )
+                ),
+                // Electricity
+                Category(
+                    id = 0,
                     name = getString(R.string.default_category_electricity),
                     colorHex = "#FF9800",
                     description = getString(R.string.default_category_electricity_description),
-                    customFieldTitles = emptyList()
+                    customFieldTitles = listOf(
+                        getString(R.string.field_meter_id),
+                        getString(R.string.field_consumption_kwh),
+                        getString(R.string.field_billing_period_start),
+                        getString(R.string.field_billing_period_end)
+                    )
                 ),
+                // Water
                 Category(
                     id = 0,
                     name = getString(R.string.default_category_water),
                     colorHex = "#2196F3",
                     description = getString(R.string.default_category_water_description),
-                    customFieldTitles = emptyList()
+                    customFieldTitles = listOf(
+                        getString(R.string.field_meter_id),
+                        getString(R.string.field_consumption_cubic_meters),
+                        getString(R.string.field_billing_period_start),
+                        getString(R.string.field_billing_period_end)
+                    )
                 ),
+                // Gas
                 Category(
                     id = 0,
-                    name = getString(R.string.default_category_city_taxes),
-                    colorHex = "#4CAF50",
-                    description = getString(R.string.default_category_city_taxes_description),
+                    name = getString(R.string.default_category_gas),
+                    colorHex = "#9C27B0",
+                    description = getString(R.string.default_category_gas_description),
+                    customFieldTitles = listOf(
+                        getString(R.string.field_meter_id),
+                        getString(R.string.field_consumption_cubic_meters),
+                        getString(R.string.field_billing_period_start),
+                        getString(R.string.field_billing_period_end)
+                    )
+                ),
+                // Phone/Internet
+                Category(
+                    id = 0,
+                    name = getString(R.string.default_category_phone_internet),
+                    colorHex = "#00BCD4",
+                    description = getString(R.string.default_category_phone_internet_description),
+                    customFieldTitles = listOf(
+                        getString(R.string.field_account_number),
+                        getString(R.string.field_billing_period_start),
+                        getString(R.string.field_billing_period_end)
+                    )
+                ),
+                // National Insurance
+                Category(
+                    id = 0,
+                    name = getString(R.string.default_category_national_insurance),
+                    colorHex = "#795548",
+                    description = getString(R.string.default_category_national_insurance_description),
+                    customFieldTitles = listOf(
+                        getString(R.string.field_id_number),
+                        getString(R.string.field_billing_period_start),
+                        getString(R.string.field_billing_period_end)
+                    )
+                ),
+                // Business Expenses
+                Category(
+                    id = 0,
+                    name = getString(R.string.default_category_business_expenses),
+                    colorHex = "#F44336",
+                    description = getString(R.string.default_category_business_expenses_description),
+                    customFieldTitles = listOf(
+                        getString(R.string.field_vendor_name),
+                        getString(R.string.field_invoice_number),
+                        getString(R.string.field_vat_number),
+                        getString(R.string.field_billing_period_start),
+                        getString(R.string.field_billing_period_end)
+                    )
+                ),
+                // Other
+                Category(
+                    id = 0,
+                    name = getString(R.string.default_category_other),
+                    colorHex = "#9E9E9E",
+                    description = getString(R.string.default_category_other_description),
                     customFieldTitles = emptyList()
                 )
             )

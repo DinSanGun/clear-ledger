@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.ui.parseCategoryColorOrDefault
 import androidx.compose.material3.TopAppBarDefaults
@@ -96,6 +97,27 @@ fun InvoiceDetailsScreen(
                         fontWeight = FontWeight.SemiBold
                     )
 
+                    invoice.documentType?.let { docType ->
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                        val docTypeText = when (docType) {
+                            DocumentType.BILL_DEMAND -> stringResource(R.string.document_type_bill_demand)
+                            DocumentType.TAX_INVOICE -> stringResource(R.string.document_type_tax_invoice)
+                            DocumentType.INVOICE_RECEIPT -> stringResource(R.string.document_type_invoice_receipt)
+                        }
+                        Text(
+                            text = stringResource(R.string.document_type_label, docTypeText),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    invoice.vendorName?.takeIf { it.isNotBlank() }?.let { vendor ->
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = stringResource(R.string.vendor_name_label, vendor),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
                     Spacer(modifier = Modifier.padding(top = 8.dp))
 
                     Text(
@@ -115,10 +137,34 @@ fun InvoiceDetailsScreen(
                         style = MaterialTheme.typography.bodyMedium
                     )
 
+                    invoice.issueDateText?.let { issue ->
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = stringResource(R.string.issue_date_label, issue),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
                     invoice.dueDateText?.let { due ->
                         Spacer(modifier = Modifier.padding(top = 4.dp))
                         Text(
                             text = stringResource(R.string.due_date_label, due),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    invoice.paymentDateText?.let { paid ->
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = stringResource(R.string.paid_date_label, paid),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    if (invoice.servicePeriodStartText != null && invoice.servicePeriodEndText != null) {
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = stringResource(R.string.service_period_label, invoice.servicePeriodStartText, invoice.servicePeriodEndText),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

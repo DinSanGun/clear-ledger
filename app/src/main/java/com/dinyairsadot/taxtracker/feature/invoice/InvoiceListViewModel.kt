@@ -2,6 +2,7 @@ package com.dinyairsadot.taxtracker.feature.invoice
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.Invoice
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
@@ -31,10 +32,16 @@ data class InvoiceUi(
     val invoiceNumber: String,
     val amount: Double,
     val paymentStatus: PaymentStatus,
+    val vendorName: String? = null,
+    val issueDateText: String? = null,
     val dueDateText: String?,
     val dueDate: LocalDate? = null, // Add for sorting
+    val paymentDateText: String? = null,
+    val servicePeriodStartText: String? = null,
+    val servicePeriodEndText: String? = null,
     val notes: String?,
-    val customFieldValues: List<String> = emptyList()
+    val customFieldValues: List<String> = emptyList(),
+    val documentType: DocumentType? = null
 )
 
 data class InvoiceListUiState(
@@ -56,6 +63,37 @@ class InvoiceListViewModel(
     private val _uiState = MutableStateFlow(InvoiceListUiState(isLoading = true))
     val uiState: StateFlow<InvoiceListUiState> = _uiState.asStateFlow()
 
+    /**
+     * Determines the default document type based on category name.
+     * Returns null if no default should be set (user must select).
+     */
+    fun getDefaultDocumentType(categoryName: String?): DocumentType? {
+        if (categoryName == null) return null
+        
+        val nameLower = categoryName.lowercase()
+        
+        // Utility bills -> BILL_DEMAND
+        if (nameLower.contains("arnona") || 
+            nameLower.contains("water") || 
+            nameLower.contains("electricity") || 
+            nameLower.contains("gas") || 
+            nameLower.contains("phone") || 
+            nameLower.contains("internet") ||
+            nameLower.contains("national insurance") ||
+            nameLower.contains("ביטוח לאומי")) {
+            return DocumentType.BILL_DEMAND
+        }
+        
+        // Business expenses -> TAX_INVOICE
+        if (nameLower.contains("business") || 
+            nameLower.contains("expense") ||
+            nameLower.contains("הוצאות עסקיות") ||
+            nameLower.contains("עסקי")) {
+            return DocumentType.TAX_INVOICE
+        }
+        
+        return null
+    }
 
     fun loadCategoryHeader(categoryId: Long) {
         viewModelScope.launch {
@@ -135,16 +173,21 @@ class InvoiceListViewModel(
 
     fun addInvoice(
         categoryId: Long,
+        vendorName: String?,
+        issueDateText: String?,
+        dueDateText: String,
         amount: Double,
-        dateText: String,
         paymentStatus: PaymentStatus,
+        paymentDateText: String?,
+        servicePeriodStartText: String?,
+        servicePeriodEndText: String?,
         notes: String,
-        customFieldValues: List<String> = emptyList()
+        customFieldValues: List<String> = emptyList(),
+        documentType: DocumentType? = null
     ) {
         viewModelScope.launch {
-            val parsedDate = dateText
-                .takeIf { it.isNotBlank() }
-                ?.let { text ->
+            fun parseDate(dateText: String?): LocalDate? {
+                return dateText?.takeIf { it.isNotBlank() }?.let { text ->
                     val trimmed = text.trim()
                     runCatching {
                         // Try DD/MM/YYYY format
@@ -155,6 +198,13 @@ class InvoiceListViewModel(
                             LocalDate.parse(trimmed)
                         }.getOrNull()
                 }
+            }
+
+            val issueDate = parseDate(issueDateText)
+            val dueDate = parseDate(dueDateText)
+            val paymentDate = parseDate(paymentDateText)
+            val servicePeriodStart = parseDate(servicePeriodStartText)
+            val servicePeriodEnd = parseDate(servicePeriodEndText)
 
             // Use id=0 to let Room auto-generate the ID
             val newInvoice = Invoice(
@@ -163,12 +213,17 @@ class InvoiceListViewModel(
                 invoiceNumber = "", // can be expanded later
                 amount = amount,
                 paymentStatus = paymentStatus,
-                dueDate = parsedDate,
-                paymentDate = null,
+                vendorName = vendorName?.takeIf { it.isNotBlank() },
+                issueDate = issueDate,
+                dueDate = dueDate,
+                paymentDate = paymentDate,
+                servicePeriodStart = servicePeriodStart,
+                servicePeriodEnd = servicePeriodEnd,
                 consumptionValue = null,
                 consumptionUnit = null,
                 notes = notes.ifBlank { null },
-                customFieldValues = customFieldValues.map { it.trim() }
+                customFieldValues = customFieldValues.map { it.trim() },
+                documentType = documentType
             )
 
             invoiceRepository.addInvoice(newInvoice)
@@ -182,18 +237,23 @@ class InvoiceListViewModel(
 
     fun updateInvoice(
         invoiceId: Long,
+        vendorName: String?,
+        issueDateText: String?,
+        dueDateText: String,
         amount: Double,
-        dateText: String,
         paymentStatus: PaymentStatus,
+        paymentDateText: String?,
+        servicePeriodStartText: String?,
+        servicePeriodEndText: String?,
         notes: String,
-        customFieldValues: List<String> = emptyList()
+        customFieldValues: List<String> = emptyList(),
+        documentType: DocumentType? = null
     ) {
         viewModelScope.launch {
             val existing = invoiceRepository.getInvoiceById(invoiceId) ?: return@launch
 
-            val parsedDate = dateText
-                .takeIf { it.isNotBlank() }
-                ?.let { text ->
+            fun parseDate(dateText: String?): LocalDate? {
+                return dateText?.takeIf { it.isNotBlank() }?.let { text ->
                     val trimmed = text.trim()
                     runCatching {
                         // Try DD/MM/YYYY format
@@ -204,13 +264,26 @@ class InvoiceListViewModel(
                             LocalDate.parse(trimmed)
                         }.getOrNull()
                 }
+            }
+
+            val issueDate = parseDate(issueDateText)
+            val dueDate = parseDate(dueDateText)
+            val paymentDate = parseDate(paymentDateText)
+            val servicePeriodStart = parseDate(servicePeriodStartText)
+            val servicePeriodEnd = parseDate(servicePeriodEndText)
 
             val updated = existing.copy(
+                vendorName = vendorName?.takeIf { it.isNotBlank() },
+                issueDate = issueDate,
                 amount = amount,
                 paymentStatus = paymentStatus,
-                dueDate = parsedDate,
+                dueDate = dueDate,
+                paymentDate = paymentDate,
+                servicePeriodStart = servicePeriodStart,
+                servicePeriodEnd = servicePeriodEnd,
                 notes = notes.ifBlank { null },
-                customFieldValues = customFieldValues.map { it.trim() }
+                customFieldValues = customFieldValues.map { it.trim() },
+                documentType = documentType
             )
 
             invoiceRepository.updateInvoice(updated)
@@ -234,14 +307,21 @@ class InvoiceListViewModel(
 
 // Mapping from domain model to UI model
 private fun Invoice.toUi(): InvoiceUi {
+    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     return InvoiceUi(
         id = this.id,
         invoiceNumber = this.invoiceNumber,
         amount = this.amount,
         paymentStatus = this.paymentStatus,
-        dueDateText = this.dueDate?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+        vendorName = this.vendorName,
+        issueDateText = this.issueDate?.format(dateFormatter),
+        dueDateText = this.dueDate?.format(dateFormatter),
         dueDate = this.dueDate, // Include for sorting
+        paymentDateText = this.paymentDate?.format(dateFormatter),
+        servicePeriodStartText = this.servicePeriodStart?.format(dateFormatter),
+        servicePeriodEndText = this.servicePeriodEnd?.format(dateFormatter),
         notes = this.notes,
-        customFieldValues = this.customFieldValues
+        customFieldValues = this.customFieldValues,
+        documentType = this.documentType
     )
 }

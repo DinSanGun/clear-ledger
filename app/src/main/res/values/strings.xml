@@ -89,6 +89,13 @@
     <string name="due_date_label">Due date: %1$s</string>
     <string name="notes_label">Notes:</string>
     
+    <!-- Document Type -->
+    <string name="document_type">Document Type</string>
+    <string name="document_type_bill_demand">Bill/Demand</string>
+    <string name="document_type_tax_invoice">Tax Invoice</string>
+    <string name="document_type_invoice_receipt">Invoice/Receipt</string>
+    <string name="document_type_label">Document Type: %1$s</string>
+    
     <!-- Navigation -->
     <string name="invoice_not_found">Invoice not found</string>
     <string name="invoice_could_not_be_loaded">This invoice could not be loaded.</string>
@@ -98,12 +105,46 @@
     <string name="plus">+</string>
     
     <!-- Default Categories (for seeding) -->
+    <string name="default_category_arnona">Arnona</string>
+    <string name="default_category_arnona_description">City taxes / Arnona payments</string>
     <string name="default_category_electricity">Electricity</string>
     <string name="default_category_electricity_description">Electricity provider bills</string>
     <string name="default_category_water">Water</string>
     <string name="default_category_water_description">Water and sewage</string>
-    <string name="default_category_city_taxes">City Taxes</string>
-    <string name="default_category_city_taxes_description">Arnona / city hall payments</string>
+    <string name="default_category_gas">Gas</string>
+    <string name="default_category_gas_description">Gas provider bills</string>
+    <string name="default_category_phone_internet">Phone/Internet</string>
+    <string name="default_category_phone_internet_description">Phone and internet services</string>
+    <string name="default_category_national_insurance">National Insurance</string>
+    <string name="default_category_national_insurance_description">National Insurance payments</string>
+    <string name="default_category_business_expenses">Business Expenses</string>
+    <string name="default_category_business_expenses_description">Business expense invoices</string>
+    <string name="default_category_other">Other</string>
+    <string name="default_category_other_description">Other invoices and bills</string>
+    
+    <!-- Custom Field Labels -->
+    <string name="field_property_id">Property ID</string>
+    <string name="field_meter_id">Meter ID</string>
+    <string name="field_consumption_kwh">Consumption (kWh)</string>
+    <string name="field_consumption_cubic_meters">Consumption (m³)</string>
+    <string name="field_account_number">Account Number</string>
+    <string name="field_id_number">ID Number</string>
+    <string name="field_vendor_name">Vendor Name</string>
+    <string name="field_invoice_number">Invoice Number</string>
+    <string name="field_vat_number">VAT Number</string>
+    <string name="field_billing_period_start">Billing Period Start</string>
+    <string name="field_billing_period_end">Billing Period End</string>
+    
+    <!-- Invoice Fields -->
+    <string name="vendor_name">Vendor/Body Name</string>
+    <string name="issue_date_dd_mm_yyyy">Issue Date (DD/MM/YYYY)</string>
+    <string name="paid_date_dd_mm_yyyy">Paid Date (DD/MM/YYYY)</string>
+    <string name="service_period_start">Service Period Start (DD/MM/YYYY)</string>
+    <string name="service_period_end">Service Period End (DD/MM/YYYY)</string>
+    <string name="issue_date_label">Issue Date: %1$s</string>
+    <string name="paid_date_label">Paid Date: %1$s</string>
+    <string name="service_period_label">Service Period: %1$s - %2$s</string>
+    <string name="vendor_name_label">Vendor: %1$s</string>
     
     <!-- Currency Symbols -->
     <string name="currency_usd">$</string>

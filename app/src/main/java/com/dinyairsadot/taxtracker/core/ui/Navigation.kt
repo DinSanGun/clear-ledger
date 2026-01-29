@@ -320,17 +320,25 @@ fun TaxTrackerNavHost(
 
             AddInvoiceScreen(
                 categoryId = categoryId,
+                categoryName = uiState.categoryName,
                 categoryColorHex = uiState.categoryColorHex,
                 categoryCustomFieldTitles = uiState.categoryCustomFieldTitles,
+                getDefaultDocumentType = { categoryName -> viewModel.getDefaultDocumentType(categoryName) },
                 onNavigateBack = { navController.popBackStack() },
-                onSaveInvoice = { amount, dateText, paymentStatus, notes, customFieldValues ->
+                onSaveInvoice = { vendorName, issueDateText, dueDateText, amount, paymentStatus, paymentDateText, servicePeriodStartText, servicePeriodEndText, notes, customFieldValues, documentType ->
                     viewModel.addInvoice(
                         categoryId = categoryId,
+                        vendorName = vendorName,
+                        issueDateText = issueDateText,
+                        dueDateText = dueDateText,
                         amount = amount,
-                        dateText = dateText,
                         paymentStatus = paymentStatus,
+                        paymentDateText = paymentDateText,
+                        servicePeriodStartText = servicePeriodStartText,
+                        servicePeriodEndText = servicePeriodEndText,
                         notes = notes,
-                        customFieldValues = customFieldValues
+                        customFieldValues = customFieldValues,
+                        documentType = documentType
                     )
                     // AddInvoiceScreen will also call onNavigateBack() after this
                 }
@@ -432,20 +440,32 @@ fun TaxTrackerNavHost(
                 invoiceId = invoiceUi.id,
                 categoryColorHex = uiState.categoryColorHex,
                 categoryCustomFieldTitles = uiState.categoryCustomFieldTitles,
+                initialVendorName = invoiceUi.vendorName,
+                initialIssueDateText = invoiceUi.issueDateText,
                 initialAmount = invoiceUi.amount.toString(),
-                initialDateText = invoiceUi.dueDateText ?: "",
+                initialDueDateText = invoiceUi.dueDateText ?: "",
                 initialPaymentStatus = invoiceUi.paymentStatus,
+                initialPaymentDateText = invoiceUi.paymentDateText,
+                initialServicePeriodStartText = invoiceUi.servicePeriodStartText,
+                initialServicePeriodEndText = invoiceUi.servicePeriodEndText,
                 initialNotes = invoiceUi.notes ?: "",
                 initialCustomFieldValues = invoiceUi.customFieldValues,
+                initialDocumentType = invoiceUi.documentType,
                 onNavigateBack = { navController.popBackStack() },
-                onSaveInvoice = { amount, dateText, paymentStatus, notes, customFieldValues ->
+                onSaveInvoice = { vendorName, issueDateText, dueDateText, amount, paymentStatus, paymentDateText, servicePeriodStartText, servicePeriodEndText, notes, customFieldValues, documentType ->
                     viewModel.updateInvoice(
                         invoiceId = invoiceUi.id,
+                        vendorName = vendorName,
+                        issueDateText = issueDateText,
+                        dueDateText = dueDateText,
                         amount = amount,
-                        dateText = dateText,
                         paymentStatus = paymentStatus,
+                        paymentDateText = paymentDateText,
+                        servicePeriodStartText = servicePeriodStartText,
+                        servicePeriodEndText = servicePeriodEndText,
                         notes = notes,
-                        customFieldValues = customFieldValues
+                        customFieldValues = customFieldValues,
+                        documentType = documentType
                     )
                     // EditInvoiceScreen itself calls onNavigateBack()
                 }

@@ -16,6 +16,12 @@ enum class CustomFieldType {
     BOOLEAN
 }
 
+enum class DocumentType {
+    BILL_DEMAND,
+    TAX_INVOICE,
+    INVOICE_RECEIPT
+}
+
 data class Category(
     val id: Long,
     val name: String,
@@ -56,12 +62,17 @@ data class Invoice(
     val invoiceNumber: String,
     val amount: Double,
     val paymentStatus: PaymentStatus,
+    val vendorName: String? = null,
+    val issueDate: LocalDate? = null,
     val dueDate: LocalDate? = null,
     val paymentDate: LocalDate? = null,
+    val servicePeriodStart: LocalDate? = null,
+    val servicePeriodEnd: LocalDate? = null,
     val consumptionValue: Double? = null,
     val consumptionUnit: String? = null, // e.g. "kWh", "m³"
     val notes: String? = null,
-    val customFieldValues: List<String> = emptyList() // Values for custom fields (up to 10)
+    val customFieldValues: List<String> = emptyList(), // Values for custom fields (up to 10)
+    val documentType: DocumentType? = null
 ) {
     // Backward compatibility: getters for old field names
     val customFieldValue1: String? get() = customFieldValues.getOrNull(0)
