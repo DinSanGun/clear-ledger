@@ -1,0 +1,116 @@
+<resources>
+    <string name="app_name">מעקב חשבוניות מס</string>
+    
+    <!-- Common -->
+    <string name="back">חזרה</string>
+    <string name="cancel">ביטול</string>
+    <string name="delete">מחיקה</string>
+    <string name="remove">הסרה</string>
+    <string name="save">שמירה</string>
+    <string name="edit">עריכה</string>
+    <string name="add">הוספה</string>
+    <string name="close">סגירה</string>
+    <string name="sort">מיון</string>
+    
+    <!-- Category List Screen -->
+    <string name="bills_and_taxes">חשבוניות ומסים</string>
+    <string name="add_category">הוסף קטגוריה</string>
+    <string name="category_added">קטגוריה נוספה</string>
+    <string name="category_deleted">קטגוריה נמחקה</string>
+    <string name="delete_category">למחוק קטגוריה?</string>
+    <string name="delete_category_confirmation">האם אתה בטוח שברצונך למחוק קטגוריה זו? כל הנתונים הקשורים אליה (כגון חשבוניות) יוסרו.</string>
+    <string name="no_categories_yet">אין עדיין קטגוריות.\nהקש + כדי להוסיף את הקטגוריה הראשונה שלך.</string>
+    <string name="invoices_summary">3 לא שולמו · 5 חשבוניות בסך הכל</string>
+    
+    <!-- Add/Edit Category Screen -->
+    <string name="add_category_title">הוסף קטגוריה</string>
+    <string name="edit_category_title">ערוך קטגוריה</string>
+    <string name="name">שם</string>
+    <string name="name_required">שם נדרש</string>
+    <string name="name_must_be_unique">השם חייב להיות ייחודי</string>
+    <string name="theme_color">צבע ערכת נושא</string>
+    <string name="color_must_be_rrggbb_format">הצבע חייב להיות בפורמט #RRGGBB</string>
+    <string name="description_optional">תיאור (אופציונלי)</string>
+    <string name="field_title">כותרת שדה %1$d</string>
+    <string name="field_number">שדה %1$d</string>
+    <string name="add_custom_field">הוסף שדה מותאם אישית</string>
+    <string name="remove_field">הסר שדה</string>
+    <string name="remove_custom_field">הסר שדה מותאם אישית?</string>
+    <string name="remove_custom_field_confirmation">הסרת \"%1$s\" תמחק כל מידע שנשמר בחשבוניות עבור שדה זה. האם אתה בטוח שברצונך להסיר אותו?</string>
+    <string name="save_changes">שמור שינויים</string>
+    
+    <!-- Category ViewModel Errors -->
+    <string name="failed_to_load_categories">נכשל בטעינת קטגוריות</string>
+    <string name="failed_to_add_category">נכשל בהוספת קטגוריה</string>
+    <string name="failed_to_delete_category">נכשל במחיקת קטגוריה</string>
+    <string name="failed_to_update_category">נכשל בעדכון קטגוריה</string>
+    
+    <!-- Invoice List Screen -->
+    <string name="invoices">חשבוניות</string>
+    <string name="edit_category">ערוך קטגוריה</string>
+    <string name="add_invoice">הוסף חשבונית</string>
+    <string name="date_newest_first">תאריך (החדש ביותר ראשון)</string>
+    <string name="date_oldest_first">תאריך (הישן ביותר ראשון)</string>
+    <string name="amount_highest_first">סכום (הגבוה ביותר ראשון)</string>
+    <string name="amount_lowest_first">סכום (הנמוך ביותר ראשון)</string>
+    <string name="delete_invoice">למחוק חשבונית?</string>
+    <string name="delete_invoice_confirmation">האם אתה בטוח שברצונך למחוק חשבונית זו? פעולה זו לא ניתנת לביטול.</string>
+    <string name="invoice_deleted">חשבונית נמחקה</string>
+    <string name="please_try_again_later">אנא נסה שוב מאוחר יותר.</string>
+    <string name="no_invoices_yet">אין עדיין חשבוניות</string>
+    <string name="tap_to_add_first_invoice">הקש + כדי להוסיף את החשבונית הראשונה שלך עבור קטגוריה זו.</string>
+    <string name="invoice_number_fallback">חשבונית #%1$d</string>
+    <string name="paid_in_full">שולם במלואו</string>
+    <string name="not_paid">לא שולם</string>
+    <string name="paid_with_credit">שולם באשראי</string>
+    <string name="due">תשלום: %1$s</string>
+    <string name="failed_to_load_invoices">נכשל בטעינת חשבוניות</string>
+    
+    <!-- Add/Edit Invoice Screen -->
+    <string name="add_invoice_title">הוסף חשבונית</string>
+    <string name="edit_invoice_title">ערוך חשבונית</string>
+    <string name="amount">סכום</string>
+    <string name="enter_valid_amount">הזן סכום תקין</string>
+    <string name="due_date_dd_mm_yyyy">תאריך תשלום (DD/MM/YYYY)</string>
+    <string name="date_required">תאריך נדרש</string>
+    <string name="use_format_dd_mm_yyyy">השתמש בפורמט DD/MM/YYYY</string>
+    <string name="pick_date">בחר תאריך</string>
+    <string name="notes">הערות</string>
+    <string name="save_invoice">שמור חשבונית</string>
+    <string name="status">סטטוס:</string>
+    <string name="paid_full">שולם במלואו</string>
+    <string name="paid_credit">שולם באשראי</string>
+    
+    <!-- Invoice Details Screen -->
+    <string name="invoice_details">פרטי חשבונית</string>
+    <string name="edit_invoice">ערוך חשבונית</string>
+    <string name="amount_label">סכום: %1$s</string>
+    <string name="status_label">סטטוס: %1$s</string>
+    <string name="due_date_label">תאריך תשלום: %1$s</string>
+    <string name="notes_label">הערות:</string>
+    
+    <!-- Navigation -->
+    <string name="invoice_not_found">חשבונית לא נמצאה</string>
+    <string name="invoice_could_not_be_loaded">לא ניתן לטעון חשבונית זו.</string>
+    
+    <!-- Category Color Palette -->
+    <string name="choose_a_color">בחר צבע</string>
+    <string name="plus">+</string>
+    
+    <!-- Default Categories (for seeding) -->
+    <string name="default_category_electricity">חשמל</string>
+    <string name="default_category_electricity_description">חשבוניות ספק חשמל</string>
+    <string name="default_category_water">מים</string>
+    <string name="default_category_water_description">מים וביוב</string>
+    <string name="default_category_city_taxes">ארנונה</string>
+    <string name="default_category_city_taxes_description">תשלומי ארנונה / עירייה</string>
+    
+    <!-- Currency Symbols -->
+    <string name="currency_usd">$</string>
+    <string name="currency_ils">₪</string>
+    <string name="amount_format_ils">₪%1$.2f</string>
+    
+    <!-- Language Settings -->
+    <string name="language_settings">הגדרות שפה</string>
+    <string name="select_language">בחר שפה</string>
+</resources>

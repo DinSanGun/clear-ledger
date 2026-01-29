@@ -1,16 +1,25 @@
 package com.dinyairsadot.taxtracker
 
+import android.content.Context
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import com.dinyairsadot.taxtracker.core.data.LanguagePreferenceManager
 import com.dinyairsadot.taxtracker.core.data.TaxTrackerDatabase
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
@@ -19,12 +28,89 @@ import com.dinyairsadot.taxtracker.core.ui.TaxTrackerNavHost
 import com.dinyairsadot.taxtracker.ui.theme.TaxInvoiceTrackerTheme
 import kotlinx.coroutines.launch
 import com.dinyairsadot.taxtracker.R
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        private const val TAG = "LanguageDebug"
+    }
+    
+    override fun attachBaseContext(newBase: Context?) {
+        val updatedContext = newBase?.let { updateBaseContextLocale(it) }
+        Log.d(TAG, "[MAIN] attachBaseContext: newBase=${newBase?.javaClass?.simpleName}, updatedContext=${updatedContext?.javaClass?.simpleName}")
+        super.attachBaseContext(updatedContext)
+    }
+
+    private fun updateBaseContextLocale(context: Context): Context {
+        val languageManager = LanguagePreferenceManager(context)
+        val savedLocale = languageManager.getSavedLocale()
+        val savedLanguage = languageManager.getCurrentLanguage()
+        
+        Log.d(TAG, "[MAIN] updateBaseContextLocale BEFORE: savedLocale=$savedLocale, savedLanguage='$savedLanguage', contextLocale=${context.resources.configuration.locales[0]}")
+        
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val config = Configuration(context.resources.configuration)
+            config.setLocale(savedLocale)
+            // setLayoutDirection takes a Locale and automatically determines RTL/LTR
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                config.setLayoutDirection(savedLocale)
+                Log.d(TAG, "[MAIN] updateBaseContextLocale: Set layout direction for locale=${savedLocale.language}")
+            }
+            val newContext = context.createConfigurationContext(config)
+            val layoutDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                newContext.resources.configuration.layoutDirection
+            } else 0
+            Log.d(TAG, "[MAIN] updateBaseContextLocale AFTER (API>=24): newContextLocale=${newContext.resources.configuration.locales[0]}, layoutDirection=$layoutDir")
+            newContext
+        } else {
+            val config = Configuration(context.resources.configuration)
+            config.setLocale(savedLocale)
+            @Suppress("DEPRECATION")
+            context.resources.updateConfiguration(config, context.resources.displayMetrics)
+            @Suppress("DEPRECATION")
+            Log.d(TAG, "[MAIN] updateBaseContextLocale AFTER (API<24): contextLocale=${context.resources.configuration.locale}")
+            context
+        }
+        
+        // Verify the locale was set correctly
+        val finalLocale = result.resources.configuration.locales[0]
+        val finalLayoutDirection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            result.resources.configuration.layoutDirection
+        } else 0
+        Log.d(TAG, "[MAIN] updateBaseContextLocale FINAL: finalLocale=$finalLocale, finalLanguage='${finalLocale.language}', layoutDirection=$finalLayoutDirection")
+        
+        return result
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // #region agent log - Check locale in onCreate
+        val languageManager = LanguagePreferenceManager(this)
+        val savedLocale = languageManager.getSavedLocale()
+        val savedLanguage = languageManager.getCurrentLanguage()
+        val currentConfigLocale = resources.configuration.locales[0]
+        val currentConfigLanguage = currentConfigLocale.language
+        
+        val layoutDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            resources.configuration.layoutDirection
+        } else 0
+        val baseLayoutDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            baseContext.resources.configuration.layoutDirection
+        } else 0
+        
+        Log.d(TAG, "[MAIN] onCreate: savedLocale=$savedLocale, savedLanguage='$savedLanguage'")
+        Log.d(TAG, "[MAIN] onCreate: resources.configuration.locale=$currentConfigLocale, language='$currentConfigLanguage', layoutDirection=$layoutDir")
+        Log.d(TAG, "[MAIN] onCreate: baseContext=${baseContext.javaClass.simpleName}, baseContextLocale=${baseContext.resources.configuration.locales[0]}, baseLayoutDirection=$baseLayoutDir")
+        
+        // Test string resource loading
+        val testStringEn = getString(R.string.app_name)
+        Log.d(TAG, "[MAIN] onCreate: getString(R.string.app_name)='$testStringEn'")
+        // #endregion
+        
         enableEdgeToEdge()
         
+        // Language preference is already applied via attachBaseContext()
         // Initialize Room database
         val database = TaxTrackerDatabase.getDatabase(this)
         val categoryRepository = RoomCategoryRepository(database.categoryDao())
@@ -36,22 +122,45 @@ class MainActivity : ComponentActivity() {
         }
         
         setContent {
-            TaxInvoiceTrackerTheme {
-                val navController = rememberNavController()
-                
-                // Remember repositories to avoid recreating them on recomposition
-                val rememberedCategoryRepo = remember { categoryRepository }
-                val rememberedInvoiceRepo = remember { invoiceRepository }
+            // #region agent log - Check locale in Compose
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val composeLocale = context.resources.configuration.locales[0]
+            val composeLanguage = composeLocale.language
+            val composeLayoutDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                context.resources.configuration.layoutDirection
+            } else 0
+            
+            // Determine layout direction from configuration
+            val layoutDirection = if (composeLayoutDir == android.view.View.LAYOUT_DIRECTION_RTL) {
+                LayoutDirection.Rtl
+            } else {
+                LayoutDirection.Ltr
+            }
+            
+            LaunchedEffect(composeLocale) {
+                Log.d(TAG, "[MAIN] Compose setContent: LocalContext.current.resources.configuration.locale=$composeLocale, language='$composeLanguage', layoutDirection=$composeLayoutDir, ComposeLayoutDirection=$layoutDirection")
+            }
+            // #endregion
+            
+            // Explicitly provide layout direction to Compose
+            CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+                TaxInvoiceTrackerTheme {
+                    val navController = rememberNavController()
+                    
+                    // Remember repositories to avoid recreating them on recomposition
+                    val rememberedCategoryRepo = remember { categoryRepository }
+                    val rememberedInvoiceRepo = remember { invoiceRepository }
 
-                Surface(
-                    modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    TaxTrackerNavHost(
-                        navController = navController,
-                        categoryRepository = rememberedCategoryRepo,
-                        invoiceRepository = rememberedInvoiceRepo
-                    )
+                    Surface(
+                        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        TaxTrackerNavHost(
+                            navController = navController,
+                            categoryRepository = rememberedCategoryRepo,
+                            invoiceRepository = rememberedInvoiceRepo
+                        )
+                    }
                 }
             }
         }

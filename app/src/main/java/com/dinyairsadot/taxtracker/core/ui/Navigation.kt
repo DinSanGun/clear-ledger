@@ -43,6 +43,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import android.util.Log
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -55,6 +56,8 @@ import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
 import com.dinyairsadot.taxtracker.feature.category.CategoryListViewModelFactory
 import com.dinyairsadot.taxtracker.feature.invoice.InvoiceListViewModelFactory
+import com.dinyairsadot.taxtracker.feature.settings.LanguageSettingsScreen
+import androidx.activity.ComponentActivity
 
 
 
@@ -83,7 +86,7 @@ sealed class Screen(val route: String) {
         fun routeWithId(invoiceId: Long) = "edit_invoice/$invoiceId"
     }
 
-
+    object LanguageSettings : Screen("language_settings")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,6 +107,14 @@ fun TaxTrackerNavHost(
         // -------------------------
         composable(Screen.CategoryList.route) { backStackEntry ->
             val context = LocalContext.current
+            // #region agent log - Track locale in Navigation
+            androidx.compose.runtime.LaunchedEffect(Unit) {
+                val composeLocale = context.resources.configuration.locales[0]
+                val composeLanguage = composeLocale.language
+                val testString = context.getString(R.string.app_name)
+                Log.d("LanguageDebug", "[NAV] CategoryList composable: contextLocale=$composeLocale, language='$composeLanguage', testString='$testString'")
+            }
+            // #endregion
             val viewModel: CategoryListViewModel = viewModel(
                 backStackEntry,
                 factory = CategoryListViewModelFactory(categoryRepository, invoiceRepository, context)
@@ -119,6 +130,9 @@ fun TaxTrackerNavHost(
                 },
                 onCategoryClick = { id ->
                     navController.navigate(Screen.InvoiceList.routeWithCategoryId(id))
+                },
+                onLanguageSettingsClick = {
+                    navController.navigate(Screen.LanguageSettings.route)
                 },
                 viewModel = viewModel,
                 showCategoryAddedMessage = categoryAdded,
@@ -435,6 +449,18 @@ fun TaxTrackerNavHost(
                     )
                     // EditInvoiceScreen itself calls onNavigateBack()
                 }
+            )
+        }
+        // -------------------------
+        // Language Settings screen
+        // -------------------------
+        composable(Screen.LanguageSettings.route) { backStackEntry ->
+            val context = LocalContext.current
+            val activity = context as? ComponentActivity
+            
+            LanguageSettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                activity = activity
             )
         }
     }
