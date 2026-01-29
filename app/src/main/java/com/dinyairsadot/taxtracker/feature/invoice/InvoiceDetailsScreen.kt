@@ -21,6 +21,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
@@ -31,6 +33,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
+import com.dinyairsadot.taxtracker.R
 
 
 
@@ -46,12 +49,12 @@ fun InvoiceDetailsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Invoice details") },
+                title = { Text(stringResource(R.string.invoice_details)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -63,7 +66,7 @@ fun InvoiceDetailsScreen(
                             contentColor = LocalContentColor.current
                         )
                     ) {
-                        Text("Edit invoice")
+                        Text(stringResource(R.string.edit_invoice))
                     }
                 },
                 colors = categoryTopAppBarColors(categoryColorHex)
@@ -88,7 +91,7 @@ fun InvoiceDetailsScreen(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = invoice.invoiceNumber.ifBlank { "Invoice #${invoice.id}" },
+                        text = invoice.invoiceNumber.ifBlank { stringResource(R.string.invoice_number_fallback, invoice.id) },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -96,25 +99,26 @@ fun InvoiceDetailsScreen(
                     Spacer(modifier = Modifier.padding(top = 8.dp))
 
                     Text(
-                        text = "Amount: ${invoice.amount}",
+                        text = stringResource(R.string.amount_label, invoice.amount.toString()),
                         style = MaterialTheme.typography.bodyMedium
                     )
 
                     Spacer(modifier = Modifier.padding(top = 4.dp))
 
+                    val statusText = when (invoice.paymentStatus) {
+                        PaymentStatus.PAID_FULL -> stringResource(R.string.paid_in_full)
+                        PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
+                        PaymentStatus.PAID_CREDIT -> stringResource(R.string.paid_with_credit)
+                    }
                     Text(
-                        text = "Status: " + when (invoice.paymentStatus) {
-                            PaymentStatus.PAID_FULL -> "Paid in full"
-                            PaymentStatus.NOT_PAID -> "Not paid"
-                            PaymentStatus.PAID_CREDIT -> "Paid with credit"
-                        },
+                        text = stringResource(R.string.status_label, statusText),
                         style = MaterialTheme.typography.bodyMedium
                     )
 
                     invoice.dueDateText?.let { due ->
                         Spacer(modifier = Modifier.padding(top = 4.dp))
                         Text(
-                            text = "Due date: $due",
+                            text = stringResource(R.string.due_date_label, due),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -122,7 +126,7 @@ fun InvoiceDetailsScreen(
                     invoice.notes?.takeIf { it.isNotBlank() }?.let { notes ->
                         Spacer(modifier = Modifier.padding(top = 8.dp))
                         Text(
-                            text = "Notes:",
+                            text = stringResource(R.string.notes_label),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold
                         )

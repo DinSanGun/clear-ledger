@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.content.Context
+import com.dinyairsadot.taxtracker.R
 
 data class CategoryUi(
     val id: Long,
@@ -30,7 +32,8 @@ data class CategoryListUiState(
 
 class CategoryListViewModel(
     private val categoryRepository: CategoryRepository,
-    private val invoiceRepository: InvoiceRepository
+    private val invoiceRepository: InvoiceRepository,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoryListUiState(isLoading = true))
@@ -57,7 +60,7 @@ class CategoryListViewModel(
                 _uiState.value = CategoryListUiState(
                     isLoading = false,
                     categories = emptyList(),
-                    errorMessage = "Failed to load categories"
+                    errorMessage = context.getString(R.string.failed_to_load_categories)
                 )
             }
         }
@@ -100,7 +103,7 @@ class CategoryListViewModel(
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    errorMessage = "Failed to add category"
+                    errorMessage = context.getString(R.string.failed_to_add_category)
                 )
             }
         }
@@ -118,7 +121,7 @@ class CategoryListViewModel(
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    errorMessage = "Failed to delete category"
+                    errorMessage = context.getString(R.string.failed_to_delete_category)
                 )
             }
         }
@@ -153,7 +156,7 @@ class CategoryListViewModel(
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    errorMessage = "Failed to update category"
+                    errorMessage = context.getString(R.string.failed_to_update_category)
                 )
             }
         }

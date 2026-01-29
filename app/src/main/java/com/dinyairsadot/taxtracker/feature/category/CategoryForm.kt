@@ -16,6 +16,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
 import com.dinyairsadot.taxtracker.core.domain.Category
+import com.dinyairsadot.taxtracker.R
 
 data class CategoryFormState(
     val name: String = "",
@@ -62,7 +64,7 @@ fun CategoryForm(
         OutlinedTextField(
             value = state.name,
             onValueChange = callbacks.onNameChange,
-            label = { Text("Name") },
+            label = { Text(stringResource(R.string.name)) },
             isError = state.nameError != null,
             supportingText = if (state.nameError != null) {
                 { Text(state.nameError) }
@@ -73,7 +75,7 @@ fun CategoryForm(
         )
 
         // Color selection
-        Text(text = "Theme color")
+        Text(text = stringResource(R.string.theme_color))
 
         CategoryColorOptionsRow(
             selectedColorHex = state.colorHex,
@@ -84,7 +86,7 @@ fun CategoryForm(
         OutlinedTextField(
             value = state.description,
             onValueChange = callbacks.onDescriptionChange,
-            label = { Text("Description (optional)") },
+            label = { Text(stringResource(R.string.description_optional)) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -99,13 +101,13 @@ fun CategoryForm(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { callbacks.onCustomFieldTitleChange(index, it) },
-                    label = { Text("Field ${index + 1} title") },
+                    label = { Text(stringResource(R.string.field_title, index + 1)) },
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = { callbacks.onRequestRemoveCustomField(index) }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Remove field"
+                        contentDescription = stringResource(R.string.remove_field)
                     )
                 }
             }
@@ -123,7 +125,7 @@ fun CategoryForm(
                     contentDescription = null,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                Text("Add custom field")
+                Text(stringResource(R.string.add_custom_field))
             }
         }
 

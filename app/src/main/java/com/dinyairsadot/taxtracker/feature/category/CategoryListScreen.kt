@@ -46,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.core.graphics.toColorInt
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.lerp
@@ -53,6 +54,7 @@ import androidx.compose.runtime.LaunchedEffect
 import com.dinyairsadot.taxtracker.core.ui.AppSnackbar
 import com.dinyairsadot.taxtracker.feature.category.CategoryColorPreview
 import androidx.compose.foundation.BorderStroke
+import com.dinyairsadot.taxtracker.R
 
 
 
@@ -71,12 +73,14 @@ fun CategoryListScreen(
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val categoryAddedMessage = stringResource(R.string.category_added)
+    val categoryDeletedMessage = stringResource(R.string.category_deleted)
 
     LaunchedEffect(showCategoryAddedMessage) {
         if (showCategoryAddedMessage) {
             // launch snackbar in a scope that survives the key change
             coroutineScope.launch {
-                snackbarHostState.showSnackbar("Category added")
+                snackbarHostState.showSnackbar(categoryAddedMessage)
             }
 
             // consume immediately so it won't re-trigger on return
@@ -92,7 +96,7 @@ fun CategoryListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Bills & Taxes") }
+                title = { Text(stringResource(R.string.bills_and_taxes)) }
             )
         },
         floatingActionButton = {
@@ -101,7 +105,7 @@ fun CategoryListScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add category"
+                    contentDescription = stringResource(R.string.add_category)
                 )
             }
         },
@@ -157,12 +161,9 @@ fun CategoryListScreen(
         pendingDeleteId?.let { id ->
             AlertDialog(
                 onDismissRequest = { pendingDeleteId = null },
-                title = { Text("Delete category?") },
+                title = { Text(stringResource(R.string.delete_category)) },
                 text = {
-                    Text(
-                        "Are you sure you want to delete this category? " +
-                                "All data associated with it (such as invoices) will be removed."
-                    )
+                    Text(stringResource(R.string.delete_category_confirmation))
                 },
                 confirmButton = {
                     TextButton(
@@ -171,16 +172,16 @@ fun CategoryListScreen(
                             pendingDeleteId = null
 
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Category deleted")
+                                snackbarHostState.showSnackbar(categoryDeletedMessage)
                             }
                         }
                     ) {
-                        Text("Delete")
+                        Text(stringResource(R.string.delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { pendingDeleteId = null }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -203,7 +204,7 @@ private fun CategoryListContent(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "No categories yet.\nTap + to add your first category.",
+                text = stringResource(R.string.no_categories_yet),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -282,7 +283,7 @@ private fun CategoryItem(
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "3 unpaid · 5 total invoices", // TODO: replace with real data
+                    text = stringResource(R.string.invoices_summary), // TODO: replace with real data
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -296,7 +297,7 @@ private fun CategoryItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete category"
+                    contentDescription = stringResource(R.string.delete_category)
                 )
             }
         }

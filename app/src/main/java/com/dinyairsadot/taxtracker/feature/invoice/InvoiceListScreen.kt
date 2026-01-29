@@ -50,9 +50,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.invoice.SortOption
+import com.dinyairsadot.taxtracker.R
 
 
 
@@ -70,8 +73,10 @@ fun InvoiceListScreen(
     onSortOptionChange: (SortOption) -> Unit
     ) {
 
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val invoiceDeletedMessage = stringResource(R.string.invoice_deleted)
     var pendingDeleteInvoiceId by remember { mutableStateOf<Long?>(null) }
     var showSortMenu by remember { mutableStateOf(false) }
 
@@ -89,13 +94,13 @@ fun InvoiceListScreen(
 
         topBar = {
             TopAppBar(
-                title = { Text(uiState.categoryName ?: "Invoices") },
+                title = { Text(uiState.categoryName ?: stringResource(R.string.invoices)) },
                 colors = categoryTopAppBarColors(categoryColorHex),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -105,7 +110,7 @@ fun InvoiceListScreen(
                         IconButton(onClick = { showSortMenu = true }) {
                             Icon(
                                 imageVector = Icons.Default.Sort,
-                                contentDescription = "Sort"
+                                contentDescription = stringResource(R.string.sort)
                             )
                         }
                         DropdownMenu(
@@ -113,28 +118,28 @@ fun InvoiceListScreen(
                             onDismissRequest = { showSortMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Date (newest first)") },
+                                text = { Text(stringResource(R.string.date_newest_first)) },
                                 onClick = {
                                     onSortOptionChange(SortOption.DATE_DESCENDING)
                                     showSortMenu = false
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Date (oldest first)") },
+                                text = { Text(stringResource(R.string.date_oldest_first)) },
                                 onClick = {
                                     onSortOptionChange(SortOption.DATE_ASCENDING)
                                     showSortMenu = false
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Amount (highest first)") },
+                                text = { Text(stringResource(R.string.amount_highest_first)) },
                                 onClick = {
                                     onSortOptionChange(SortOption.AMOUNT_DESCENDING)
                                     showSortMenu = false
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Amount (lowest first)") },
+                                text = { Text(stringResource(R.string.amount_lowest_first)) },
                                 onClick = {
                                     onSortOptionChange(SortOption.AMOUNT_ASCENDING)
                                     showSortMenu = false
@@ -149,7 +154,7 @@ fun InvoiceListScreen(
                             contentColor = LocalContentColor.current
                         )
                     ) {
-                        Text("Edit category")
+                        Text(stringResource(R.string.edit_category))
                     }
                 }
                 )
@@ -158,7 +163,7 @@ fun InvoiceListScreen(
             FloatingActionButton(onClick = onAddInvoiceClick) {
                 Icon(
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "Add invoice"
+                    contentDescription = stringResource(R.string.add_invoice)
                 )
             }
         }
@@ -207,21 +212,21 @@ fun InvoiceListScreen(
     pendingDeleteInvoiceId?.let { invoiceId ->
         AlertDialog(
             onDismissRequest = { pendingDeleteInvoiceId = null },
-            title = { Text("Delete invoice?") },
-            text = { Text("Are you sure you want to delete this invoice? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.delete_invoice)) },
+            text = { Text(stringResource(R.string.delete_invoice_confirmation)) },
             confirmButton = {
                 TextButton(
                     onClick = {
                         onDeleteInvoice(invoiceId)
                         pendingDeleteInvoiceId = null
                         coroutineScope.launch {
-                            snackbarHostState.showSnackbar("Invoice deleted")
+                            snackbarHostState.showSnackbar(invoiceDeletedMessage)
                         }
                     }
-                ) { Text("Delete") }
+                ) { Text(stringResource(R.string.delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDeleteInvoiceId = null }) { Text("Cancel") }
+                TextButton(onClick = { pendingDeleteInvoiceId = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -243,7 +248,7 @@ private fun ErrorState(
         )
         Spacer(modifier = Modifier.padding(top = 8.dp))
         Text(
-            text = "Please try again later.",
+            text = stringResource(R.string.please_try_again_later),
             style = MaterialTheme.typography.bodySmall
         )
     }
@@ -259,13 +264,13 @@ private fun EmptyInvoicesState(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "No invoices yet",
+            text = stringResource(R.string.no_invoices_yet),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.padding(top = 4.dp))
         Text(
-            text = "Tap + to add your first invoice for this category.",
+            text = stringResource(R.string.tap_to_add_first_invoice),
             style = MaterialTheme.typography.bodySmall
         )
     }
@@ -278,17 +283,19 @@ private fun InvoiceListContent(
     onInvoiceClick: (Long) -> Unit,
     onRequestDeleteInvoice: (Long) -> Unit
 ) {
+    val context = LocalContext.current
     LazyColumn(
         modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(invoices) { invoice ->
-            InvoiceItem(
-                invoice = invoice,
-                onClick = { onInvoiceClick(invoice.id) },
-                onDeleteClick = { onRequestDeleteInvoice(invoice.id) }
-            )
-        }
+            items(invoices) { invoice ->
+                InvoiceItem(
+                    invoice = invoice,
+                    onClick = { onInvoiceClick(invoice.id) },
+                    onDeleteClick = { onRequestDeleteInvoice(invoice.id) },
+                    context = context
+                )
+            }
     }
 }
 
@@ -297,7 +304,8 @@ private fun InvoiceItem(
     invoice: InvoiceUi,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    context: android.content.Context
 ) {
     Card(
         modifier = modifier
@@ -317,7 +325,7 @@ private fun InvoiceItem(
                     .padding(end = 84.dp) // reserve space for amount + delete so they never overlap text
             ) {
                 Text(
-                    text = invoice.invoiceNumber.ifBlank { "Invoice #${invoice.id}" },
+                    text = invoice.invoiceNumber.ifBlank { stringResource(R.string.invoice_number_fallback, invoice.id) },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -326,16 +334,16 @@ private fun InvoiceItem(
 
                 Text(
                     text = when (invoice.paymentStatus) {
-                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_FULL -> "Paid in full"
-                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.NOT_PAID -> "Not paid"
-                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_CREDIT -> "Paid with credit"
+                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_FULL -> stringResource(R.string.paid_in_full)
+                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
+                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_CREDIT -> stringResource(R.string.paid_with_credit)
                     },
                     style = MaterialTheme.typography.bodySmall
                 )
 
                 invoice.dueDateText?.let { due ->
                     Text(
-                        text = "Due: $due",
+                        text = stringResource(R.string.due, due),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -355,13 +363,13 @@ private fun InvoiceItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = formatAmountILS(invoice.amount),
+                    text = formatAmountILS(invoice.amount, context),
                     style = MaterialTheme.typography.titleMedium
                 )
                 IconButton(onClick = onDeleteClick) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete invoice",
+                        contentDescription = stringResource(R.string.delete_invoice),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -370,8 +378,8 @@ private fun InvoiceItem(
     }
 }
 
-private fun formatAmountILS(amount: Double): String {
-    return "₪%.2f".format(amount)
+private fun formatAmountILS(amount: Double, context: android.content.Context): String {
+    return context.getString(R.string.amount_format_ils, amount)
 }
 
 /**

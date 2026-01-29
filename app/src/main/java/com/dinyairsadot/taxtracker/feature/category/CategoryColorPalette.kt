@@ -29,6 +29,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import com.dinyairsadot.taxtracker.R
 
 
 
@@ -122,14 +124,14 @@ fun CategoryColorOptionsRow(
                 modifier = Modifier.matchParentSize(),
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
-                Text("+")
+                Text(stringResource(R.string.plus))
             }
         }
     }
     if (showMoreColors) {
         AlertDialog(
             onDismissRequest = { showMoreColors = false },
-            title = { Text("Choose a color") },
+            title = { Text(stringResource(R.string.choose_a_color)) },
             text = {
                 Column {
                     LazyVerticalGrid(
@@ -167,7 +169,7 @@ fun CategoryColorOptionsRow(
             },
             confirmButton = {
                 TextButton(onClick = { showMoreColors = false }) {
-                    Text("Close")
+                    Text(stringResource(R.string.close))
                 }
             }
         )

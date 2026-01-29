@@ -15,6 +15,8 @@ import java.time.format.DateTimeParseException
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
+import android.content.Context
+import com.dinyairsadot.taxtracker.R
 
 
 enum class SortOption {
@@ -47,7 +49,8 @@ data class InvoiceListUiState(
 
 class InvoiceListViewModel(
     private val invoiceRepository: InvoiceRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InvoiceListUiState(isLoading = true))
@@ -94,7 +97,7 @@ class InvoiceListViewModel(
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     invoices = emptyList(),
-                    errorMessage = "Failed to load invoices"
+                    errorMessage = context.getString(R.string.failed_to_load_invoices)
                 )
             }
         }

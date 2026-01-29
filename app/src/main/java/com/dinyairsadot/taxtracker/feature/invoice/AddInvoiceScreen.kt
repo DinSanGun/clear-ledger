@@ -32,8 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.dinyairsadot.taxtracker.R
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -120,7 +122,7 @@ fun AddInvoiceScreen(
     fun handleSave() {
         val amount = amountText.toDoubleOrNull()
         if (amount == null || amount <= 0.0) {
-            amountError = "Enter a valid amount"
+            amountError = context.getString(R.string.enter_valid_amount)
             return
         } else {
             amountError = null
@@ -129,7 +131,7 @@ fun AddInvoiceScreen(
         // Validate DD/MM/YYYY format - date is mandatory
         val trimmed = dateText.trim()
         if (trimmed.isBlank()) {
-            dateError = "Date is required"
+            dateError = context.getString(R.string.date_required)
             return
         }
         val isValid = try {
@@ -139,7 +141,7 @@ fun AddInvoiceScreen(
             false
         }
         if (!isValid) {
-            dateError = "Use format DD/MM/YYYY"
+            dateError = context.getString(R.string.use_format_dd_mm_yyyy)
             return
         } else {
             dateError = null
@@ -152,13 +154,13 @@ fun AddInvoiceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add invoice") },
+                title = { Text(stringResource(R.string.add_invoice_title)) },
                 colors = categoryTopAppBarColors(categoryColorHex),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -192,13 +194,13 @@ fun AddInvoiceScreen(
                         if (!focusState.isFocused && amountTouched) {
                             val amount = amountText.toDoubleOrNull()
                             if (amount == null || amount <= 0.0) {
-                                amountError = "Enter a valid amount"
+                                amountError = context.getString(R.string.enter_valid_amount)
                             } else {
                                 amountError = null
                             }
                         }
                     },
-                label = { Text("Amount") },
+                label = { Text(stringResource(R.string.amount)) },
                 isError = amountError != null,
                 supportingText = amountError?.let { msg -> { Text(msg) } },
                 trailingIcon = {
@@ -231,7 +233,7 @@ fun AddInvoiceScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(if (currency == Currency.USD) "$" else "₪")
+                                Text(if (currency == Currency.USD) stringResource(R.string.currency_usd) else stringResource(R.string.currency_ils))
                             }
                         }
                     }
@@ -262,7 +264,7 @@ fun AddInvoiceScreen(
                             if (!focusState.isFocused && dateTouched) {
                                 val trimmed = dateText.trim()
                                 if (trimmed.isBlank()) {
-                                    dateError = "Date is required"
+                                    dateError = context.getString(R.string.date_required)
                                 } else {
                                     val isValid = try {
                                         LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
@@ -271,21 +273,21 @@ fun AddInvoiceScreen(
                                         false
                                     }
                                     if (!isValid) {
-                                        dateError = "Use format DD/MM/YYYY"
+                                        dateError = context.getString(R.string.use_format_dd_mm_yyyy)
                                     } else {
                                         dateError = null
                                     }
                                 }
                             }
                         },
-                    label = { Text("Due date (DD/MM/YYYY)") },
+                    label = { Text(stringResource(R.string.due_date_dd_mm_yyyy)) },
                     isError = dateError != null,
                     supportingText = dateError?.let { msg -> { Text(msg) } }
                 )
                 IconButton(onClick = { showDatePicker() }) {
                     Icon(
                         imageVector = Icons.Filled.CalendarToday,
-                        contentDescription = "Pick date"
+                        contentDescription = stringResource(R.string.pick_date)
                     )
                 }
             }
@@ -303,7 +305,7 @@ fun AddInvoiceScreen(
                 value = notes,
                 onValueChange = { notes = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Notes") },
+                label = { Text(stringResource(R.string.notes)) },
                 minLines = 3
             )
 
@@ -340,7 +342,7 @@ fun AddInvoiceScreen(
                     containerColor = Color(0xFF4CAF50) // Green color
                 )
             ) {
-                Text("Save invoice")
+                Text(stringResource(R.string.save_invoice))
             }
         }
     }
@@ -359,7 +361,7 @@ private fun PaymentStatusSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Status:",
+            text = stringResource(R.string.status),
             fontWeight = FontWeight.Normal,
             modifier = Modifier.padding(end = 8.dp)
         )
@@ -367,7 +369,7 @@ private fun PaymentStatusSelector(
             onClick = { onSelectedChange(PaymentStatus.NOT_PAID) }
         ) {
             Text(
-                text = "Not paid",
+                text = stringResource(R.string.not_paid),
                 fontWeight = if (selected == PaymentStatus.NOT_PAID) FontWeight.Bold else FontWeight.Normal
             )
         }
@@ -375,7 +377,7 @@ private fun PaymentStatusSelector(
             onClick = { onSelectedChange(PaymentStatus.PAID_FULL) }
         ) {
             Text(
-                text = "Paid full",
+                text = stringResource(R.string.paid_full),
                 fontWeight = if (selected == PaymentStatus.PAID_FULL) FontWeight.Bold else FontWeight.Normal
             )
         }
@@ -383,7 +385,7 @@ private fun PaymentStatusSelector(
             onClick = { onSelectedChange(PaymentStatus.PAID_CREDIT) }
         ) {
             Text(
-                text = "Paid credit",
+                text = stringResource(R.string.paid_credit),
                 fontWeight = if (selected == PaymentStatus.PAID_CREDIT) FontWeight.Bold else FontWeight.Normal
             )
         }
@@ -489,7 +491,7 @@ fun EditInvoiceScreen(
     fun handleSave() {
         val amount = amountText.toDoubleOrNull()
         if (amount == null || amount <= 0.0) {
-            amountError = "Enter a valid amount"
+            amountError = context.getString(R.string.enter_valid_amount)
             return
         } else {
             amountError = null
@@ -498,7 +500,7 @@ fun EditInvoiceScreen(
         // Validate DD/MM/YYYY format - date is mandatory
         val trimmed = dateText.trim()
         if (trimmed.isBlank()) {
-            dateError = "Date is required"
+            dateError = context.getString(R.string.date_required)
             return
         }
         val isValid = try {
@@ -508,7 +510,7 @@ fun EditInvoiceScreen(
             false
         }
         if (!isValid) {
-            dateError = "Use format DD/MM/YYYY"
+            dateError = context.getString(R.string.use_format_dd_mm_yyyy)
             return
         } else {
             dateError = null
@@ -521,13 +523,13 @@ fun EditInvoiceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit invoice") },
+                title = { Text(stringResource(R.string.edit_invoice_title)) },
                 colors = categoryTopAppBarColors(categoryColorHex),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -561,13 +563,13 @@ fun EditInvoiceScreen(
                         if (!focusState.isFocused && amountTouched) {
                             val amount = amountText.toDoubleOrNull()
                             if (amount == null || amount <= 0.0) {
-                                amountError = "Enter a valid amount"
+                                amountError = context.getString(R.string.enter_valid_amount)
                             } else {
                                 amountError = null
                             }
                         }
                     },
-                label = { Text("Amount") },
+                label = { Text(stringResource(R.string.amount)) },
                 isError = amountError != null,
                 supportingText = amountError?.let { msg -> { Text(msg) } },
                 trailingIcon = {
@@ -600,7 +602,7 @@ fun EditInvoiceScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(if (currency == Currency.USD) "$" else "₪")
+                                Text(if (currency == Currency.USD) stringResource(R.string.currency_usd) else stringResource(R.string.currency_ils))
                             }
                         }
                     }
@@ -631,7 +633,7 @@ fun EditInvoiceScreen(
                             if (!focusState.isFocused && dateTouched) {
                                 val trimmed = dateText.trim()
                                 if (trimmed.isBlank()) {
-                                    dateError = "Date is required"
+                                    dateError = context.getString(R.string.date_required)
                                 } else {
                                     val isValid = try {
                                         LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
@@ -640,21 +642,21 @@ fun EditInvoiceScreen(
                                         false
                                     }
                                     if (!isValid) {
-                                        dateError = "Use format DD/MM/YYYY"
+                                        dateError = context.getString(R.string.use_format_dd_mm_yyyy)
                                     } else {
                                         dateError = null
                                     }
                                 }
                             }
                         },
-                    label = { Text("Due date (DD/MM/YYYY)") },
+                    label = { Text(stringResource(R.string.due_date_dd_mm_yyyy)) },
                     isError = dateError != null,
                     supportingText = dateError?.let { msg -> { Text(msg) } }
                 )
                 IconButton(onClick = { showDatePicker() }) {
                     Icon(
                         imageVector = Icons.Filled.CalendarToday,
-                        contentDescription = "Pick date"
+                        contentDescription = stringResource(R.string.pick_date)
                     )
                 }
             }
@@ -672,7 +674,7 @@ fun EditInvoiceScreen(
                 value = notes,
                 onValueChange = { notes = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Notes") },
+                label = { Text(stringResource(R.string.notes)) },
                 minLines = 3
             )
 
@@ -709,7 +711,7 @@ fun EditInvoiceScreen(
                     containerColor = Color(0xFF4CAF50) // Green color
                 )
             ) {
-                Text("Save changes")
+                Text(stringResource(R.string.save_changes))
             }
         }
     }

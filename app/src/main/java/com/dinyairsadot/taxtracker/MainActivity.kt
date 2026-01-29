@@ -18,6 +18,7 @@ import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.ui.TaxTrackerNavHost
 import com.dinyairsadot.taxtracker.ui.theme.TaxInvoiceTrackerTheme
 import kotlinx.coroutines.launch
+import com.dinyairsadot.taxtracker.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,23 +69,23 @@ class MainActivity : ComponentActivity() {
             val defaultCategories = listOf(
                 Category(
                     id = 0, // Room will auto-generate
-                    name = "Electricity",
+                    name = getString(R.string.default_category_electricity),
                     colorHex = "#FF9800",
-                    description = "Electricity provider bills",
+                    description = getString(R.string.default_category_electricity_description),
                     customFieldTitles = emptyList()
                 ),
                 Category(
                     id = 0,
-                    name = "Water",
+                    name = getString(R.string.default_category_water),
                     colorHex = "#2196F3",
-                    description = "Water and sewage",
+                    description = getString(R.string.default_category_water_description),
                     customFieldTitles = emptyList()
                 ),
                 Category(
                     id = 0,
-                    name = "City Taxes",
+                    name = getString(R.string.default_category_city_taxes),
                     colorHex = "#4CAF50",
-                    description = "Arnona / city hall payments",
+                    description = getString(R.string.default_category_city_taxes_description),
                     customFieldTitles = emptyList()
                 )
             )

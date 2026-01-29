@@ -16,6 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
@@ -23,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dinyairsadot.taxtracker.feature.category.CategoryListViewModel
+import com.dinyairsadot.taxtracker.R
 
 
 
@@ -53,6 +56,7 @@ fun EditCategoryScreen(
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var hasFieldData by rememberSaveable { mutableStateOf(false) }
 
+    val context = LocalContext.current
     var nameError by remember { mutableStateOf<String?>(null) }
     var colorError by remember { mutableStateOf<String?>(null) }
 
@@ -73,17 +77,17 @@ fun EditCategoryScreen(
         var hasError = false
 
         if (name.isBlank()) {
-            nameError = "Name is required"
+            nameError = context.getString(R.string.name_required)
             hasError = true
         } else if (otherNamesLower.contains(name.trim().lowercase())) {
-            nameError = "Name must be unique"
+            nameError = context.getString(R.string.name_must_be_unique)
             hasError = true
         }
 
         if (colorHex.isNotBlank()) {
             val regex = Regex("^#[0-9A-Fa-f]{6}$")
             if (!regex.matches(colorHex.trim())) {
-                colorError = "Color must be in #RRGGBB format"
+                colorError = context.getString(R.string.color_must_be_rrggbb_format)
                 hasError = true
             }
         }
@@ -142,13 +146,13 @@ fun EditCategoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit category") },
+                title = { Text(stringResource(R.string.edit_category_title)) },
                 colors = categoryTopAppBarColors(colorHex.takeIf { it.isNotBlank() }),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -158,33 +162,25 @@ fun EditCategoryScreen(
         if (pendingRemoveFieldIndex != null) {
             val fieldIndex = pendingRemoveFieldIndex!!
             val fieldTitle = customFieldTitles.getOrNull(fieldIndex)?.takeIf { it.isNotBlank() }
-                ?: "Field ${fieldIndex + 1}"
-            
-            val warningText = if (hasFieldData) {
-                "Removing \"$fieldTitle\" will delete information stored in invoices for this field. " +
-                        "Are you sure you want to remove it?"
-            } else {
-                "Removing \"$fieldTitle\" will delete any information stored in invoices for this field. " +
-                        "Are you sure you want to remove it?"
-            }
+                ?: context.getString(R.string.field_number, fieldIndex + 1)
             
             AlertDialog(
                 onDismissRequest = { pendingRemoveFieldIndex = null },
-                title = { Text("Remove custom field?") },
+                title = { Text(stringResource(R.string.remove_custom_field)) },
                 text = {
-                    Text(warningText)
+                    Text(context.getString(R.string.remove_custom_field_confirmation, fieldTitle))
                 },
                 confirmButton = {
                     TextButton(onClick = {
                         removeCustomFieldAt(fieldIndex)
                         pendingRemoveFieldIndex = null
                     }) {
-                        Text("Remove")
+                        Text(stringResource(R.string.remove))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { pendingRemoveFieldIndex = null }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -192,7 +188,7 @@ fun EditCategoryScreen(
         CategoryForm(
             state = formState,
             callbacks = formCallbacks,
-            saveButtonLabel = "Save changes",
+            saveButtonLabel = stringResource(R.string.save_changes),
             modifier = Modifier.padding(innerPadding)
         )
     }

@@ -1,3 +1,112 @@
 <resources>
     <string name="app_name">Tax Invoice Tracker</string>
+    
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="remove">Remove</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="add">Add</string>
+    <string name="close">Close</string>
+    <string name="sort">Sort</string>
+    
+    <!-- Category List Screen -->
+    <string name="bills_and_taxes">Bills &amp; Taxes</string>
+    <string name="add_category">Add category</string>
+    <string name="category_added">Category added</string>
+    <string name="category_deleted">Category deleted</string>
+    <string name="delete_category">Delete category?</string>
+    <string name="delete_category_confirmation">Are you sure you want to delete this category? All data associated with it (such as invoices) will be removed.</string>
+    <string name="no_categories_yet">No categories yet.\nTap + to add your first category.</string>
+    <string name="invoices_summary">3 unpaid · 5 total invoices</string>
+    
+    <!-- Add/Edit Category Screen -->
+    <string name="add_category_title">Add category</string>
+    <string name="edit_category_title">Edit category</string>
+    <string name="name">Name</string>
+    <string name="name_required">Name is required</string>
+    <string name="name_must_be_unique">Name must be unique</string>
+    <string name="theme_color">Theme color</string>
+    <string name="color_must_be_rrggbb_format">Color must be in #RRGGBB format</string>
+    <string name="description_optional">Description (optional)</string>
+    <string name="field_title">Field %1$d title</string>
+    <string name="field_number">Field %1$d</string>
+    <string name="add_custom_field">Add custom field</string>
+    <string name="remove_field">Remove field</string>
+    <string name="remove_custom_field">Remove custom field?</string>
+    <string name="remove_custom_field_confirmation">Removing \"%1$s\" will delete any information stored in invoices for this field. Are you sure you want to remove it?</string>
+    <string name="save_changes">Save changes</string>
+    
+    <!-- Category ViewModel Errors -->
+    <string name="failed_to_load_categories">Failed to load categories</string>
+    <string name="failed_to_add_category">Failed to add category</string>
+    <string name="failed_to_delete_category">Failed to delete category</string>
+    <string name="failed_to_update_category">Failed to update category</string>
+    
+    <!-- Invoice List Screen -->
+    <string name="invoices">Invoices</string>
+    <string name="edit_category">Edit category</string>
+    <string name="add_invoice">Add invoice</string>
+    <string name="date_newest_first">Date (newest first)</string>
+    <string name="date_oldest_first">Date (oldest first)</string>
+    <string name="amount_highest_first">Amount (highest first)</string>
+    <string name="amount_lowest_first">Amount (lowest first)</string>
+    <string name="delete_invoice">Delete invoice?</string>
+    <string name="delete_invoice_confirmation">Are you sure you want to delete this invoice? This action cannot be undone.</string>
+    <string name="invoice_deleted">Invoice deleted</string>
+    <string name="please_try_again_later">Please try again later.</string>
+    <string name="no_invoices_yet">No invoices yet</string>
+    <string name="tap_to_add_first_invoice">Tap + to add your first invoice for this category.</string>
+    <string name="invoice_number_fallback">Invoice #%1$d</string>
+    <string name="paid_in_full">Paid in full</string>
+    <string name="not_paid">Not paid</string>
+    <string name="paid_with_credit">Paid with credit</string>
+    <string name="due">Due: %1$s</string>
+    <string name="failed_to_load_invoices">Failed to load invoices</string>
+    
+    <!-- Add/Edit Invoice Screen -->
+    <string name="add_invoice_title">Add invoice</string>
+    <string name="edit_invoice_title">Edit invoice</string>
+    <string name="amount">Amount</string>
+    <string name="enter_valid_amount">Enter a valid amount</string>
+    <string name="due_date_dd_mm_yyyy">Due date (DD/MM/YYYY)</string>
+    <string name="date_required">Date is required</string>
+    <string name="use_format_dd_mm_yyyy">Use format DD/MM/YYYY</string>
+    <string name="pick_date">Pick date</string>
+    <string name="notes">Notes</string>
+    <string name="save_invoice">Save invoice</string>
+    <string name="status">Status:</string>
+    <string name="paid_full">Paid full</string>
+    <string name="paid_credit">Paid credit</string>
+    
+    <!-- Invoice Details Screen -->
+    <string name="invoice_details">Invoice details</string>
+    <string name="edit_invoice">Edit invoice</string>
+    <string name="amount_label">Amount: %1$s</string>
+    <string name="status_label">Status: %1$s</string>
+    <string name="due_date_label">Due date: %1$s</string>
+    <string name="notes_label">Notes:</string>
+    
+    <!-- Navigation -->
+    <string name="invoice_not_found">Invoice not found</string>
+    <string name="invoice_could_not_be_loaded">This invoice could not be loaded.</string>
+    
+    <!-- Category Color Palette -->
+    <string name="choose_a_color">Choose a color</string>
+    <string name="plus">+</string>
+    
+    <!-- Default Categories (for seeding) -->
+    <string name="default_category_electricity">Electricity</string>
+    <string name="default_category_electricity_description">Electricity provider bills</string>
+    <string name="default_category_water">Water</string>
+    <string name="default_category_water_description">Water and sewage</string>
+    <string name="default_category_city_taxes">City Taxes</string>
+    <string name="default_category_city_taxes_description">Arnona / city hall payments</string>
+    
+    <!-- Currency Symbols -->
+    <string name="currency_usd">$</string>
+    <string name="currency_ils">₪</string>
+    <string name="amount_format_ils">₪%1$.2f</string>
 </resources>

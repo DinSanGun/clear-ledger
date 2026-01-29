@@ -17,9 +17,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
+import com.dinyairsadot.taxtracker.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +45,7 @@ fun AddCategoryScreen(
     var customFieldTitles by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
 
+    val context = LocalContext.current
     var nameError by remember { mutableStateOf<String?>(null) }
     var colorError by remember { mutableStateOf<String?>(null) }
 
@@ -55,17 +59,17 @@ fun AddCategoryScreen(
         var hasError = false
 
         if (name.isBlank()) {
-            nameError = "Name is required"
+            nameError = context.getString(R.string.name_required)
             hasError = true
         } else if (existingNamesLower.contains(name.trim().lowercase())) {
-            nameError = "Name must be unique"
+            nameError = context.getString(R.string.name_must_be_unique)
             hasError = true
         }
 
         if (colorHex.isNotBlank()) {
             val regex = Regex("^#[0-9A-Fa-f]{6}$")
             if (!regex.matches(colorHex.trim())) {
-                colorError = "Color must be in #RRGGBB format"
+                colorError = context.getString(R.string.color_must_be_rrggbb_format)
                 hasError = true
             }
         }
@@ -126,13 +130,13 @@ fun AddCategoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add category") },
+                title = { Text(stringResource(R.string.add_category_title)) },
                 colors = categoryTopAppBarColors(colorHex.takeIf { it.isNotBlank() }),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -142,15 +146,14 @@ fun AddCategoryScreen(
         if (pendingRemoveFieldIndex != null) {
             val fieldIndex = pendingRemoveFieldIndex!!
             val fieldTitle = customFieldTitles.getOrNull(fieldIndex)?.takeIf { it.isNotBlank() }
-                ?: "Field ${fieldIndex + 1}"
+                ?: context.getString(R.string.field_number, fieldIndex + 1)
             
             AlertDialog(
                 onDismissRequest = { pendingRemoveFieldIndex = null },
-                title = { Text("Remove custom field?") },
+                title = { Text(stringResource(R.string.remove_custom_field)) },
                 text = {
                     Text(
-                        "Removing \"$fieldTitle\" will delete any information stored in invoices for this field. " +
-                                "Are you sure you want to remove it?"
+                        context.getString(R.string.remove_custom_field_confirmation, fieldTitle)
                     )
                 },
                 confirmButton = {
@@ -158,12 +161,12 @@ fun AddCategoryScreen(
                         removeCustomFieldAt(fieldIndex)
                         pendingRemoveFieldIndex = null
                     }) {
-                        Text("Remove")
+                        Text(stringResource(R.string.remove))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { pendingRemoveFieldIndex = null }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -171,7 +174,7 @@ fun AddCategoryScreen(
         CategoryForm(
             state = formState,
             callbacks = formCallbacks,
-            saveButtonLabel = "Add category",
+            saveButtonLabel = stringResource(R.string.add_category),
             modifier = Modifier.padding(innerPadding)   // 👈 important
         )
     }
