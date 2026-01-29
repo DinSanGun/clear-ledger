@@ -168,7 +168,7 @@ class InvoiceListViewModel(
                 consumptionValue = null,
                 consumptionUnit = null,
                 notes = notes.ifBlank { null },
-                customFieldValues = customFieldValues.map { it.trim() }.filter { it.isNotBlank() }
+                customFieldValues = customFieldValues.map { it.trim() }
             )
 
             invoiceRepository.addInvoice(newInvoice)
@@ -210,7 +210,7 @@ class InvoiceListViewModel(
                 paymentStatus = paymentStatus,
                 dueDate = parsedDate,
                 notes = notes.ifBlank { null },
-                customFieldValues = customFieldValues.map { it.trim() }.filter { it.isNotBlank() }
+                customFieldValues = customFieldValues.map { it.trim() }
             )
 
             invoiceRepository.updateInvoice(updated)
