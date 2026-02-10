@@ -1,24 +1,37 @@
 package com.dinyairsadot.taxtracker.feature.invoice
-// Contains AddInvoiceScreen
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.border
+import android.app.DatePickerDialog
 import androidx.compose.foundation.background
-import androidx.compose.ui.layout.AlignmentLine
-import androidx.compose.ui.layout.FirstBaseline
-import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,48 +40,40 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.R
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.foundation.clickable
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import android.app.DatePickerDialog
-
-
-
-enum class Currency {
-    USD,
-    ILS
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddInvoiceScreen(
-    categoryId: Long,
-    categoryName: String?,
+fun EditInvoiceScreen(
+    invoiceId: Long,
     categoryColorHex: String?,
     categoryCustomFieldTitles: List<String>,
-    getDefaultDocumentType: (String?) -> DocumentType?,
+    initialVendorName: String?,
+    initialIssueDateText: String?,
+    initialAmount: String,
+    initialDueDateText: String,
+    initialPaymentStatus: PaymentStatus,
+    initialPaymentDateText: String?,
+    initialServicePeriodStartText: String?,
+    initialServicePeriodEndText: String?,
+    initialNotes: String,
+    initialCustomFieldValues: List<String>,
+    initialDocumentType: DocumentType?,
     onNavigateBack: () -> Unit,
     onSaveInvoice: (
         vendorName: String?,
@@ -85,18 +90,45 @@ fun AddInvoiceScreen(
     ) -> Unit
 ) {
     val context = LocalContext.current
-    var vendorNameText by rememberSaveable { mutableStateOf("") }
-    var issueDateText by rememberSaveable { mutableStateOf("") }
-    var amountText by rememberSaveable { mutableStateOf("") }
-    var dueDateText by rememberSaveable { mutableStateOf("") }
-    var paymentDateText by rememberSaveable { mutableStateOf("") }
-    var servicePeriodStartText by rememberSaveable { mutableStateOf("") }
-    var servicePeriodEndText by rememberSaveable { mutableStateOf("") }
-    var notes by rememberSaveable { mutableStateOf("") }
-    var paymentStatus by rememberSaveable { mutableStateOf(PaymentStatus.NOT_PAID) }
+    var vendorNameText by rememberSaveable { mutableStateOf(initialVendorName ?: "") }
+    var issueDateText by rememberSaveable { mutableStateOf(initialIssueDateText ?: "") }
+    var amountText by rememberSaveable { mutableStateOf(initialAmount) }
+    // Convert date from YYYY-MM-DD to DD/MM/YYYY if needed
+    var dueDateText by rememberSaveable {
+        mutableStateOf(
+            if (initialDueDateText.isNotBlank()) {
+                val trimmed = initialDueDateText.trim()
+                try {
+                    // Try to parse as YYYY-MM-DD (old format) and convert
+                    val date = LocalDate.parse(trimmed)
+                    date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                } catch (e: Exception) {
+                    // If parsing fails, check if it's already in DD/MM/YYYY format
+                    try {
+                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        trimmed // Already in correct format
+                    } catch (e2: Exception) {
+                        trimmed // Keep as-is if can't parse
+                    }
+                }
+            } else {
+                initialDueDateText
+            }
+        )
+    }
+    var paymentDateText by rememberSaveable { mutableStateOf(initialPaymentDateText ?: "") }
+    var servicePeriodStartText by rememberSaveable { mutableStateOf(initialServicePeriodStartText ?: "") }
+    var servicePeriodEndText by rememberSaveable { mutableStateOf(initialServicePeriodEndText ?: "") }
+    var notes by rememberSaveable { mutableStateOf(initialNotes) }
+    var paymentStatus by rememberSaveable { mutableStateOf(initialPaymentStatus) }
     var currency by rememberSaveable { mutableStateOf(Currency.ILS) }
     var customFieldValues by rememberSaveable {
-        mutableStateOf(List(categoryCustomFieldTitles.size) { "" })
+        mutableStateOf(
+            // Ensure we have values for all custom fields, padding with empty strings if needed
+            categoryCustomFieldTitles.mapIndexed { index, _ ->
+                initialCustomFieldValues.getOrNull(index) ?: ""
+            }
+        )
     }
 
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -104,9 +136,8 @@ fun AddInvoiceScreen(
     var amountTouched by rememberSaveable { mutableStateOf(false) }
     var dueDateTouched by rememberSaveable { mutableStateOf(false) }
     
-    // Document type with default from category
-    val defaultDocumentType = remember(categoryName) { getDefaultDocumentType(categoryName) }
-    var documentType by rememberSaveable { mutableStateOf<DocumentType?>(defaultDocumentType) }
+    // Document type state
+    var documentType by rememberSaveable { mutableStateOf<DocumentType?>(initialDocumentType) }
     var documentTypeExpanded by rememberSaveable { mutableStateOf(false) }
     
     // Date picker logic - reusable function
@@ -195,7 +226,7 @@ fun AddInvoiceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.add_invoice_title)) },
+                title = { Text(stringResource(R.string.edit_invoice_title)) },
                 colors = categoryTopAppBarColors(categoryColorHex),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -438,9 +469,9 @@ fun AddInvoiceScreen(
                         IconButton(onClick = { documentTypeExpanded = !documentTypeExpanded }) {
                             Icon(
                                 imageVector = if (documentTypeExpanded) {
-                                    Icons.Default.KeyboardArrowUp
+                                    Icons.Filled.KeyboardArrowUp
                                 } else {
-                                    Icons.Default.KeyboardArrowDown
+                                    Icons.Filled.KeyboardArrowDown
                                 },
                                 contentDescription = null
                             )
@@ -577,52 +608,8 @@ fun AddInvoiceScreen(
                     containerColor = Color(0xFF4CAF50) // Green color
                 )
             ) {
-                Text(stringResource(R.string.save_invoice))
+                Text(stringResource(R.string.save_changes))
             }
-        }
-    }
-}
-
-@Composable
-fun PaymentStatusSelector(
-    selected: PaymentStatus,
-    onSelectedChange: (PaymentStatus) -> Unit
-) {
-    // Row with label and buttons on the same line
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = stringResource(R.string.status),
-            fontWeight = FontWeight.Normal,
-            modifier = Modifier.padding(end = 8.dp)
-        )
-        TextButton(
-            onClick = { onSelectedChange(PaymentStatus.NOT_PAID) }
-        ) {
-            Text(
-                text = stringResource(R.string.not_paid),
-                fontWeight = if (selected == PaymentStatus.NOT_PAID) FontWeight.Bold else FontWeight.Normal
-            )
-        }
-        TextButton(
-            onClick = { onSelectedChange(PaymentStatus.PAID_FULL) }
-        ) {
-            Text(
-                text = stringResource(R.string.paid_full),
-                fontWeight = if (selected == PaymentStatus.PAID_FULL) FontWeight.Bold else FontWeight.Normal
-            )
-        }
-        TextButton(
-            onClick = { onSelectedChange(PaymentStatus.PAID_CREDIT) }
-        ) {
-            Text(
-                text = stringResource(R.string.paid_credit),
-                fontWeight = if (selected == PaymentStatus.PAID_CREDIT) FontWeight.Bold else FontWeight.Normal
-            )
         }
     }
 }
