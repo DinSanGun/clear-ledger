@@ -1,3 +1,9 @@
+> ⚠️ OUTDATED (needs refresh)
+> This file was created earlier for AI/Cursor context and may no longer reflect the current codebase
+> (models, storage, and architecture changed).  
+> Use `docs/LAUNCH_PLAN.md` for the current execution plan.
+> This file will be updated during S1 (Ownership & Architecture Clarity).
+
 # Tax Tracker (Android) — AI Context (Cursor)
 
 Last updated: 2026-01-28

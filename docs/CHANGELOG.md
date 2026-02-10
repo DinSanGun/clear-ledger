@@ -3,6 +3,89 @@
 This changelog documents incremental development steps of the Tax Tracker app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
 
+## 29/01/2026
+
+### Core Invoice Model & Tax Fields
+- Add `DocumentType` enum with Room persistence and category-based defaults
+- Add vendor name, issue date, payment date, and service period fields
+- Extend invoice model with Israel-focused tax/billing fields
+- Add localized strings for all new invoice fields
+
+### Built-in Categories & Data Seeding
+- Seed 8 built-in categories with predefined custom fields (Arnona, Electricity, etc.)
+- Improve initial app experience with realistic default data
+
+### Database & Migrations
+- Add Room database migrations (v1 → v2 → v3) to support new fields
+- Ensure backward compatibility for existing users
+
+### Bug Fixes
+- Fix custom field values index-alignment bug
+    - Preserve index mapping by trimming list instead of filtering blank values
+
+### Internationalization & RTL Support
+- Add full Hebrew localization with manual language switching
+- Implement persistent language preference
+- Add RTL/LTR layout switching based on selected language
+- Fix locale handling (`he` / `iw`) and resource folder naming
+
+### Codebase Cleanup
+- Replace all hardcoded UI strings with string resources
+- Enable proper internationalization support for future languages
+
+---
+
+## 28/01/2026
+
+### Persistence & Architecture
+- Replace in-memory repositories with Room database
+- Add Room entities, DAOs, and database configuration
+- Implement Room-based repositories while preserving existing patterns
+- Remove manual ID generation (handled by Room)
+- Seed initial default categories on first launch
+- Update ViewModels to use Room repositories via factories
+- No UI changes required for this migration
+
+### Invoice List & Sorting
+- Add sorting dropdown to invoice list
+    - Sort by date or amount
+    - Ascending / descending options
+
+### Custom Fields System
+- Refactor custom fields to a dynamic list (max 10 fields per category)
+- Integrate custom fields into invoice add/edit screens
+- Display custom field values in invoice details
+- Prepare category UI state for dynamic custom fields
+- Switch development workflow to Cursor IDE
+
+### UI & UX Improvements
+- Polish invoice and category screens
+    - Integrate currency button into amount field
+    - Standardize date format to DD/MM/YYYY
+    - Add real-time validation
+    - Improve spacing and visual consistency
+- Add scroll support to add/edit invoice and category screens
+- Improve category color selection UX
+    - Large preview circle
+    - Real-time top bar preview
+    - Wider selection borders
+    - Clear indication for extended palette colors
+- Move “Add custom field” button below fields with plus icon
+- Match button shapes to text fields
+- Make color circles fill full width
+- Remove redundant custom fields header text
+- Lock app orientation to portrait mode
+
+
+## 09/01/2026
+
+### Custom Fields – Foundations
+- Prepare category UI state to support custom fields
+    - Internal state changes only (no visible UI change)
+- Add removable custom fields to category add/edit forms
+    - Allow users to add and remove custom fields per category
+    - Lay groundwork for future dynamic custom field support
+
 ## 2026-01-06
 ### Update category color picker with pastel defaults and extended palette
 - Category color picker now shows **7 pastel colors** by default

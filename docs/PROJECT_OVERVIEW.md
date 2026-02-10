@@ -1,3 +1,10 @@
+> ⚠️ OUTDATED (needs refresh)
+> This file may no longer reflect the current codebase
+> (models, storage, and architecture changed).  
+> Use `docs/LAUNCH_PLAN.md` for the current execution plan.
+> This file will be updated during S1 (Ownership & Architecture Clarity).
+
+
 # Tax Tracker - Project Overview
 
 ## A. High-Level App Purpose and Main User Flows
