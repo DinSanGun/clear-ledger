@@ -104,5 +104,5 @@ Internal planning and development notes live in `docs/LAUNCH_PLAN.md`.
 
 ## License
 
-This project is currently provided for viewing and evaluation purposes.  
-License details will be added prior to public release.
+This project is licensed under the MIT License.  
+See the [LICENSE](LICENSE) file for details.
