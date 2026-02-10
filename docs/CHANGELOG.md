@@ -5,6 +5,10 @@ Entries are ordered from newest to oldest and correspond to tested, committed ch
 
 ## 29/01/2026
 
+### Archive unused in-memory repositories
+- Move `InMemoryCategoryRepository` and `InMemoryInvoiceRepository` to `archive/` (no longer used; app uses Room)
+- Update docs (ai-context, PROJECT_OVERVIEW) to describe Room as current storage and note archived implementations
+
 ### Core Invoice Model & Tax Fields
 - Add `DocumentType` enum with Room persistence and category-based defaults
 - Add vendor name, issue date, payment date, and service period fields

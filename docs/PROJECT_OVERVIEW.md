@@ -48,8 +48,8 @@ Tax Invoice Tracker is an Android app for managing bills and tax invoices organi
   - `InvoiceListViewModel` (`feature/invoice/InvoiceListViewModel.kt`)
 - **Repository Pattern:** 
   - Interfaces: `CategoryRepository`, `InvoiceRepository` (`core/domain/`)
-  - In-memory implementations: `InMemoryCategoryRepository`, `InMemoryInvoiceRepository`
-  - Currently using in-memory storage (no Room database yet)
+  - Room implementations: `RoomCategoryRepository`, `RoomInvoiceRepository` (`core/data/repositories/`)
+  - In-memory implementations are archived in `archive/` (no longer used)
 
 **State Management:**
 - ViewModels expose `StateFlow<UiState>`
@@ -74,6 +74,9 @@ com.dinyairsadot.taxtracker/
 │   │   ├── Models.kt                    # Domain models (Category, Invoice, enums)
 │   │   ├── CategoryRepository.kt         # Repository interface
 │   │   └── InvoiceRepository.kt          # Repository interface
+│   ├── data/
+│   │   ├── dao/, entities/, repositories/  # Room database, RoomCategoryRepository, RoomInvoiceRepository
+│   │   └── TaxTrackerDatabase.kt
 │   └── ui/
 │       ├── Navigation.kt                 # Navigation setup, Screen sealed class, NavHost
 │       ├── AppSnackbar.kt                # Reusable snackbar component
@@ -87,21 +90,23 @@ com.dinyairsadot.taxtracker/
 │   │   ├── AddCategoryScreen.kt          # Add category UI
 │   │   ├── EditCategoryScreen.kt         # Edit category UI
 │   │   ├── CategoryForm.kt                # Shared form component (used by Add/Edit)
-│   │   ├── CategoryColorPalette.kt       # Color picker UI (presets + extended palette)
-│   │   └── InMemoryCategoryRepository.kt # In-memory category storage
+│   │   └── CategoryColorPalette.kt       # Color picker UI (presets + extended palette)
 │   │
 │   └── invoice/
 │       ├── InvoiceListScreen.kt           # Invoice list UI
 │       ├── InvoiceListViewModel.kt        # Invoice list state management
 │       ├── AddInvoiceScreen.kt            # Add invoice UI (also contains EditInvoiceScreen)
 │       ├── InvoiceDetailsScreen.kt        # Invoice details UI
-│       ├── EditInvoiceScreen.kt           # Edit invoice UI (in same file as AddInvoiceScreen)
-│       └── InMemoryInvoiceRepository.kt  # In-memory invoice storage
+│       └── EditInvoiceScreen.kt           # Edit invoice UI (in same file as AddInvoiceScreen)
 │
 ├── ui/theme/
 │   ├── Theme.kt                           # Material3 theme setup
 │   ├── Color.kt                            # Theme color definitions
 │   └── Type.kt                            # Typography definitions
+│
+├── archive/                               # Archived, unused code (reference only)
+│   ├── InMemoryCategoryRepository.kt      # Former in-memory category storage
+│   └── InMemoryInvoiceRepository.kt       # Former in-memory invoice storage
 │
 └── MainActivity.kt                        # Entry point, sets up NavHost
 ```
@@ -151,7 +156,7 @@ com.dinyairsadot.taxtracker/
 
 ## E. Data Layer
 
-**Current Implementation: In-Memory Storage**
+**Current Implementation: Room Database**
 
 **Repositories:**
 
@@ -168,13 +173,11 @@ com.dinyairsadot.taxtracker/
    - `updateInvoice(invoice: Invoice)`
    - `deleteInvoice(id: Long)`
 
-**In-Memory Implementations:**
-- `InMemoryCategoryRepository` (`feature/category/InMemoryCategoryRepository.kt`)
-  - Seeded with 3 sample categories (Electricity, Water, City Taxes)
-  - Uses `mutableListOf<Category>`
-- `InMemoryInvoiceRepository` (`feature/invoice/InMemoryInvoiceRepository.kt`)
-  - Seeded with 2 sample invoices (both under categoryId=1)
-  - Uses `mutableListOf<Invoice>`
+**Room Implementations:**
+- `RoomCategoryRepository` (`core/data/repositories/RoomCategoryRepository.kt`) — uses `CategoryDao`
+- `RoomInvoiceRepository` (`core/data/repositories/RoomInvoiceRepository.kt`) — uses `InvoiceDao`
+
+(Former in-memory implementations are archived in `archive/InMemoryCategoryRepository.kt` and `archive/InMemoryInvoiceRepository.kt`.)
 
 **Domain Models** (`core/domain/Models.kt`):
 
@@ -203,13 +206,11 @@ com.dinyairsadot.taxtracker/
   - `CustomFieldType`: TEXT, NUMBER, DATE, BOOLEAN (defined but not fully used yet)
 
 **Future Data Layer:**
-- Models include `CustomFieldDefinition` and `InvoiceCustomFieldValue` (not yet implemented)
+- Models include `CustomFieldDefinition` and `InvoiceCustomFieldValue` (in use for dynamic custom fields)
 - `InvoiceImage` model exists (for future photo attachments)
-- No Room database yet - repositories are interfaces ready for Room implementation
 
 **ID Generation:**
-- Currently manual: `(existing.maxOfOrNull { it.id } ?: 0L) + 1L`
-- Future: Room will auto-generate IDs
+- Room auto-generates IDs for categories and invoices
 
 ---
 
@@ -401,8 +402,7 @@ com.dinyairsadot.taxtracker/
 
 5. **Category Deletion:**
    - Warning mentions "All data associated with it (such as invoices) will be removed"
-   - Currently in-memory, so deletion is immediate
-   - Future: May need cascade delete when Room is added
+   - Room handles persistence; deletion is immediate once confirmed
 
 ### Invoice Constraints
 
@@ -499,8 +499,8 @@ com.dinyairsadot.taxtracker/
    - Future: Room will auto-generate IDs
 
 2. **Repository Thread Safety:**
-   - In-memory repositories are `object` (singleton)
-   - Mutable lists are not thread-safe
+   - Room repositories are created in MainActivity and passed into the NavHost/ViewModels
+   - Room handles threading via coroutines/Dispatchers.IO
    - Currently single-threaded (main thread + coroutines)
    - Future: Room will handle thread safety
 
@@ -557,8 +557,7 @@ com.dinyairsadot.taxtracker/
 **Work In Progress / Future:**
 
 1. **Data Persistence:**
-   - Currently in-memory only
-   - Room database integration planned (models ready)
+   - Room database in use; initial categories seeded on first launch
 
 2. **Custom Fields:**
    - Category custom field definitions exist in model
@@ -587,4 +586,4 @@ com.dinyairsadot.taxtracker/
 
 ## Summary
 
-Tax Tracker is a well-structured Android app using MVVM architecture with Jetpack Compose. The codebase follows clear separation of concerns with feature-based modules. Currently using in-memory storage, but repository pattern allows easy migration to Room database. Category colors are a key visual feature, applied consistently across invoice screens. Navigation uses ViewModel sharing to maintain state across related screens. The app is functional for basic category and invoice management, with several planned enhancements (Room, custom fields, invoice images, statistics).
+Tax Tracker is a well-structured Android app using MVVM architecture with Jetpack Compose. The codebase follows clear separation of concerns with feature-based modules. Storage uses Room database (RoomCategoryRepository, RoomInvoiceRepository). Category colors are a key visual feature, applied consistently across invoice screens. Navigation uses ViewModel sharing to maintain state across related screens. The app is functional for basic category and invoice management, with several planned enhancements (custom fields polish, invoice images, statistics).

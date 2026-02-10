@@ -1,10 +1,14 @@
-package com.dinyairsadot.taxtracker.feature.invoice
+package com.dinyairsadot.taxtracker.archive
 
 import com.dinyairsadot.taxtracker.core.domain.Invoice
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import java.time.LocalDate
 
+/**
+ * Archived: No longer used. App uses Room (RoomInvoiceRepository) for persistence.
+ * Kept for reference only.
+ */
 object InMemoryInvoiceRepository : InvoiceRepository {
 
     // Mutable list so we can add/update/delete invoices at runtime.

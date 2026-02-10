@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -27,8 +26,6 @@ import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.ui.TaxTrackerNavHost
 import com.dinyairsadot.taxtracker.ui.theme.TaxInvoiceTrackerTheme
 import kotlinx.coroutines.launch
-import com.dinyairsadot.taxtracker.R
-import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     companion object {

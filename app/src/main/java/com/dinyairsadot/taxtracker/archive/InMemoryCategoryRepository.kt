@@ -1,8 +1,12 @@
-package com.dinyairsadot.taxtracker.feature.category
+package com.dinyairsadot.taxtracker.archive
 
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 
+/**
+ * Archived: No longer used. App uses Room (RoomCategoryRepository) for persistence.
+ * Kept for reference only.
+ */
 object InMemoryCategoryRepository : CategoryRepository {
 
     // Mutable list so we can add items at runtime
