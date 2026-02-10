@@ -2,7 +2,6 @@ package com.dinyairsadot.taxtracker
 
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -15,6 +14,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.lifecycleScope
@@ -48,35 +48,19 @@ class MainActivity : ComponentActivity() {
         
         Log.d(TAG, "[MAIN] updateBaseContextLocale BEFORE: savedLocale=$savedLocale, savedLanguage='$savedLanguage', contextLocale=${context.resources.configuration.locales[0]}")
         
-        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val config = Configuration(context.resources.configuration)
-            config.setLocale(savedLocale)
-            // setLayoutDirection takes a Locale and automatically determines RTL/LTR
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                config.setLayoutDirection(savedLocale)
-                Log.d(TAG, "[MAIN] updateBaseContextLocale: Set layout direction for locale=${savedLocale.language}")
-            }
-            val newContext = context.createConfigurationContext(config)
-            val layoutDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                newContext.resources.configuration.layoutDirection
-            } else 0
-            Log.d(TAG, "[MAIN] updateBaseContextLocale AFTER (API>=24): newContextLocale=${newContext.resources.configuration.locales[0]}, layoutDirection=$layoutDir")
-            newContext
-        } else {
-            val config = Configuration(context.resources.configuration)
-            config.setLocale(savedLocale)
-            @Suppress("DEPRECATION")
-            context.resources.updateConfiguration(config, context.resources.displayMetrics)
-            @Suppress("DEPRECATION")
-            Log.d(TAG, "[MAIN] updateBaseContextLocale AFTER (API<24): contextLocale=${context.resources.configuration.locale}")
-            context
-        }
-        
+        // minSdk is 26, so createConfigurationContext + setLocale/setLayoutDirection are always available
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(savedLocale)
+        config.setLayoutDirection(savedLocale)
+        Log.d(TAG, "[MAIN] updateBaseContextLocale: Set layout direction for locale=${savedLocale.language}")
+        val newContext = context.createConfigurationContext(config)
+        val layoutDir = newContext.resources.configuration.layoutDirection
+        Log.d(TAG, "[MAIN] updateBaseContextLocale AFTER: newContextLocale=${newContext.resources.configuration.locales[0]}, layoutDirection=$layoutDir")
+        val result = newContext
+
         // Verify the locale was set correctly
         val finalLocale = result.resources.configuration.locales[0]
-        val finalLayoutDirection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            result.resources.configuration.layoutDirection
-        } else 0
+        val finalLayoutDirection = result.resources.configuration.layoutDirection
         Log.d(TAG, "[MAIN] updateBaseContextLocale FINAL: finalLocale=$finalLocale, finalLanguage='${finalLocale.language}', layoutDirection=$finalLayoutDirection")
         
         return result
@@ -92,12 +76,8 @@ class MainActivity : ComponentActivity() {
         val currentConfigLocale = resources.configuration.locales[0]
         val currentConfigLanguage = currentConfigLocale.language
         
-        val layoutDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            resources.configuration.layoutDirection
-        } else 0
-        val baseLayoutDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            baseContext.resources.configuration.layoutDirection
-        } else 0
+        val layoutDir = resources.configuration.layoutDirection
+        val baseLayoutDir = baseContext.resources.configuration.layoutDirection
         
         Log.d(TAG, "[MAIN] onCreate: savedLocale=$savedLocale, savedLanguage='$savedLanguage'")
         Log.d(TAG, "[MAIN] onCreate: resources.configuration.locale=$currentConfigLocale, language='$currentConfigLanguage', layoutDirection=$layoutDir")
@@ -122,14 +102,14 @@ class MainActivity : ComponentActivity() {
         }
         
         setContent {
-            // #region agent log - Check locale in Compose
-            val context = androidx.compose.ui.platform.LocalContext.current
-            val composeLocale = context.resources.configuration.locales[0]
+            // Debug: observe locale & layout direction via Compose configuration
+
+            val configuration = LocalConfiguration.current
+
+            val composeLocale = configuration.locales[0]
             val composeLanguage = composeLocale.language
-            val composeLayoutDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                context.resources.configuration.layoutDirection
-            } else 0
-            
+            val composeLayoutDir = configuration.layoutDirection
+
             // Determine layout direction from configuration
             val layoutDirection = if (composeLayoutDir == android.view.View.LAYOUT_DIRECTION_RTL) {
                 LayoutDirection.Rtl
