@@ -27,7 +27,9 @@ data class Category(
     val name: String,
     val colorHex: String,
     val description: String? = null,
-    val customFieldTitles: List<String> = emptyList() // Up to 10 custom field titles
+    val customFieldTitles: List<String> = emptyList(), // Up to 10 custom field titles
+    val supplierName: String? = null,  // Kept for backward compatibility
+    val pinnedDefaults: Map<String, String> = emptyMap()  // Pinned default values (e.g., "supplierName" -> "Israel Electric Company")
 ) {
     // Backward compatibility: getters for old field names
     val customFieldTitle1: String? get() = customFieldTitles.getOrNull(0)
@@ -36,6 +38,7 @@ data class Category(
     
     companion object {
         const val MAX_CUSTOM_FIELDS = 10
+        const val PINNED_KEY_SUPPLIER_NAME = "supplierName"
     }
 }
 
@@ -55,10 +58,15 @@ data class CustomFieldDefinition(
 
 /**
  * Represents a single invoice / bill entry.
+ * New minimal core fields (prepared for future migration):
+ * - amountDue, documentNumber, servicePeriodStart, servicePeriodEnd (required in new model)
+ * - paymentMethod (optional)
+ * Old fields kept for backward compatibility during transition.
  */
 data class Invoice(
     val id: Long,
     val categoryId: Long,
+    // Old fields (kept for compatibility)
     val invoiceNumber: String,
     val amount: Double,
     val paymentStatus: PaymentStatus,
@@ -69,10 +77,17 @@ data class Invoice(
     val servicePeriodStart: LocalDate? = null,
     val servicePeriodEnd: LocalDate? = null,
     val consumptionValue: Double? = null,
-    val consumptionUnit: String? = null, // e.g. "kWh", "m³"
+    val consumptionUnit: String? = null,
     val notes: String? = null,
-    val customFieldValues: List<String> = emptyList(), // Values for custom fields (up to 10)
-    val documentType: DocumentType? = null
+    val customFieldValues: List<String> = emptyList(),
+    val documentType: DocumentType? = null,
+    // New minimal core fields (added for future migration)
+    val amountDue: Double = amount,  // defaults to old amount
+    val documentNumber: String = invoiceNumber,  // defaults to old invoiceNumber
+    val paymentMethod: String? = null,
+    val confirmationNumber: String? = null,
+    // Pinned snapshot: captures category.pinnedDefaults at invoice creation time
+    val pinnedSnapshot: Map<String, String> = emptyMap()
 ) {
     // Backward compatibility: getters for old field names
     val customFieldValue1: String? get() = customFieldValues.getOrNull(0)

@@ -151,7 +151,7 @@ class MainActivity : ComponentActivity() {
         
         // Only seed if database is empty
         if (categories.isEmpty()) {
-            // Seed 8 default categories with their custom fields
+            // Seed 11 default categories with minimal custom fields
             val defaultCategories = listOf(
                 // Arnona
                 Category(
@@ -160,10 +160,9 @@ class MainActivity : ComponentActivity() {
                     colorHex = "#4CAF50",
                     description = getString(R.string.default_category_arnona_description),
                     customFieldTitles = listOf(
-                        getString(R.string.field_property_id),
-                        getString(R.string.field_billing_period_start),
-                        getString(R.string.field_billing_period_end)
-                    )
+                        getString(R.string.field_property_id)
+                    ),
+                    pinnedDefaults = emptyMap()
                 ),
                 // Electricity
                 Category(
@@ -173,10 +172,9 @@ class MainActivity : ComponentActivity() {
                     description = getString(R.string.default_category_electricity_description),
                     customFieldTitles = listOf(
                         getString(R.string.field_meter_id),
-                        getString(R.string.field_consumption_kwh),
-                        getString(R.string.field_billing_period_start),
-                        getString(R.string.field_billing_period_end)
-                    )
+                        getString(R.string.field_consumption_kwh)
+                    ),
+                    pinnedDefaults = emptyMap()
                 ),
                 // Water
                 Category(
@@ -186,10 +184,9 @@ class MainActivity : ComponentActivity() {
                     description = getString(R.string.default_category_water_description),
                     customFieldTitles = listOf(
                         getString(R.string.field_meter_id),
-                        getString(R.string.field_consumption_cubic_meters),
-                        getString(R.string.field_billing_period_start),
-                        getString(R.string.field_billing_period_end)
-                    )
+                        getString(R.string.field_consumption_cubic_meters)
+                    ),
+                    pinnedDefaults = emptyMap()
                 ),
                 // Gas
                 Category(
@@ -198,11 +195,9 @@ class MainActivity : ComponentActivity() {
                     colorHex = "#9C27B0",
                     description = getString(R.string.default_category_gas_description),
                     customFieldTitles = listOf(
-                        getString(R.string.field_meter_id),
-                        getString(R.string.field_consumption_cubic_meters),
-                        getString(R.string.field_billing_period_start),
-                        getString(R.string.field_billing_period_end)
-                    )
+                        getString(R.string.field_meter_id)
+                    ),
+                    pinnedDefaults = emptyMap()
                 ),
                 // Phone/Internet
                 Category(
@@ -211,10 +206,9 @@ class MainActivity : ComponentActivity() {
                     colorHex = "#00BCD4",
                     description = getString(R.string.default_category_phone_internet_description),
                     customFieldTitles = listOf(
-                        getString(R.string.field_account_number),
-                        getString(R.string.field_billing_period_start),
-                        getString(R.string.field_billing_period_end)
-                    )
+                        getString(R.string.field_account_number)
+                    ),
+                    pinnedDefaults = emptyMap()
                 ),
                 // National Insurance
                 Category(
@@ -223,10 +217,9 @@ class MainActivity : ComponentActivity() {
                     colorHex = "#795548",
                     description = getString(R.string.default_category_national_insurance_description),
                     customFieldTitles = listOf(
-                        getString(R.string.field_id_number),
-                        getString(R.string.field_billing_period_start),
-                        getString(R.string.field_billing_period_end)
-                    )
+                        getString(R.string.field_id_number)
+                    ),
+                    pinnedDefaults = emptyMap()
                 ),
                 // Business Expenses
                 Category(
@@ -236,11 +229,40 @@ class MainActivity : ComponentActivity() {
                     description = getString(R.string.default_category_business_expenses_description),
                     customFieldTitles = listOf(
                         getString(R.string.field_vendor_name),
-                        getString(R.string.field_invoice_number),
-                        getString(R.string.field_vat_number),
-                        getString(R.string.field_billing_period_start),
-                        getString(R.string.field_billing_period_end)
-                    )
+                        getString(R.string.field_invoice_number)
+                    ),
+                    pinnedDefaults = emptyMap()
+                ),
+                // Income Tax (NEW)
+                Category(
+                    id = 0,
+                    name = getString(R.string.default_category_income_tax),
+                    colorHex = "#E91E63",
+                    description = getString(R.string.default_category_income_tax_description),
+                    customFieldTitles = listOf(
+                        getString(R.string.field_id_number)
+                    ),
+                    pinnedDefaults = emptyMap()
+                ),
+                // Health Fund (NEW)
+                Category(
+                    id = 0,
+                    name = getString(R.string.default_category_health_fund),
+                    colorHex = "#3F51B5",
+                    description = getString(R.string.default_category_health_fund_description),
+                    customFieldTitles = listOf(
+                        getString(R.string.field_id_number)
+                    ),
+                    pinnedDefaults = emptyMap()
+                ),
+                // Car Insurance (NEW)
+                Category(
+                    id = 0,
+                    name = getString(R.string.default_category_car_insurance),
+                    colorHex = "#FF5722",
+                    description = getString(R.string.default_category_car_insurance_description),
+                    customFieldTitles = emptyList(),
+                    pinnedDefaults = emptyMap()
                 ),
                 // Other
                 Category(
@@ -248,7 +270,8 @@ class MainActivity : ComponentActivity() {
                     name = getString(R.string.default_category_other),
                     colorHex = "#9E9E9E",
                     description = getString(R.string.default_category_other_description),
-                    customFieldTitles = emptyList()
+                    customFieldTitles = emptyList(),
+                    pinnedDefaults = emptyMap()
                 )
             )
             

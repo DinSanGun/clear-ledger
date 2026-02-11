@@ -33,7 +33,8 @@ fun AddCategoryScreen(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitles: List<String>
+        customFieldTitles: List<String>,
+        pinnedSupplierName: String
     ) -> Unit,
     existingNamesLower: Set<String>,
     onCategorySaved: () -> Unit
@@ -41,18 +42,50 @@ fun AddCategoryScreen(
     var name by rememberSaveable { mutableStateOf("") }
     var colorHex by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
+    var pinnedSupplierName by rememberSaveable { mutableStateOf("") }
 
     var customFieldTitles by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    
+    // New field input state
+    var newFieldName by rememberSaveable { mutableStateOf("") }
+    var selectedTopicId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     var nameError by remember { mutableStateOf<String?>(null) }
     var colorError by remember { mutableStateOf<String?>(null) }
+    var fieldExistsError by remember { mutableStateOf<String?>(null) }
 
     fun removeCustomFieldAt(index: Int) {
         val newList = customFieldTitles.toMutableList()
         newList.removeAt(index)
         customFieldTitles = newList
+    }
+    
+    fun addFieldFromInput() {
+        val trimmed = newFieldName.trim()
+        if (trimmed.isBlank()) return
+        
+        // Check for duplicates (case-insensitive)
+        if (customFieldTitles.any { it.trim().equals(trimmed, ignoreCase = true) }) {
+            fieldExistsError = context.getString(R.string.field_already_exists)
+            return
+        }
+        
+        customFieldTitles = customFieldTitles + trimmed
+        newFieldName = ""
+        fieldExistsError = null
+    }
+    
+    fun addFieldFromCatalog(fieldName: String) {
+        // Check for duplicates (case-insensitive)
+        if (customFieldTitles.any { it.trim().equals(fieldName.trim(), ignoreCase = true) }) {
+            fieldExistsError = context.getString(R.string.field_already_exists)
+            return
+        }
+        
+        customFieldTitles = customFieldTitles + fieldName
+        fieldExistsError = null
     }
 
     fun onSaveClicked() {
@@ -80,7 +113,8 @@ fun AddCategoryScreen(
                 name.trim(),
                 colorHex.trim(),
                 description.trim(),
-                trimmedTitles
+                trimmedTitles,
+                pinnedSupplierName.trim()
             )
 
             onCategorySaved()
@@ -94,7 +128,11 @@ fun AddCategoryScreen(
         colorHex = colorHex,
         colorError = colorError,
         description = description,
-        customFieldTitles = customFieldTitles
+        customFieldTitles = customFieldTitles,
+        pinnedSupplierName = pinnedSupplierName,
+        newFieldName = newFieldName,
+        selectedTopicId = selectedTopicId,
+        fieldExistsError = fieldExistsError
     )
 
     val formCallbacks = CategoryFormCallbacks(
@@ -124,6 +162,22 @@ fun AddCategoryScreen(
         },
         onRequestRemoveCustomField = { index ->
             pendingRemoveFieldIndex = index
+        },
+        onPinnedSupplierNameChange = { newSupplierName ->
+            pinnedSupplierName = newSupplierName
+        },
+        onNewFieldNameChange = { newName ->
+            newFieldName = newName
+            if (fieldExistsError != null) fieldExistsError = null
+        },
+        onAddNewFieldFromInput = {
+            addFieldFromInput()
+        },
+        onTopicSelected = { topicId ->
+            selectedTopicId = topicId
+        },
+        onAddFieldFromCatalog = { fieldName ->
+            addFieldFromCatalog(fieldName)
         }
     )
 

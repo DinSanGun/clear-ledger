@@ -2,6 +2,7 @@ package com.dinyairsadot.taxtracker.feature.invoice
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.Invoice
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
@@ -41,7 +42,14 @@ data class InvoiceUi(
     val servicePeriodEndText: String? = null,
     val notes: String?,
     val customFieldValues: List<String> = emptyList(),
-    val documentType: DocumentType? = null
+    val documentType: DocumentType? = null,
+    // New core fields
+    val documentNumber: String = invoiceNumber,  // New field (fallback to invoiceNumber for compatibility)
+    val amountDue: Double = amount,              // New field (fallback to amount for compatibility)
+    val paymentMethod: String? = null,
+    val confirmationNumber: String? = null,
+    // Pinned snapshot
+    val pinnedSnapshot: Map<String, String> = emptyMap()
 )
 
 data class InvoiceListUiState(
@@ -49,6 +57,7 @@ data class InvoiceListUiState(
     val categoryName: String? = null,
     val categoryColorHex: String? = null,
     val categoryCustomFieldTitles: List<String> = emptyList(),
+    val categoryPinnedSupplierName: String? = null,
     val invoices: List<InvoiceUi> = emptyList(),
     val errorMessage: String? = null,
     val sortOption: SortOption = SortOption.DATE_DESCENDING
@@ -102,14 +111,16 @@ class InvoiceListViewModel(
                 _uiState.value = _uiState.value.copy(
                     categoryName = category?.name,
                     categoryColorHex = category?.colorHex,
-                    categoryCustomFieldTitles = category?.customFieldTitles ?: emptyList()
+                    categoryCustomFieldTitles = category?.customFieldTitles ?: emptyList(),
+                    categoryPinnedSupplierName = category?.pinnedDefaults?.get(Category.PINNED_KEY_SUPPLIER_NAME)
                 )
             } catch (_: Exception) {
                 // If category can't be loaded, keep title fallback in UI
                 _uiState.value = _uiState.value.copy(
                     categoryName = null,
                     categoryColorHex = null,
-                    categoryCustomFieldTitles = emptyList()
+                    categoryCustomFieldTitles = emptyList(),
+                    categoryPinnedSupplierName = null
                 )
             }
         }
@@ -173,57 +184,57 @@ class InvoiceListViewModel(
 
     fun addInvoice(
         categoryId: Long,
-        vendorName: String?,
-        issueDateText: String?,
-        dueDateText: String,
-        amount: Double,
+        documentNumber: String,
+        amountDue: Double,
         paymentStatus: PaymentStatus,
-        paymentDateText: String?,
-        servicePeriodStartText: String?,
-        servicePeriodEndText: String?,
+        servicePeriodStartText: String,
+        servicePeriodEndText: String,
+        paymentMethod: String?,
+        confirmationNumber: String?,
         notes: String,
-        customFieldValues: List<String> = emptyList(),
-        documentType: DocumentType? = null
+        customFieldValues: List<String> = emptyList()
     ) {
         viewModelScope.launch {
-            fun parseDate(dateText: String?): LocalDate? {
-                return dateText?.takeIf { it.isNotBlank() }?.let { text ->
-                    val trimmed = text.trim()
-                    runCatching {
-                        // Try DD/MM/YYYY format
-                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                    }.getOrNull()
-                        ?: runCatching {
-                            // Fallback to YYYY-MM-DD format (for backward compatibility)
-                            LocalDate.parse(trimmed)
-                        }.getOrNull()
-                }
+            fun parseDate(dateText: String): LocalDate? {
+                val trimmed = dateText.trim()
+                return runCatching {
+                    LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                }.getOrNull()
             }
 
-            val issueDate = parseDate(issueDateText)
-            val dueDate = parseDate(dueDateText)
-            val paymentDate = parseDate(paymentDateText)
             val servicePeriodStart = parseDate(servicePeriodStartText)
             val servicePeriodEnd = parseDate(servicePeriodEndText)
+
+            // Snapshot category's pinned defaults at invoice creation time
+            val category = categoryRepository.getCategories().firstOrNull { it.id == categoryId }
+            val pinnedSnapshot = category?.pinnedDefaults ?: emptyMap()
 
             // Use id=0 to let Room auto-generate the ID
             val newInvoice = Invoice(
                 id = 0,
                 categoryId = categoryId,
-                invoiceNumber = "", // can be expanded later
-                amount = amount,
+                // Old fields (backward compatibility)
+                invoiceNumber = documentNumber,  // Map new to old
+                amount = amountDue,             // Map new to old
                 paymentStatus = paymentStatus,
-                vendorName = vendorName?.takeIf { it.isNotBlank() },
-                issueDate = issueDate,
-                dueDate = dueDate,
-                paymentDate = paymentDate,
+                vendorName = null,
+                issueDate = null,
+                dueDate = servicePeriodEnd,      // Use service period end as due date for sorting
+                paymentDate = null,
                 servicePeriodStart = servicePeriodStart,
                 servicePeriodEnd = servicePeriodEnd,
                 consumptionValue = null,
                 consumptionUnit = null,
                 notes = notes.ifBlank { null },
                 customFieldValues = customFieldValues.map { it.trim() },
-                documentType = documentType
+                documentType = null,
+                // New fields
+                amountDue = amountDue,
+                documentNumber = documentNumber,
+                paymentMethod = paymentMethod,
+                confirmationNumber = confirmationNumber,
+                // Pinned snapshot: capture category defaults at creation time
+                pinnedSnapshot = pinnedSnapshot
             )
 
             invoiceRepository.addInvoice(newInvoice)
@@ -237,53 +248,44 @@ class InvoiceListViewModel(
 
     fun updateInvoice(
         invoiceId: Long,
-        vendorName: String?,
-        issueDateText: String?,
-        dueDateText: String,
-        amount: Double,
+        documentNumber: String,
+        amountDue: Double,
         paymentStatus: PaymentStatus,
-        paymentDateText: String?,
-        servicePeriodStartText: String?,
-        servicePeriodEndText: String?,
+        servicePeriodStartText: String,
+        servicePeriodEndText: String,
+        paymentMethod: String?,
+        confirmationNumber: String?,
         notes: String,
-        customFieldValues: List<String> = emptyList(),
-        documentType: DocumentType? = null
+        customFieldValues: List<String> = emptyList()
     ) {
         viewModelScope.launch {
             val existing = invoiceRepository.getInvoiceById(invoiceId) ?: return@launch
 
-            fun parseDate(dateText: String?): LocalDate? {
-                return dateText?.takeIf { it.isNotBlank() }?.let { text ->
-                    val trimmed = text.trim()
-                    runCatching {
-                        // Try DD/MM/YYYY format
-                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                    }.getOrNull()
-                        ?: runCatching {
-                            // Fallback to YYYY-MM-DD format (for backward compatibility)
-                            LocalDate.parse(trimmed)
-                        }.getOrNull()
-                }
+            fun parseDate(dateText: String): LocalDate? {
+                val trimmed = dateText.trim()
+                return runCatching {
+                    LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                }.getOrNull()
             }
 
-            val issueDate = parseDate(issueDateText)
-            val dueDate = parseDate(dueDateText)
-            val paymentDate = parseDate(paymentDateText)
             val servicePeriodStart = parseDate(servicePeriodStartText)
             val servicePeriodEnd = parseDate(servicePeriodEndText)
 
             val updated = existing.copy(
-                vendorName = vendorName?.takeIf { it.isNotBlank() },
-                issueDate = issueDate,
-                amount = amount,
+                // Old fields (backward compatibility)
+                invoiceNumber = documentNumber,
+                amount = amountDue,
                 paymentStatus = paymentStatus,
-                dueDate = dueDate,
-                paymentDate = paymentDate,
+                dueDate = servicePeriodEnd,  // Use service period end as due date for sorting
                 servicePeriodStart = servicePeriodStart,
                 servicePeriodEnd = servicePeriodEnd,
                 notes = notes.ifBlank { null },
                 customFieldValues = customFieldValues.map { it.trim() },
-                documentType = documentType
+                // New fields
+                amountDue = amountDue,
+                documentNumber = documentNumber,
+                paymentMethod = paymentMethod,
+                confirmationNumber = confirmationNumber
             )
 
             invoiceRepository.updateInvoice(updated)
@@ -322,6 +324,12 @@ private fun Invoice.toUi(): InvoiceUi {
         servicePeriodEndText = this.servicePeriodEnd?.format(dateFormatter),
         notes = this.notes,
         customFieldValues = this.customFieldValues,
-        documentType = this.documentType
+        documentType = this.documentType,
+        // New core fields
+        documentNumber = this.documentNumber,
+        amountDue = this.amountDue,
+        paymentMethod = this.paymentMethod,
+        confirmationNumber = this.confirmationNumber,
+        pinnedSnapshot = this.pinnedSnapshot
     )
 }

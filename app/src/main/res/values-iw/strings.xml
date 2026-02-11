@@ -119,6 +119,12 @@
     <string name="default_category_national_insurance_description">תשלומי ביטוח לאומי</string>
     <string name="default_category_business_expenses">הוצאות עסקיות</string>
     <string name="default_category_business_expenses_description">חשבוניות הוצאות עסקיות</string>
+    <string name="default_category_income_tax">מס הכנסה</string>
+    <string name="default_category_income_tax_description">תשלומי מס הכנסה</string>
+    <string name="default_category_health_fund">קופת חולים</string>
+    <string name="default_category_health_fund_description">תשלומי קופת חולים</string>
+    <string name="default_category_car_insurance">ביטוח רכב</string>
+    <string name="default_category_car_insurance_description">תשלומי ביטוח רכב</string>
     <string name="default_category_other">אחר</string>
     <string name="default_category_other_description">חשבוניות וחשבונות אחרים</string>
     
@@ -145,6 +151,35 @@
     <string name="paid_date_label">תאריך תשלום: %1$s</string>
     <string name="service_period_label">תקופת שירות: %1$s - %2$s</string>
     <string name="vendor_name_label">ספק: %1$s</string>
+    
+    <!-- New Core Invoice Fields -->
+    <string name="amount_due">סכום לתשלום</string>
+    <string name="document_number">מספר מסמך</string>
+    <string name="document_number_required">מספר מסמך נדרש</string>
+    <string name="payment_method">אמצעי תשלום</string>
+    <string name="confirmation_number">מספר אישור</string>
+    
+    <!-- Category Pinned Defaults -->
+    <string name="pinned_supplier_name">ספק/גוף מחייב ברירת מחדל (ממלא אוטומטית חשבוניות חדשות)</string>
+    
+    <!-- Field Catalog Topics -->
+    <string name="topic_general">כללי</string>
+    <string name="topic_electricity">חשמל</string>
+    <string name="topic_water">מים</string>
+    <string name="topic_arnona">ארנונה</string>
+    <string name="topic_gas">גז</string>
+    <string name="topic_communication">טלפון/אינטרנט</string>
+    <string name="topic_national_insurance">ביטוח לאומי</string>
+    <string name="topic_income_tax">מס הכנסה</string>
+    <string name="topic_health_fund">קופת חולים</string>
+    <string name="topic_insurances">ביטוחים</string>
+    <string name="topic_car_insurance">ביטוח רכב</string>
+    
+    <!-- Field Catalog UI -->
+    <string name="new_field_name_hint">שם שדה חדש...</string>
+    <string name="or_choose_from_list">או בחר מתוך רשימה</string>
+    <string name="select_topic">בחר נושא</string>
+    <string name="field_already_exists">שדה זה כבר קיים</string>
     
     <!-- Currency Symbols -->
     <string name="currency_usd">$</string>

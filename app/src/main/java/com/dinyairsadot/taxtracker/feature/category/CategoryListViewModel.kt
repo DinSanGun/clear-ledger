@@ -78,12 +78,19 @@ class CategoryListViewModel(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitles: List<String>
+        customFieldTitles: List<String>,
+        pinnedSupplierName: String
     ) {
         viewModelScope.launch {
             try {
                 // ✅ If color is blank, use a default
                 val safeColorHex = if (colorHex.isBlank()) "#FF9800" else colorHex.trim()
+
+                // Build pinned defaults map
+                val pinnedDefaults = mutableMapOf<String, String>()
+                if (pinnedSupplierName.isNotBlank()) {
+                    pinnedDefaults[Category.PINNED_KEY_SUPPLIER_NAME] = pinnedSupplierName
+                }
 
                 // Use id=0 to let Room auto-generate the ID
                 val newCategory = Category(
@@ -91,7 +98,8 @@ class CategoryListViewModel(
                     name = name,
                     colorHex = safeColorHex,
                     description = description.ifBlank { null },
-                    customFieldTitles = customFieldTitles
+                    customFieldTitles = customFieldTitles,
+                    pinnedDefaults = pinnedDefaults
                 )
 
                 categoryRepository.addCategory(newCategory)
@@ -132,19 +140,27 @@ class CategoryListViewModel(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitles: List<String>
+        customFieldTitles: List<String>,
+        pinnedSupplierName: String
     ) {
         viewModelScope.launch {
             try {
                 // Reuse the same safe color logic as addCategory
                 val safeColorHex = if (colorHex.isBlank()) "#FF9800" else colorHex.trim()
 
+                // Build pinned defaults map
+                val pinnedDefaults = mutableMapOf<String, String>()
+                if (pinnedSupplierName.isNotBlank()) {
+                    pinnedDefaults[Category.PINNED_KEY_SUPPLIER_NAME] = pinnedSupplierName
+                }
+
                 val updatedCategory = Category(
                     id = id,
                     name = name.trim(),
                     colorHex = safeColorHex,
                     description = description.trim().ifBlank { null },
-                    customFieldTitles = customFieldTitles
+                    customFieldTitles = customFieldTitles,
+                    pinnedDefaults = pinnedDefaults
                 )
 
                 categoryRepository.updateCategory(updatedCategory)

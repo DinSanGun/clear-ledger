@@ -2,7 +2,6 @@ package com.dinyairsadot.taxtracker.feature.invoice
 
 import android.app.DatePickerDialog
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,12 +21,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +43,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.R
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
@@ -63,84 +59,63 @@ fun EditInvoiceScreen(
     invoiceId: Long,
     categoryColorHex: String?,
     categoryCustomFieldTitles: List<String>,
-    initialVendorName: String?,
-    initialIssueDateText: String?,
+    initialDocumentNumber: String,
     initialAmount: String,
-    initialDueDateText: String,
     initialPaymentStatus: PaymentStatus,
-    initialPaymentDateText: String?,
-    initialServicePeriodStartText: String?,
-    initialServicePeriodEndText: String?,
+    initialServicePeriodStartText: String,
+    initialServicePeriodEndText: String,
+    initialPaymentMethod: String?,
+    initialConfirmationNumber: String?,
     initialNotes: String,
     initialCustomFieldValues: List<String>,
-    initialDocumentType: DocumentType?,
     onNavigateBack: () -> Unit,
     onSaveInvoice: (
-        vendorName: String?,
-        issueDateText: String?,
-        dueDateText: String,
-        amount: Double,
+        documentNumber: String,
+        amountDue: Double,
         paymentStatus: PaymentStatus,
-        paymentDateText: String?,
-        servicePeriodStartText: String?,
-        servicePeriodEndText: String?,
+        servicePeriodStartText: String,
+        servicePeriodEndText: String,
+        paymentMethod: String?,
+        confirmationNumber: String?,
         notes: String,
-        customFieldValues: List<String>,
-        documentType: DocumentType?
+        customFieldValues: List<String>
     ) -> Unit
 ) {
     val context = LocalContext.current
-    var vendorNameText by rememberSaveable { mutableStateOf(initialVendorName ?: "") }
-    var issueDateText by rememberSaveable { mutableStateOf(initialIssueDateText ?: "") }
+    
+    // Core required fields
+    var documentNumberText by rememberSaveable { mutableStateOf(initialDocumentNumber) }
     var amountText by rememberSaveable { mutableStateOf(initialAmount) }
-    // Convert date from YYYY-MM-DD to DD/MM/YYYY if needed
-    var dueDateText by rememberSaveable {
-        mutableStateOf(
-            if (initialDueDateText.isNotBlank()) {
-                val trimmed = initialDueDateText.trim()
-                try {
-                    // Try to parse as YYYY-MM-DD (old format) and convert
-                    val date = LocalDate.parse(trimmed)
-                    date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                } catch (e: Exception) {
-                    // If parsing fails, check if it's already in DD/MM/YYYY format
-                    try {
-                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                        trimmed // Already in correct format
-                    } catch (e2: Exception) {
-                        trimmed // Keep as-is if can't parse
-                    }
-                }
-            } else {
-                initialDueDateText
-            }
-        )
-    }
-    var paymentDateText by rememberSaveable { mutableStateOf(initialPaymentDateText ?: "") }
-    var servicePeriodStartText by rememberSaveable { mutableStateOf(initialServicePeriodStartText ?: "") }
-    var servicePeriodEndText by rememberSaveable { mutableStateOf(initialServicePeriodEndText ?: "") }
-    var notes by rememberSaveable { mutableStateOf(initialNotes) }
     var paymentStatus by rememberSaveable { mutableStateOf(initialPaymentStatus) }
+    var servicePeriodStartText by rememberSaveable { mutableStateOf(initialServicePeriodStartText) }
+    var servicePeriodEndText by rememberSaveable { mutableStateOf(initialServicePeriodEndText) }
+    
+    // Optional core fields
+    var paymentMethod by rememberSaveable { mutableStateOf(initialPaymentMethod ?: "") }
+    var confirmationNumber by rememberSaveable { mutableStateOf(initialConfirmationNumber ?: "") }
+    var notes by rememberSaveable { mutableStateOf(initialNotes) }
+    
     var currency by rememberSaveable { mutableStateOf(Currency.ILS) }
     var customFieldValues by rememberSaveable {
         mutableStateOf(
-            // Ensure we have values for all custom fields, padding with empty strings if needed
             categoryCustomFieldTitles.mapIndexed { index, _ ->
                 initialCustomFieldValues.getOrNull(index) ?: ""
             }
         )
     }
 
+    // Validation state
+    var documentNumberError by rememberSaveable { mutableStateOf<String?>(null) }
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
-    var dueDateError by rememberSaveable { mutableStateOf<String?>(null) }
+    var servicePeriodStartError by rememberSaveable { mutableStateOf<String?>(null) }
+    var servicePeriodEndError by rememberSaveable { mutableStateOf<String?>(null) }
+    
+    var documentNumberTouched by rememberSaveable { mutableStateOf(false) }
     var amountTouched by rememberSaveable { mutableStateOf(false) }
-    var dueDateTouched by rememberSaveable { mutableStateOf(false) }
+    var servicePeriodStartTouched by rememberSaveable { mutableStateOf(false) }
+    var servicePeriodEndTouched by rememberSaveable { mutableStateOf(false) }
     
-    // Document type state
-    var documentType by rememberSaveable { mutableStateOf<DocumentType?>(initialDocumentType) }
-    var documentTypeExpanded by rememberSaveable { mutableStateOf(false) }
-    
-    // Date picker logic - reusable function
+    // Date picker logic
     fun showDatePicker(
         currentDateText: String,
         onDateSelected: (String) -> Unit,
@@ -148,20 +123,17 @@ fun EditInvoiceScreen(
         onErrorCleared: () -> Unit
     ) {
         val cal = java.util.Calendar.getInstance()
-        // Try to parse existing date to set initial calendar date
         if (currentDateText.isNotBlank()) {
             val trimmed = currentDateText.trim()
             try {
-                // Try DD/MM/YYYY format
                 val date = LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 cal.set(date.year, date.monthValue - 1, date.dayOfMonth)
             } catch (e: Exception) {
                 try {
-                    // Try YYYY-MM-DD format (old format for backward compatibility)
                     val date = LocalDate.parse(trimmed)
                     cal.set(date.year, date.monthValue - 1, date.dayOfMonth)
                 } catch (e2: Exception) {
-                    // Use current date if parsing fails
+                    // Use current date
                 }
             }
         }
@@ -180,45 +152,77 @@ fun EditInvoiceScreen(
     }
 
     fun handleSave() {
+        var hasError = false
+        
+        // Validate document number
+        if (documentNumberText.trim().isBlank()) {
+            documentNumberError = context.getString(R.string.document_number_required)
+            hasError = true
+        } else {
+            documentNumberError = null
+        }
+        
+        // Validate amount
         val amount = amountText.toDoubleOrNull()
         if (amount == null || amount <= 0.0) {
             amountError = context.getString(R.string.enter_valid_amount)
-            return
+            hasError = true
         } else {
             amountError = null
         }
-
-        // Validate DD/MM/YYYY format - due date is mandatory
-        val trimmedDueDate = dueDateText.trim()
-        if (trimmedDueDate.isBlank()) {
-            dueDateError = context.getString(R.string.date_required)
-            return
-        }
-        val isValid = try {
-            LocalDate.parse(trimmedDueDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-            true
-        } catch (e: DateTimeParseException) {
-            false
-        }
-        if (!isValid) {
-            dueDateError = context.getString(R.string.use_format_dd_mm_yyyy)
-            return
+        
+        // Validate service period start (required)
+        val trimmedStart = servicePeriodStartText.trim()
+        if (trimmedStart.isBlank()) {
+            servicePeriodStartError = context.getString(R.string.date_required)
+            hasError = true
         } else {
-            dueDateError = null
+            val isValid = try {
+                LocalDate.parse(trimmedStart, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                true
+            } catch (e: DateTimeParseException) {
+                false
+            }
+            if (!isValid) {
+                servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
+                hasError = true
+            } else {
+                servicePeriodStartError = null
+            }
         }
-
+        
+        // Validate service period end (required)
+        val trimmedEnd = servicePeriodEndText.trim()
+        if (trimmedEnd.isBlank()) {
+            servicePeriodEndError = context.getString(R.string.date_required)
+            hasError = true
+        } else {
+            val isValid = try {
+                LocalDate.parse(trimmedEnd, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                true
+            } catch (e: DateTimeParseException) {
+                false
+            }
+            if (!isValid) {
+                servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
+                hasError = true
+            } else {
+                servicePeriodEndError = null
+            }
+        }
+        
+        if (hasError) return
+        
         onSaveInvoice(
-            vendorNameText.takeIf { it.isNotBlank() },
-            issueDateText.takeIf { it.isNotBlank() },
-            trimmedDueDate,
-            amount,
+            documentNumberText.trim(),
+            amount!!,
             paymentStatus,
-            paymentDateText.takeIf { it.isNotBlank() },
-            servicePeriodStartText.takeIf { it.isNotBlank() },
-            servicePeriodEndText.takeIf { it.isNotBlank() },
+            trimmedStart,
+            trimmedEnd,
+            paymentMethod.takeIf { it.isNotBlank() },
+            confirmationNumber.takeIf { it.isNotBlank() },
             notes.trim(),
-            customFieldValues,
-            documentType
+            customFieldValues
         )
         onNavigateBack()
     }
@@ -249,111 +253,40 @@ fun EditInvoiceScreen(
         ) {
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Vendor/Body Name field
+            // Document Number (REQUIRED)
             OutlinedTextField(
-                value = vendorNameText,
-                onValueChange = { vendorNameText = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.vendor_name)) }
+                value = documentNumberText,
+                onValueChange = { 
+                    documentNumberText = it
+                    documentNumberTouched = true
+                    if (documentNumberError != null) {
+                        documentNumberError = null
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (!focusState.isFocused && documentNumberTouched) {
+                            if (documentNumberText.trim().isBlank()) {
+                                documentNumberError = context.getString(R.string.document_number_required)
+                            } else {
+                                documentNumberError = null
+                            }
+                        }
+                    },
+                label = { Text("${stringResource(R.string.document_number)} *") },
+                isError = documentNumberError != null,
+                supportingText = { documentNumberError?.let { Text(it) } }
             )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Issue Date field with calendar picker
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = issueDateText,
-                    onValueChange = { issueDateText = it },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(stringResource(R.string.issue_date_dd_mm_yyyy)) }
-                )
-                IconButton(onClick = {
-                    showDatePicker(
-                        issueDateText,
-                        { issueDateText = it },
-                        { },
-                        { }
-                    )
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.CalendarToday,
-                        contentDescription = stringResource(R.string.pick_date)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Due Date field with calendar picker
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = dueDateText,
-                    onValueChange = { 
-                        dueDateText = it
-                        dueDateTouched = true
-                        // Clear error when user starts typing
-                        if (dueDateError != null) {
-                            dueDateError = null
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .onFocusChanged { focusState ->
-                            if (!focusState.isFocused && dueDateTouched) {
-                                val trimmed = dueDateText.trim()
-                                if (trimmed.isBlank()) {
-                                    dueDateError = context.getString(R.string.date_required)
-                                } else {
-                                    val isValid = try {
-                                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                                        true
-                                    } catch (e: DateTimeParseException) {
-                                        false
-                                    }
-                                    if (!isValid) {
-                                        dueDateError = context.getString(R.string.use_format_dd_mm_yyyy)
-                                    } else {
-                                        dueDateError = null
-                                    }
-                                }
-                            }
-                        },
-                    label = { Text(stringResource(R.string.due_date_dd_mm_yyyy)) },
-                    isError = dueDateError != null,
-                    supportingText = dueDateError?.let { msg -> { Text(msg) } }
-                )
-                IconButton(onClick = {
-                    showDatePicker(
-                        dueDateText,
-                        { dueDateText = it },
-                        { dueDateTouched = true },
-                        { dueDateError = null }
-                    )
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.CalendarToday,
-                        contentDescription = stringResource(R.string.pick_date)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Amount field with currency selector
+            // Amount Due (REQUIRED) with currency selector
             OutlinedTextField(
                 value = amountText,
                 onValueChange = { 
                     amountText = it
                     amountTouched = true
-                    // Clear error when user starts typing
                     if (amountError != null) {
                         amountError = null
                     }
@@ -370,16 +303,15 @@ fun EditInvoiceScreen(
                             }
                         }
                     },
-                label = { Text(stringResource(R.string.amount)) },
+                label = { Text("${stringResource(R.string.amount_due)} *") },
                 isError = amountError != null,
-                supportingText = amountError?.let { msg -> { Text(msg) } },
+                supportingText = { amountError?.let { Text(it) } },
                 trailingIcon = {
                     Box(
                         modifier = Modifier
                             .height(56.dp)
                             .width(56.dp)
                     ) {
-                        // Draw left border only
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
@@ -387,7 +319,6 @@ fun EditInvoiceScreen(
                                 .background(MaterialTheme.colorScheme.outline)
                                 .align(Alignment.CenterStart)
                         )
-                        // Button content
                         TextButton(
                             onClick = {
                                 currency = if (currency == Currency.USD) Currency.ILS else Currency.USD
@@ -395,7 +326,7 @@ fun EditInvoiceScreen(
                             modifier = Modifier.fillMaxSize(),
                             shape = RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = 4.dp, bottomEnd = 4.dp),
                             contentPadding = PaddingValues(0.dp),
-                            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                            colors = ButtonDefaults.textButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurface
                             )
                         ) {
@@ -412,107 +343,15 @@ fun EditInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
+            // Payment Status (REQUIRED)
             PaymentStatusSelector(
                 selected = paymentStatus,
                 onSelectedChange = { paymentStatus = it }
             )
 
-            // Paid Date field (shown only if paid)
-            if (paymentStatus == PaymentStatus.PAID_FULL || paymentStatus == PaymentStatus.PAID_CREDIT) {
-                Spacer(modifier = Modifier.padding(top = 8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = paymentDateText,
-                        onValueChange = { paymentDateText = it },
-                        modifier = Modifier.weight(1f),
-                        label = { Text(stringResource(R.string.paid_date_dd_mm_yyyy)) }
-                    )
-                    IconButton(onClick = {
-                        showDatePicker(
-                            paymentDateText,
-                            { paymentDateText = it },
-                            { },
-                            { }
-                        )
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.CalendarToday,
-                            contentDescription = stringResource(R.string.pick_date)
-                        )
-                    }
-                }
-            }
-
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Document Type dropdown
-            Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = documentType?.let { dt ->
-                        when (dt) {
-                            DocumentType.BILL_DEMAND -> stringResource(R.string.document_type_bill_demand)
-                            DocumentType.TAX_INVOICE -> stringResource(R.string.document_type_tax_invoice)
-                            DocumentType.INVOICE_RECEIPT -> stringResource(R.string.document_type_invoice_receipt)
-                        }
-                    } ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { documentTypeExpanded = true },
-                    label = { Text(stringResource(R.string.document_type)) },
-                    trailingIcon = {
-                        IconButton(onClick = { documentTypeExpanded = !documentTypeExpanded }) {
-                            Icon(
-                                imageVector = if (documentTypeExpanded) {
-                                    Icons.Filled.KeyboardArrowUp
-                                } else {
-                                    Icons.Filled.KeyboardArrowDown
-                                },
-                                contentDescription = null
-                            )
-                        }
-                    }
-                )
-                DropdownMenu(
-                    expanded = documentTypeExpanded,
-                    onDismissRequest = { documentTypeExpanded = false }
-                ) {
-                    // Option for "None" / null
-                    DropdownMenuItem(
-                        text = { Text("-") },
-                        onClick = {
-                            documentType = null
-                            documentTypeExpanded = false
-                        }
-                    )
-                    DocumentType.values().forEach { type ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    when (type) {
-                                        DocumentType.BILL_DEMAND -> stringResource(R.string.document_type_bill_demand)
-                                        DocumentType.TAX_INVOICE -> stringResource(R.string.document_type_tax_invoice)
-                                        DocumentType.INVOICE_RECEIPT -> stringResource(R.string.document_type_invoice_receipt)
-                                    }
-                                )
-                            },
-                            onClick = {
-                                documentType = type
-                                documentTypeExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Service Period (optional)
+            // Service Period Start (REQUIRED) with calendar picker
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -520,16 +359,45 @@ fun EditInvoiceScreen(
             ) {
                 OutlinedTextField(
                     value = servicePeriodStartText,
-                    onValueChange = { servicePeriodStartText = it },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(stringResource(R.string.service_period_start)) }
+                    onValueChange = { 
+                        servicePeriodStartText = it
+                        servicePeriodStartTouched = true
+                        if (servicePeriodStartError != null) {
+                            servicePeriodStartError = null
+                        }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .onFocusChanged { focusState ->
+                            if (!focusState.isFocused && servicePeriodStartTouched) {
+                                val trimmed = servicePeriodStartText.trim()
+                                if (trimmed.isBlank()) {
+                                    servicePeriodStartError = context.getString(R.string.date_required)
+                                } else {
+                                    val isValid = try {
+                                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                                        true
+                                    } catch (e: DateTimeParseException) {
+                                        false
+                                    }
+                                    if (!isValid) {
+                                        servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
+                                    } else {
+                                        servicePeriodStartError = null
+                                    }
+                                }
+                            }
+                        },
+                    label = { Text("${stringResource(R.string.service_period_start)} *") },
+                    isError = servicePeriodStartError != null,
+                    supportingText = { servicePeriodStartError?.let { Text(it) } }
                 )
                 IconButton(onClick = {
                     showDatePicker(
                         servicePeriodStartText,
                         { servicePeriodStartText = it },
-                        { },
-                        { }
+                        { servicePeriodStartTouched = true },
+                        { servicePeriodStartError = null }
                     )
                 }) {
                     Icon(
@@ -538,7 +406,10 @@ fun EditInvoiceScreen(
                     )
                 }
             }
+
             Spacer(modifier = Modifier.padding(top = 8.dp))
+
+            // Service Period End (REQUIRED) with calendar picker
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -546,16 +417,45 @@ fun EditInvoiceScreen(
             ) {
                 OutlinedTextField(
                     value = servicePeriodEndText,
-                    onValueChange = { servicePeriodEndText = it },
-                    modifier = Modifier.weight(1f),
-                    label = { Text(stringResource(R.string.service_period_end)) }
+                    onValueChange = { 
+                        servicePeriodEndText = it
+                        servicePeriodEndTouched = true
+                        if (servicePeriodEndError != null) {
+                            servicePeriodEndError = null
+                        }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .onFocusChanged { focusState ->
+                            if (!focusState.isFocused && servicePeriodEndTouched) {
+                                val trimmed = servicePeriodEndText.trim()
+                                if (trimmed.isBlank()) {
+                                    servicePeriodEndError = context.getString(R.string.date_required)
+                                } else {
+                                    val isValid = try {
+                                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                                        true
+                                    } catch (e: DateTimeParseException) {
+                                        false
+                                    }
+                                    if (!isValid) {
+                                        servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
+                                    } else {
+                                        servicePeriodEndError = null
+                                    }
+                                }
+                            }
+                        },
+                    label = { Text("${stringResource(R.string.service_period_end)} *") },
+                    isError = servicePeriodEndError != null,
+                    supportingText = { servicePeriodEndError?.let { Text(it) } }
                 )
                 IconButton(onClick = {
                     showDatePicker(
                         servicePeriodEndText,
                         { servicePeriodEndText = it },
-                        { },
-                        { }
+                        { servicePeriodEndTouched = true },
+                        { servicePeriodEndError = null }
                     )
                 }) {
                     Icon(
@@ -564,6 +464,26 @@ fun EditInvoiceScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.padding(top = 8.dp))
+
+            // Payment Method (OPTIONAL)
+            OutlinedTextField(
+                value = paymentMethod,
+                onValueChange = { paymentMethod = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.payment_method)) }
+            )
+
+            Spacer(modifier = Modifier.padding(top = 8.dp))
+
+            // Confirmation Number (OPTIONAL)
+            OutlinedTextField(
+                value = confirmationNumber,
+                onValueChange = { confirmationNumber = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.confirmation_number)) }
+            )
 
             // Custom fields
             if (categoryCustomFieldTitles.isNotEmpty()) {
@@ -575,7 +495,6 @@ fun EditInvoiceScreen(
                         value = customFieldValues.getOrNull(index) ?: "",
                         onValueChange = { newValue ->
                             val newList = customFieldValues.toMutableList()
-                            // Ensure list is large enough
                             while (newList.size <= index) {
                                 newList.add("")
                             }
@@ -605,7 +524,7 @@ fun EditInvoiceScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4CAF50) // Green color
+                    containerColor = Color(0xFF4CAF50)
                 )
             ) {
                 Text(stringResource(R.string.save_changes))

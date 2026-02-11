@@ -119,6 +119,12 @@
     <string name="default_category_national_insurance_description">National Insurance payments</string>
     <string name="default_category_business_expenses">Business Expenses</string>
     <string name="default_category_business_expenses_description">Business expense invoices</string>
+    <string name="default_category_income_tax">Income Tax</string>
+    <string name="default_category_income_tax_description">Income tax payments</string>
+    <string name="default_category_health_fund">Health Fund</string>
+    <string name="default_category_health_fund_description">Health fund payments</string>
+    <string name="default_category_car_insurance">Car Insurance</string>
+    <string name="default_category_car_insurance_description">Car insurance payments</string>
     <string name="default_category_other">Other</string>
     <string name="default_category_other_description">Other invoices and bills</string>
     
@@ -145,6 +151,35 @@
     <string name="paid_date_label">Paid Date: %1$s</string>
     <string name="service_period_label">Service Period: %1$s - %2$s</string>
     <string name="vendor_name_label">Vendor: %1$s</string>
+    
+    <!-- New Core Invoice Fields -->
+    <string name="amount_due">Amount Due</string>
+    <string name="document_number">Document Number</string>
+    <string name="document_number_required">Document number is required</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="confirmation_number">Confirmation Number</string>
+    
+    <!-- Category Pinned Defaults -->
+    <string name="pinned_supplier_name">Default Supplier/Body (prefills new invoices)</string>
+    
+    <!-- Field Catalog Topics -->
+    <string name="topic_general">General</string>
+    <string name="topic_electricity">Electricity</string>
+    <string name="topic_water">Water</string>
+    <string name="topic_arnona">Arnona</string>
+    <string name="topic_gas">Gas</string>
+    <string name="topic_communication">Phone/Internet</string>
+    <string name="topic_national_insurance">National Insurance</string>
+    <string name="topic_income_tax">Income Tax</string>
+    <string name="topic_health_fund">Health Fund</string>
+    <string name="topic_insurances">Insurances</string>
+    <string name="topic_car_insurance">Car Insurance</string>
+    
+    <!-- Field Catalog UI -->
+    <string name="new_field_name_hint">New field name…</string>
+    <string name="or_choose_from_list">Or choose from list</string>
+    <string name="select_topic">Select topic</string>
+    <string name="field_already_exists">This field already exists</string>
     
     <!-- Currency Symbols -->
     <string name="currency_usd">$</string>

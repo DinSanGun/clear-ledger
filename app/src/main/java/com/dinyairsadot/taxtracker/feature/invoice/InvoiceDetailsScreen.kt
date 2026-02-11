@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.ui.parseCategoryColorOrDefault
@@ -110,10 +111,11 @@ fun InvoiceDetailsScreen(
                         )
                     }
 
-                    invoice.vendorName?.takeIf { it.isNotBlank() }?.let { vendor ->
+                    // Display supplier name from pinned snapshot (not category defaults)
+                    invoice.pinnedSnapshot[Category.PINNED_KEY_SUPPLIER_NAME]?.takeIf { it.isNotBlank() }?.let { supplier ->
                         Spacer(modifier = Modifier.padding(top = 4.dp))
                         Text(
-                            text = stringResource(R.string.vendor_name_label, vendor),
+                            text = stringResource(R.string.vendor_name_label, supplier),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

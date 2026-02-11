@@ -11,6 +11,7 @@ import com.dinyairsadot.taxtracker.core.data.converters.DocumentTypeConverter
 import com.dinyairsadot.taxtracker.core.data.converters.LocalDateConverter
 import com.dinyairsadot.taxtracker.core.data.converters.PaymentStatusConverter
 import com.dinyairsadot.taxtracker.core.data.converters.StringListConverter
+import com.dinyairsadot.taxtracker.core.data.converters.StringMapConverter
 import com.dinyairsadot.taxtracker.core.data.dao.CategoryDao
 import com.dinyairsadot.taxtracker.core.data.dao.InvoiceDao
 import com.dinyairsadot.taxtracker.core.data.entities.CategoryEntity
@@ -18,13 +19,14 @@ import com.dinyairsadot.taxtracker.core.data.entities.InvoiceEntity
 
 @Database(
     entities = [CategoryEntity::class, InvoiceEntity::class],
-    version = 3,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(
     LocalDateConverter::class,
     PaymentStatusConverter::class,
     StringListConverter::class,
+    StringMapConverter::class,
     DocumentTypeConverter::class
 )
 abstract class TaxTrackerDatabase : RoomDatabase() {
@@ -50,6 +52,38 @@ abstract class TaxTrackerDatabase : RoomDatabase() {
             }
         }
         
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add new minimal core fields to invoices
+                // amountDue defaults to existing amount, documentNumber defaults to invoiceNumber
+                database.execSQL("ALTER TABLE invoices ADD COLUMN amountDue REAL")
+                database.execSQL("ALTER TABLE invoices ADD COLUMN documentNumber TEXT")
+                database.execSQL("ALTER TABLE invoices ADD COLUMN paymentMethodString TEXT")
+                database.execSQL("ALTER TABLE invoices ADD COLUMN confirmationNumber TEXT")
+                
+                // Populate new fields from old ones for existing rows
+                database.execSQL("UPDATE invoices SET amountDue = amount WHERE amountDue IS NULL")
+                database.execSQL("UPDATE invoices SET documentNumber = invoiceNumber WHERE documentNumber IS NULL")
+                
+                // Add supplierName to categories
+                database.execSQL("ALTER TABLE categories ADD COLUMN supplierName TEXT")
+            }
+        }
+        
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add pinnedDefaultsJson to categories for flexible pinned defaults (e.g., supplierName)
+                database.execSQL("ALTER TABLE categories ADD COLUMN pinnedDefaultsJson TEXT")
+            }
+        }
+        
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add pinnedSnapshotJson to invoices to capture category pinned defaults at creation time
+                database.execSQL("ALTER TABLE invoices ADD COLUMN pinnedSnapshotJson TEXT")
+            }
+        }
+        
         fun getDatabase(context: Context): TaxTrackerDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -57,7 +91,7 @@ abstract class TaxTrackerDatabase : RoomDatabase() {
                     TaxTrackerDatabase::class.java,
                     "tax_tracker_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                 INSTANCE = instance
                 instance

@@ -2,7 +2,7 @@ package com.dinyairsadot.taxtracker.feature.category
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,27 +38,35 @@ fun EditCategoryScreen(
     categoryColorHex: String?,
     initialDescription: String?,
     initialCustomFieldTitles: List<String>,
+    initialPinnedSupplierName: String?,
     otherNamesLower: Set<String>,
     onNavigateBack: () -> Unit,
     onSaveCategory: (
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitles: List<String>
+        customFieldTitles: List<String>,
+        pinnedSupplierName: String
     ) -> Unit,
     viewModel: CategoryListViewModel
 ) {
     var name by rememberSaveable { mutableStateOf(initialName) }
     var colorHex by rememberSaveable { mutableStateOf(initialColorHex) }
     var description by rememberSaveable { mutableStateOf(initialDescription.orEmpty()) }
+    var pinnedSupplierName by rememberSaveable { mutableStateOf(initialPinnedSupplierName.orEmpty()) }
 
     var customFieldTitles by rememberSaveable { mutableStateOf(initialCustomFieldTitles) }
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var hasFieldData by rememberSaveable { mutableStateOf(false) }
+    
+    // New field input state
+    var newFieldName by rememberSaveable { mutableStateOf("") }
+    var selectedTopicId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     var nameError by remember { mutableStateOf<String?>(null) }
     var colorError by remember { mutableStateOf<String?>(null) }
+    var fieldExistsError by remember { mutableStateOf<String?>(null) }
 
     // Check if invoices have data in the field when removal is requested
     LaunchedEffect(pendingRemoveFieldIndex) {
@@ -71,6 +79,32 @@ fun EditCategoryScreen(
         val newList = customFieldTitles.toMutableList()
         newList.removeAt(index)
         customFieldTitles = newList
+    }
+    
+    fun addFieldFromInput() {
+        val trimmed = newFieldName.trim()
+        if (trimmed.isBlank()) return
+        
+        // Check for duplicates (case-insensitive)
+        if (customFieldTitles.any { it.trim().equals(trimmed, ignoreCase = true) }) {
+            fieldExistsError = context.getString(R.string.field_already_exists)
+            return
+        }
+        
+        customFieldTitles = customFieldTitles + trimmed
+        newFieldName = ""
+        fieldExistsError = null
+    }
+    
+    fun addFieldFromCatalog(fieldName: String) {
+        // Check for duplicates (case-insensitive)
+        if (customFieldTitles.any { it.trim().equals(fieldName.trim(), ignoreCase = true) }) {
+            fieldExistsError = context.getString(R.string.field_already_exists)
+            return
+        }
+        
+        customFieldTitles = customFieldTitles + fieldName
+        fieldExistsError = null
     }
 
     fun onSaveClicked() {
@@ -98,7 +132,8 @@ fun EditCategoryScreen(
                 name.trim(),
                 colorHex.trim(),
                 description.trim(),
-                trimmedTitles
+                trimmedTitles,
+                pinnedSupplierName.trim()
             )
             onNavigateBack()
         }
@@ -110,7 +145,11 @@ fun EditCategoryScreen(
         colorHex = colorHex,
         colorError = colorError,
         description = description,
-        customFieldTitles = customFieldTitles
+        customFieldTitles = customFieldTitles,
+        pinnedSupplierName = pinnedSupplierName,
+        newFieldName = newFieldName,
+        selectedTopicId = selectedTopicId,
+        fieldExistsError = fieldExistsError
     )
 
     val formCallbacks = CategoryFormCallbacks(
@@ -140,6 +179,22 @@ fun EditCategoryScreen(
         },
         onRequestRemoveCustomField = { index ->
             pendingRemoveFieldIndex = index
+        },
+        onPinnedSupplierNameChange = { newSupplierName ->
+            pinnedSupplierName = newSupplierName
+        },
+        onNewFieldNameChange = { newName ->
+            newFieldName = newName
+            if (fieldExistsError != null) fieldExistsError = null
+        },
+        onAddNewFieldFromInput = {
+            addFieldFromInput()
+        },
+        onTopicSelected = { topicId ->
+            selectedTopicId = topicId
+        },
+        onAddFieldFromCatalog = { fieldName ->
+            addFieldFromCatalog(fieldName)
         }
     )
 
@@ -151,7 +206,7 @@ fun EditCategoryScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
                         )
                     }

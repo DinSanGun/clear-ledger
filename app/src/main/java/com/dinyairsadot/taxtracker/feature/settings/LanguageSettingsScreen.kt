@@ -91,7 +91,7 @@ fun LanguageSettingsScreen(
                         Log.d(TAG, "[E] Language option clicked: languageCode='${language.code}', currentLanguageBeforeClick='$currentLanguage', activityIsNull=${activity == null}, activityClass='${activity?.javaClass?.simpleName}'")
                         // #endregion
                         if (activity != null) {
-                            val locale = Locale(language.code)
+                            val locale = Locale.forLanguageTag(language.code)
                             viewModel.changeLanguage(locale, activity)
                         } else {
                             // #region agent log

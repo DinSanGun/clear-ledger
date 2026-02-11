@@ -8,6 +8,7 @@ import com.dinyairsadot.taxtracker.core.data.converters.DocumentTypeConverter
 import com.dinyairsadot.taxtracker.core.data.converters.LocalDateConverter
 import com.dinyairsadot.taxtracker.core.data.converters.PaymentStatusConverter
 import com.dinyairsadot.taxtracker.core.data.converters.StringListConverter
+import com.dinyairsadot.taxtracker.core.data.converters.StringMapConverter
 import com.dinyairsadot.taxtracker.core.domain.Invoice
 
 @Entity(
@@ -31,6 +32,7 @@ data class InvoiceEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val categoryId: Long,
+    // Old fields (kept for backward compatibility)
     val invoiceNumber: String,
     val amount: Double,
     val paymentStatus: com.dinyairsadot.taxtracker.core.domain.PaymentStatus,
@@ -43,8 +45,15 @@ data class InvoiceEntity(
     val consumptionValue: Double? = null,
     val consumptionUnit: String? = null,
     val notes: String? = null,
-    val customFieldValuesJson: String? = null, // Stored as JSON string, converted via StringListConverter
-    val documentTypeString: String? = null // Stored as String, converted via DocumentTypeConverter
+    val customFieldValuesJson: String? = null,
+    val documentTypeString: String? = null,
+    // New minimal core fields
+    val amountDue: Double? = null,
+    val documentNumber: String? = null,
+    val paymentMethodString: String? = null,
+    val confirmationNumber: String? = null,
+    // Pinned snapshot
+    val pinnedSnapshotJson: String? = null
 ) {
     fun toDomain(): Invoice {
         val issueDate = issueDateEpochDay?.let { 
@@ -71,6 +80,12 @@ data class InvoiceEntity(
             DocumentTypeConverter().toDocumentType(it)
         }
         
+        val pinnedSnapshot = if (pinnedSnapshotJson.isNullOrBlank()) {
+            emptyMap()
+        } else {
+            StringMapConverter().toStringMap(pinnedSnapshotJson)
+        }
+        
         return Invoice(
             id = id,
             categoryId = categoryId,
@@ -87,7 +102,13 @@ data class InvoiceEntity(
             consumptionUnit = consumptionUnit,
             notes = notes,
             customFieldValues = customFieldValues,
-            documentType = documentType
+            documentType = documentType,
+            // New fields: fallback to old values if null
+            amountDue = amountDue ?: amount,
+            documentNumber = documentNumber ?: invoiceNumber,
+            paymentMethod = paymentMethodString,
+            confirmationNumber = confirmationNumber,
+            pinnedSnapshot = pinnedSnapshot
         )
     }
     
@@ -117,6 +138,12 @@ data class InvoiceEntity(
                 DocumentTypeConverter().fromDocumentType(it)
             }
             
+            val pinnedSnapshotJson = if (invoice.pinnedSnapshot.isEmpty()) {
+                null
+            } else {
+                StringMapConverter().fromStringMap(invoice.pinnedSnapshot)
+            }
+            
             return InvoiceEntity(
                 id = invoice.id,
                 categoryId = invoice.categoryId,
@@ -133,7 +160,13 @@ data class InvoiceEntity(
                 consumptionUnit = invoice.consumptionUnit,
                 notes = invoice.notes,
                 customFieldValuesJson = customFieldValuesJson,
-                documentTypeString = documentTypeString
+                documentTypeString = documentTypeString,
+                // New fields: always write from domain
+                amountDue = invoice.amountDue,
+                documentNumber = invoice.documentNumber,
+                paymentMethodString = invoice.paymentMethod,
+                confirmationNumber = invoice.confirmationNumber,
+                pinnedSnapshotJson = pinnedSnapshotJson
             )
         }
     }
