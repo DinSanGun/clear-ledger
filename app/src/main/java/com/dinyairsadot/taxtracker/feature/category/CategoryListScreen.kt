@@ -58,6 +58,9 @@ import androidx.compose.foundation.BorderStroke
 import com.dinyairsadot.taxtracker.R
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 
 
@@ -72,7 +75,8 @@ fun CategoryListScreen(
     onDeleteCategory: (Long) -> Unit,
     onLanguageSettingsClick: () -> Unit,
     showCategoryAddedMessage: Boolean,
-    onCategoryAddedMessageShown: () -> Unit
+    onCategoryAddedMessageShown: () -> Unit,
+    viewModel: CategoryListViewModel
 ) {
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -112,6 +116,17 @@ fun CategoryListScreen(
         onDispose { snackbarHostState.currentSnackbarData?.dismiss() }
     }
 
+    // Refresh invoice counts when screen resumes
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         topBar = {
@@ -318,7 +333,11 @@ private fun CategoryItem(
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = stringResource(R.string.invoices_summary), // TODO: replace with real data
+                    text = stringResource(
+                        R.string.invoices_summary_dynamic,
+                        category.unpaidInvoicesCount,
+                        category.totalInvoicesCount
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )

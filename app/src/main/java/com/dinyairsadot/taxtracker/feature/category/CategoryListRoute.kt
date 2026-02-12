@@ -31,6 +31,7 @@ fun CategoryListRoute(
         },
         onLanguageSettingsClick = onLanguageSettingsClick,
         showCategoryAddedMessage = showCategoryAddedMessage,
-        onCategoryAddedMessageShown = onCategoryAddedMessageShown
+        onCategoryAddedMessageShown = onCategoryAddedMessageShown,
+        viewModel = viewModel
     )
 }

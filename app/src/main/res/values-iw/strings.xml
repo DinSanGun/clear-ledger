@@ -20,7 +20,7 @@
     <string name="delete_category">למחוק קטגוריה?</string>
     <string name="delete_category_confirmation">האם אתה בטוח שברצונך למחוק קטגוריה זו? כל הנתונים הקשורים אליה (כגון חשבוניות) יוסרו.</string>
     <string name="no_categories_yet">אין עדיין קטגוריות.\nהקש + כדי להוסיף את הקטגוריה הראשונה שלך.</string>
-    <string name="invoices_summary">3 לא שולמו · 5 חשבוניות בסך הכל</string>
+    <string name="invoices_summary_dynamic">%1$d לא שולמו · %2$d חשבוניות בסך הכל</string>
     
     <!-- Add/Edit Category Screen -->
     <string name="add_category_title">הוסף קטגוריה</string>
