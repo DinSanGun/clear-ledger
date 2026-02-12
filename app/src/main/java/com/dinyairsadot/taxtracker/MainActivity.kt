@@ -12,17 +12,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.dinyairsadot.taxtracker.core.data.LanguagePreferenceManager
+import com.dinyairsadot.taxtracker.core.data.SeedingPreferenceManager
 import com.dinyairsadot.taxtracker.core.data.TaxTrackerDatabase
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
 import com.dinyairsadot.taxtracker.core.domain.Category
+import com.dinyairsadot.taxtracker.core.ui.LoadingScreen
 import com.dinyairsadot.taxtracker.core.ui.TaxTrackerNavHost
 import com.dinyairsadot.taxtracker.ui.theme.TaxInvoiceTrackerTheme
 import kotlinx.coroutines.launch
@@ -92,11 +97,7 @@ class MainActivity : ComponentActivity() {
         val database = TaxTrackerDatabase.getDatabase(this)
         val categoryRepository = RoomCategoryRepository(database.categoryDao())
         val invoiceRepository = RoomInvoiceRepository(database.invoiceDao())
-        
-        // Seed initial data if database is empty
-        lifecycleScope.launch {
-            seedInitialDataIfNeeded(categoryRepository, invoiceRepository)
-        }
+        val seedingPreferenceManager = SeedingPreferenceManager(this)
         
         setContent {
             // Debug: observe locale & layout direction via Compose configuration
@@ -124,19 +125,48 @@ class MainActivity : ComponentActivity() {
                 TaxInvoiceTrackerTheme {
                     val navController = rememberNavController()
                     
-                    // Remember repositories to avoid recreating them on recomposition
+                    // Remember repositories and preference manager to avoid recreating them on recomposition
                     val rememberedCategoryRepo = remember { categoryRepository }
                     val rememberedInvoiceRepo = remember { invoiceRepository }
+                    val rememberedSeedingPrefs = remember { seedingPreferenceManager }
+                    
+                    // Track initialization state: true = checking/seeding, false = ready
+                    // Start with true to show loading screen while we check if seeding is needed
+                    var isInitializing by remember { mutableStateOf(true) }
+                    
+                    // Check if seeding is needed and perform it if necessary
+                    LaunchedEffect(Unit) {
+                        val hasSeeded = rememberedSeedingPrefs.hasSeededDefaultCategories()
+                        
+                        if (!hasSeeded) {
+                            // Flag indicates seeding hasn't been done - check database
+                            val categories = rememberedCategoryRepo.getCategories()
+                            val needsSeeding = categories.isEmpty()
+                            
+                            if (needsSeeding) {
+                                // Database is empty - seed now (loading screen already showing)
+                                seedInitialDataIfNeeded(rememberedCategoryRepo, rememberedInvoiceRepo, rememberedSeedingPrefs)
+                            }
+                        }
+                        
+                        // Mark as ready (seeding complete or not needed)
+                        isInitializing = false
+                    }
 
                     Surface(
                         modifier = androidx.compose.ui.Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        TaxTrackerNavHost(
-                            navController = navController,
-                            categoryRepository = rememberedCategoryRepo,
-                            invoiceRepository = rememberedInvoiceRepo
-                        )
+                        // Show loading screen while checking/seeding, then show NavHost
+                        if (isInitializing) {
+                            LoadingScreen()
+                        } else {
+                            TaxTrackerNavHost(
+                                navController = navController,
+                                categoryRepository = rememberedCategoryRepo,
+                                invoiceRepository = rememberedInvoiceRepo
+                            )
+                        }
                     }
                 }
             }
@@ -145,11 +175,17 @@ class MainActivity : ComponentActivity() {
     
     private suspend fun seedInitialDataIfNeeded(
         categoryRepository: RoomCategoryRepository,
-        invoiceRepository: RoomInvoiceRepository
+        invoiceRepository: RoomInvoiceRepository,
+        seedingPreferenceManager: SeedingPreferenceManager
     ) {
+        // Check flag first - if already seeded, don't seed again even if database is empty
+        if (seedingPreferenceManager.hasSeededDefaultCategories()) {
+            return
+        }
+        
         val categories = categoryRepository.getCategories()
         
-        // Only seed if database is empty
+        // Only seed if database is empty AND flag indicates seeding hasn't been done
         if (categories.isEmpty()) {
             // Seed 11 default categories with minimal custom fields
             val defaultCategories = listOf(
@@ -278,6 +314,10 @@ class MainActivity : ComponentActivity() {
             defaultCategories.forEach { category ->
                 categoryRepository.addCategory(category)
             }
+            
+            // Mark seeding as complete - this ensures we never seed again,
+            // even if the user deletes all categories later
+            seedingPreferenceManager.setHasSeededDefaultCategories(true)
         }
     }
 }
