@@ -121,8 +121,8 @@
     <string name="default_category_business_expenses_description">חשבוניות הוצאות עסקיות</string>
     <string name="default_category_income_tax">מס הכנסה</string>
     <string name="default_category_income_tax_description">תשלומי מס הכנסה</string>
-    <string name="default_category_health_fund">קופת חולים</string>
-    <string name="default_category_health_fund_description">תשלומי קופת חולים</string>
+    <string name="default_category_health_fund">שירותי בריאות</string>
+    <string name="default_category_health_fund_description">תשלומי שירותי בריאות</string>
     <string name="default_category_car_insurance">ביטוח רכב</string>
     <string name="default_category_car_insurance_description">תשלומי ביטוח רכב</string>
     <string name="default_category_other">אחר</string>
@@ -171,7 +171,7 @@
     <string name="topic_communication">טלפון/אינטרנט</string>
     <string name="topic_national_insurance">ביטוח לאומי</string>
     <string name="topic_income_tax">מס הכנסה</string>
-    <string name="topic_health_fund">קופת חולים</string>
+    <string name="topic_health_fund">שירותי בריאות</string>
     <string name="topic_insurances">ביטוחים</string>
     <string name="topic_car_insurance">ביטוח רכב</string>
     

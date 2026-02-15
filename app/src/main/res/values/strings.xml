@@ -121,8 +121,8 @@
     <string name="default_category_business_expenses_description">Business expense invoices</string>
     <string name="default_category_income_tax">Income Tax</string>
     <string name="default_category_income_tax_description">Income tax payments</string>
-    <string name="default_category_health_fund">Health Fund</string>
-    <string name="default_category_health_fund_description">Health fund payments</string>
+    <string name="default_category_health_fund">Health Services</string>
+    <string name="default_category_health_fund_description">Health services payments</string>
     <string name="default_category_car_insurance">Car Insurance</string>
     <string name="default_category_car_insurance_description">Car insurance payments</string>
     <string name="default_category_other">Other</string>
@@ -171,7 +171,7 @@
     <string name="topic_communication">Phone/Internet</string>
     <string name="topic_national_insurance">National Insurance</string>
     <string name="topic_income_tax">Income Tax</string>
-    <string name="topic_health_fund">Health Fund</string>
+    <string name="topic_health_fund">Health Services</string>
     <string name="topic_insurances">Insurances</string>
     <string name="topic_car_insurance">Car Insurance</string>
     

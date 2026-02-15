@@ -14,6 +14,7 @@ class LanguagePreferenceManager(context: Context) {
     companion object {
         private const val PREFS_NAME = "language_prefs"
         private const val KEY_LANGUAGE = "selected_language"
+        private const val KEY_LAST_APPLIED_LANGUAGE = "last_applied_language_for_seeded_data"
         private const val TAG = "LanguageDebug"
         
         /**
@@ -26,12 +27,12 @@ class LanguagePreferenceManager(context: Context) {
     }
 
     /**
-     * Get the current saved language code ("en" or "he")
+     * Get the current saved language code ("en" or "he"). Default is Hebrew when no preference is set.
      */
     fun getCurrentLanguage(): String {
         // #region agent log
-        val defaultValue = sharedPrefs.getString(KEY_LANGUAGE, "en")
-        val rawResult = defaultValue ?: "en"
+        val defaultValue = sharedPrefs.getString(KEY_LANGUAGE, "he")
+        val rawResult = defaultValue ?: "he"
         val result = normalizeLanguageCode(rawResult)
         Log.d(TAG, "[A] getCurrentLanguage: rawResult='$rawResult', normalizedResult='$result' (length=${result.length}), key='$KEY_LANGUAGE', allKeys=${sharedPrefs.all.keys.toList()}")
         // #endregion
@@ -74,5 +75,17 @@ class LanguagePreferenceManager(context: Context) {
      */
     fun hasLanguagePreference(): Boolean {
         return sharedPrefs.contains(KEY_LANGUAGE)
+    }
+
+    /** Language code last applied to seeded categories (for locale sync). Null if never applied. */
+    fun getLastAppliedLanguage(): String? {
+        val raw = sharedPrefs.getString(KEY_LAST_APPLIED_LANGUAGE, null) ?: return null
+        return if (raw == "iw") "he" else raw
+    }
+
+    /** Mark that seeded categories have been updated for the given language. */
+    fun setLastAppliedLanguage(languageCode: String) {
+        val normalized = if (languageCode == "iw") "he" else languageCode
+        sharedPrefs.edit().putString(KEY_LAST_APPLIED_LANGUAGE, normalized).apply()
     }
 }

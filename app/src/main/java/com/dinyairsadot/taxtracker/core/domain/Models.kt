@@ -29,7 +29,9 @@ data class Category(
     val description: String? = null,
     val customFieldTitles: List<String> = emptyList(), // Up to 10 custom field titles
     val supplierName: String? = null,  // Kept for backward compatibility
-    val pinnedDefaults: Map<String, String> = emptyMap()  // Pinned default values (e.g., "supplierName" -> "Israel Electric Company")
+    val pinnedDefaults: Map<String, String> = emptyMap(),  // Pinned default values (e.g., "supplierName" -> "Israel Electric Company")
+    val seedKey: String? = null,       // Stable key for seeded categories (e.g. "arnona"); null for user-created
+    val userEdited: Boolean = false     // True after user saves edits; prevents locale overwrite
 ) {
     // Backward compatibility: getters for old field names
     val customFieldTitle1: String? get() = customFieldTitles.getOrNull(0)

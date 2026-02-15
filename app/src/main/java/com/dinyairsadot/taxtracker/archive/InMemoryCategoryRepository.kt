@@ -1,5 +1,6 @@
 package com.dinyairsadot.taxtracker.archive
 
+import android.content.Context
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 
@@ -52,5 +53,9 @@ object InMemoryCategoryRepository : CategoryRepository {
         if (index != -1) {
             categories[index] = category
         }
+    }
+
+    override suspend fun updateLocalizedSeededCategories(context: Context) {
+        // No-op: in-memory repo has no seeded rows to update
     }
 }

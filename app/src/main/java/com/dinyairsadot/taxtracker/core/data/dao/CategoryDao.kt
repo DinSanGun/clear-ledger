@@ -29,4 +29,12 @@ interface CategoryDao {
     
     @Query("SELECT COUNT(*) FROM categories")
     suspend fun getCount(): Int
+
+    /** Categories that were seeded (have seedKey) and have not been edited by the user. */
+    @Query("SELECT * FROM categories WHERE seedKey IS NOT NULL AND userEdited = 0")
+    suspend fun getSeededUnedited(): List<CategoryEntity>
+
+    /** Update only name and description (for locale refresh); does not touch color or other fields. */
+    @Query("UPDATE categories SET name = :name, description = :description WHERE id = :id")
+    suspend fun updateNameAndDescription(id: Long, name: String, description: String?)
 }

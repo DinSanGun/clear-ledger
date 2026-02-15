@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.lifecycleScope
@@ -129,6 +130,7 @@ class MainActivity : ComponentActivity() {
                     val rememberedCategoryRepo = remember { categoryRepository }
                     val rememberedInvoiceRepo = remember { invoiceRepository }
                     val rememberedSeedingPrefs = remember { seedingPreferenceManager }
+                    val languageManager = remember { LanguagePreferenceManager(this@MainActivity) }
                     
                     // Track initialization state: true = checking/seeding, false = ready
                     // Start with true to show loading screen while we check if seeding is needed
@@ -151,6 +153,18 @@ class MainActivity : ComponentActivity() {
                         
                         // Mark as ready (seeding complete or not needed)
                         isInitializing = false
+                    }
+
+                    // After init: if saved language differs from last applied, update seeded categories once (idempotent)
+                    LaunchedEffect(isInitializing) {
+                        if (isInitializing) return@LaunchedEffect
+                        val current = languageManager.getCurrentLanguage()
+                        val lastApplied = languageManager.getLastAppliedLanguage()
+                        if (lastApplied != current) {
+                            rememberedCategoryRepo.updateLocalizedSeededCategories(this@MainActivity)
+                            languageManager.setLastAppliedLanguage(current)
+                            Log.d(TAG, "[MAIN] Applied locale to seeded categories: language=$current")
+                        }
                     }
 
                     Surface(
@@ -187,7 +201,7 @@ class MainActivity : ComponentActivity() {
         
         // Only seed if database is empty AND flag indicates seeding hasn't been done
         if (categories.isEmpty()) {
-            // Seed 11 default categories with minimal custom fields
+            // Seed 8 default categories with minimal custom fields
             val defaultCategories = listOf(
                 // Arnona
                 Category(
@@ -198,7 +212,9 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = listOf(
                         getString(R.string.field_property_id)
                     ),
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    seedKey = "arnona",
+                    userEdited = false
                 ),
                 // Electricity
                 Category(
@@ -210,7 +226,9 @@ class MainActivity : ComponentActivity() {
                         getString(R.string.field_meter_id),
                         getString(R.string.field_consumption_kwh)
                     ),
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    seedKey = "electricity",
+                    userEdited = false
                 ),
                 // Water
                 Category(
@@ -222,7 +240,9 @@ class MainActivity : ComponentActivity() {
                         getString(R.string.field_meter_id),
                         getString(R.string.field_consumption_cubic_meters)
                     ),
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    seedKey = "water",
+                    userEdited = false
                 ),
                 // Gas
                 Category(
@@ -233,7 +253,9 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = listOf(
                         getString(R.string.field_meter_id)
                     ),
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    seedKey = "gas",
+                    userEdited = false
                 ),
                 // Phone/Internet
                 Category(
@@ -244,7 +266,9 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = listOf(
                         getString(R.string.field_account_number)
                     ),
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    seedKey = "phone_internet",
+                    userEdited = false
                 ),
                 // National Insurance
                 Category(
@@ -255,32 +279,11 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = listOf(
                         getString(R.string.field_id_number)
                     ),
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    seedKey = "national_insurance",
+                    userEdited = false
                 ),
-                // Business Expenses
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_business_expenses),
-                    colorHex = "#F44336",
-                    description = getString(R.string.default_category_business_expenses_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_vendor_name),
-                        getString(R.string.field_invoice_number)
-                    ),
-                    pinnedDefaults = emptyMap()
-                ),
-                // Income Tax (NEW)
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_income_tax),
-                    colorHex = "#E91E63",
-                    description = getString(R.string.default_category_income_tax_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_id_number)
-                    ),
-                    pinnedDefaults = emptyMap()
-                ),
-                // Health Fund (NEW)
+                // Health Fund
                 Category(
                     id = 0,
                     name = getString(R.string.default_category_health_fund),
@@ -289,25 +292,20 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = listOf(
                         getString(R.string.field_id_number)
                     ),
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    seedKey = "health_fund",
+                    userEdited = false
                 ),
-                // Car Insurance (NEW)
+                // Car Insurance
                 Category(
                     id = 0,
                     name = getString(R.string.default_category_car_insurance),
                     colorHex = "#FF5722",
                     description = getString(R.string.default_category_car_insurance_description),
                     customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap()
-                ),
-                // Other
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_other),
-                    colorHex = "#9E9E9E",
-                    description = getString(R.string.default_category_other_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    seedKey = "car_insurance",
+                    userEdited = false
                 )
             )
             
