@@ -175,8 +175,25 @@
     <string name="topic_insurances">ביטוחים</string>
     <string name="topic_car_insurance">ביטוח רכב</string>
     
+    <!-- Field Catalog – extra predefined field names (Hebrew) -->
+    <string name="field_invoice_date">תאריך הפקה</string>
+    <string name="field_payment_due_date">תאריך אחרון לתשלום</string>
+    <string name="field_property_address">כתובת נכס</string>
+    <string name="field_subscription_number">מספר מנוי</string>
+    <string name="field_phone_number">מספר טלפון</string>
+    <string name="field_package">חבילה</string>
+    <string name="field_billing_period">תקופת חיוב</string>
+    <string name="field_tax_year">שנת מס</string>
+    <string name="field_member_number">מספר חבר</string>
+    <string name="field_supplementary_insurance_type">סוג ביטוח משלים</string>
+    <string name="field_policy_number">מספר פוליסה</string>
+    <string name="field_validity_date">תאריך תוקף</string>
+    <string name="field_coverage_amount">סכום כיסוי</string>
+    <string name="field_vehicle_number">מספר רכב</string>
+    
     <!-- Field Catalog UI -->
     <string name="new_field_name_hint">שם שדה חדש...</string>
+    <string name="custom_field">שדה מותאם</string>
     <string name="or_choose_from_list">או בחר מתוך רשימה</string>
     <string name="select_topic">בחר נושא</string>
     <string name="field_already_exists">שדה זה כבר קיים</string>

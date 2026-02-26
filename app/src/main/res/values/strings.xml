@@ -175,8 +175,25 @@
     <string name="topic_insurances">Insurances</string>
     <string name="topic_car_insurance">Car Insurance</string>
     
+    <!-- Field Catalog – extra predefined field names (others use existing field_* in file) -->
+    <string name="field_invoice_date">Invoice date</string>
+    <string name="field_payment_due_date">Payment due date</string>
+    <string name="field_property_address">Property address</string>
+    <string name="field_subscription_number">Subscription number</string>
+    <string name="field_phone_number">Phone number</string>
+    <string name="field_package">Package</string>
+    <string name="field_billing_period">Billing period</string>
+    <string name="field_tax_year">Tax year</string>
+    <string name="field_member_number">Member number</string>
+    <string name="field_supplementary_insurance_type">Supplementary insurance type</string>
+    <string name="field_policy_number">Policy number</string>
+    <string name="field_validity_date">Validity date</string>
+    <string name="field_coverage_amount">Coverage amount</string>
+    <string name="field_vehicle_number">Vehicle number</string>
+    
     <!-- Field Catalog UI -->
     <string name="new_field_name_hint">New field name…</string>
+    <string name="custom_field">Custom field</string>
     <string name="or_choose_from_list">Or choose from list</string>
     <string name="select_topic">Select topic</string>
     <string name="field_already_exists">This field already exists</string>

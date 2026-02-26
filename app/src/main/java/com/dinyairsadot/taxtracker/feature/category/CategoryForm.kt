@@ -8,12 +8,12 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -33,7 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.clickable
+import androidx.compose.material3.ExperimentalMaterial3Api
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.R
 
@@ -226,12 +226,19 @@ fun FieldCatalogPicker(
         )
         
         Spacer(modifier = Modifier.height(8.dp))
-        
-        // Topic selector dropdown
+
+        // Topic selector dropdown (first level)
         var topicExpanded by remember { mutableStateOf(false) }
         val topics = remember { FieldCatalog.getTopics() }
-        
-        Box(modifier = Modifier.fillMaxWidth()) {
+
+        // ExposedDropdownMenuBox + menuAnchor() make the entire field area open the menu (fixes
+        // parent Box clickable being ignored because OutlinedTextField consumed pointer events).
+        @OptIn(ExperimentalMaterial3Api::class)
+        ExposedDropdownMenuBox(
+            expanded = topicExpanded,
+            onExpandedChange = { topicExpanded = it },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             OutlinedTextField(
                 value = selectedTopicId?.let { id ->
                     topics.firstOrNull { it.id == id }?.let { stringResource(it.nameResId) }
@@ -239,23 +246,14 @@ fun FieldCatalogPicker(
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { topicExpanded = true },
+                    .menuAnchor()
+                    .fillMaxWidth(),
                 label = { Text(stringResource(R.string.select_topic)) },
-                trailingIcon = {
-                    IconButton(onClick = { topicExpanded = !topicExpanded }) {
-                        Icon(
-                            imageVector = if (topicExpanded) {
-                                Icons.Default.KeyboardArrowUp
-                            } else {
-                                Icons.Default.KeyboardArrowDown
-                            },
-                            contentDescription = null
-                        )
-                    }
-                }
+                placeholder = { Text(stringResource(R.string.custom_field)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = topicExpanded) }
             )
-            DropdownMenu(
+
+            ExposedDropdownMenu(
                 expanded = topicExpanded,
                 onDismissRequest = { topicExpanded = false }
             ) {
@@ -267,39 +265,64 @@ fun FieldCatalogPicker(
                         topicExpanded = false
                     }
                 )
+
                 topics.forEach { topic ->
+                    val isExpanded = selectedTopicId == topic.id
+
+                    // Topic row (acts like a dropdown option with nested list)
                     DropdownMenuItem(
-                        text = { Text(stringResource(topic.nameResId)) },
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(stringResource(topic.nameResId))
+                                Icon(
+                                    imageVector = if (isExpanded) {
+                                        Icons.Default.KeyboardArrowUp
+                                    } else {
+                                        Icons.Default.KeyboardArrowDown
+                                    },
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        },
                         onClick = {
-                            onTopicSelected(topic.id)
-                            topicExpanded = false
+                            val newSelectedId = if (isExpanded) null else topic.id
+                            onTopicSelected(newSelectedId)
                         }
                     )
-                }
-            }
-        }
-        
-        // Show fields for selected topic
-        selectedTopicId?.let { topicId ->
-            val selectedTopic = topics.firstOrNull { it.id == topicId }
-            selectedTopic?.fields?.forEach { fieldName ->
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedButton(
-                    onClick = { onFieldSelected(fieldName) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(fieldName)
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.add),
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
+
+                    // Nested "dropdown" of fields rendered as extra items while topic is expanded
+                    if (isExpanded) {
+                        topic.fieldNameResIds.forEach { fieldNameResId ->
+                            val fieldLabel = stringResource(fieldNameResId)
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = fieldLabel,
+                                            modifier = Modifier.padding(start = 16.dp) // indent under topic
+                                        )
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = stringResource(R.string.add),
+                                            modifier = Modifier.padding(start = 8.dp)
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    onFieldSelected(fieldLabel)
+                                    topicExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }

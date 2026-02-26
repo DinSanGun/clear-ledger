@@ -1,118 +1,121 @@
 package com.dinyairsadot.taxtracker.feature.category
 
+import com.dinyairsadot.taxtracker.R
+
 /**
  * Static catalog of optional fields grouped by topics.
  * Used to help users add common fields to categories.
+ * Field names are string resource IDs so they follow the app's language locale.
  */
 object FieldCatalog {
-    
+
     data class FieldTopic(
         val id: String,
         val nameResId: Int,
-        val fields: List<String>
+        val fieldNameResIds: List<Int>
     )
-    
+
     fun getTopics(): List<FieldTopic> = listOf(
         FieldTopic(
             id = "general",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_general,
-            fields = listOf(
-                "תאריך הפקה",
-                "תאריך אחרון לתשלום",
-                "מספר חשבון",
-                "מספר ת.ז.",
-                "שם ספק"
+            nameResId = R.string.topic_general,
+            fieldNameResIds = listOf(
+                R.string.field_invoice_date,
+                R.string.field_payment_due_date,
+                R.string.field_account_number,
+                R.string.field_id_number,
+                R.string.field_vendor_name
             )
         ),
         FieldTopic(
             id = "electricity",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_electricity,
-            fields = listOf(
-                "מספר מונה",
-                "צריכה (קוט\"ש)",
-                "מספר חשבון",
-                "מספר נכס"
+            nameResId = R.string.topic_electricity,
+            fieldNameResIds = listOf(
+                R.string.field_meter_id,
+                R.string.field_consumption_kwh,
+                R.string.field_account_number,
+                R.string.field_property_id
             )
         ),
         FieldTopic(
             id = "water",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_water,
-            fields = listOf(
-                "מספר מונה",
-                "צריכה (מ\"ק)",
-                "מספר חשבון",
-                "מספר נכס"
+            nameResId = R.string.topic_water,
+            fieldNameResIds = listOf(
+                R.string.field_meter_id,
+                R.string.field_consumption_cubic_meters,
+                R.string.field_account_number,
+                R.string.field_property_id
             )
         ),
         FieldTopic(
             id = "arnona",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_arnona,
-            fields = listOf(
-                "מספר נכס",
-                "כתובת נכס",
-                "מספר ת.ז."
+            nameResId = R.string.topic_arnona,
+            fieldNameResIds = listOf(
+                R.string.field_property_id,
+                R.string.field_property_address,
+                R.string.field_id_number
             )
         ),
         FieldTopic(
             id = "gas",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_gas,
-            fields = listOf(
-                "מספר מונה",
-                "צריכה (מ\"ק)",
-                "מספר חשבון"
+            nameResId = R.string.topic_gas,
+            fieldNameResIds = listOf(
+                R.string.field_meter_id,
+                R.string.field_consumption_cubic_meters,
+                R.string.field_account_number
             )
         ),
         FieldTopic(
             id = "communication",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_communication,
-            fields = listOf(
-                "מספר מנוי",
-                "מספר טלפון",
-                "חבילה"
+            nameResId = R.string.topic_communication,
+            fieldNameResIds = listOf(
+                R.string.field_subscription_number,
+                R.string.field_phone_number,
+                R.string.field_package
             )
         ),
         FieldTopic(
             id = "national_insurance",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_national_insurance,
-            fields = listOf(
-                "מספר ת.ז.",
-                "תקופת חיוב"
+            nameResId = R.string.topic_national_insurance,
+            fieldNameResIds = listOf(
+                R.string.field_id_number,
+                R.string.field_billing_period
             )
         ),
         FieldTopic(
             id = "income_tax",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_income_tax,
-            fields = listOf(
-                "מספר ת.ז.",
-                "שנת מס",
-                "תקופת חיוב"
+            nameResId = R.string.topic_income_tax,
+            fieldNameResIds = listOf(
+                R.string.field_id_number,
+                R.string.field_tax_year,
+                R.string.field_billing_period
             )
         ),
         FieldTopic(
             id = "health_fund",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_health_fund,
-            fields = listOf(
-                "מספר ת.ז.",
-                "מספר חבר",
-                "סוג ביטוח משלים"
+            nameResId = R.string.topic_health_fund,
+            fieldNameResIds = listOf(
+                R.string.field_id_number,
+                R.string.field_member_number,
+                R.string.field_supplementary_insurance_type
             )
         ),
         FieldTopic(
             id = "insurances",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_insurances,
-            fields = listOf(
-                "מספר פוליסה",
-                "תאריך תוקף",
-                "סכום כיסוי"
+            nameResId = R.string.topic_insurances,
+            fieldNameResIds = listOf(
+                R.string.field_policy_number,
+                R.string.field_validity_date,
+                R.string.field_coverage_amount
             )
         ),
         FieldTopic(
             id = "car_insurance",
-            nameResId = com.dinyairsadot.taxtracker.R.string.topic_car_insurance,
-            fields = listOf(
-                "מספר פוליסה",
-                "מספר רכב",
-                "תאריך תוקף"
+            nameResId = R.string.topic_car_insurance,
+            fieldNameResIds = listOf(
+                R.string.field_policy_number,
+                R.string.field_vehicle_number,
+                R.string.field_validity_date
             )
         )
     )
