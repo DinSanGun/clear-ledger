@@ -1,5 +1,13 @@
 package com.dinyairsadot.taxtracker.feature.invoice
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,11 +45,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +68,7 @@ import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.invoice.SortOption
 import com.dinyairsadot.taxtracker.R
 
-
+private const val SORT_MENU_ANIM_MS = 420
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,6 +90,14 @@ fun InvoiceListScreen(
     val invoiceDeletedMessage = stringResource(R.string.invoice_deleted)
     var pendingDeleteInvoiceId by remember { mutableStateOf<Long?>(null) }
     var showSortMenu by remember { mutableStateOf(false) }
+    val sortMenuVisibility = remember { MutableTransitionState(false) }
+
+    LaunchedEffect(sortMenuVisibility.isIdle, sortMenuVisibility.currentState, showSortMenu) {
+        // Keep popup mounted while exiting; dismiss only after exit animation completes.
+        if (showSortMenu && sortMenuVisibility.isIdle && !sortMenuVisibility.currentState) {
+            showSortMenu = false
+        }
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -107,7 +126,10 @@ fun InvoiceListScreen(
                 actions = {
                     // Sort menu
                     Box {
-                        IconButton(onClick = { showSortMenu = true }) {
+                        IconButton(onClick = {
+                            showSortMenu = true
+                            sortMenuVisibility.targetState = true
+                        }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Sort,
                                 contentDescription = stringResource(R.string.sort)
@@ -115,36 +137,60 @@ fun InvoiceListScreen(
                         }
                         DropdownMenu(
                             expanded = showSortMenu,
-                            onDismissRequest = { showSortMenu = false }
+                            onDismissRequest = { sortMenuVisibility.targetState = false },
+                            containerColor = Color.Transparent,
+                            tonalElevation = 0.dp,
+                            shadowElevation = 0.dp
                         ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.date_newest_first)) },
-                                onClick = {
-                                    onSortOptionChange(SortOption.DATE_DESCENDING)
-                                    showSortMenu = false
+                            AnimatedVisibility(
+                                visibleState = sortMenuVisibility,
+                                enter = slideInVertically(
+                                    initialOffsetY = { it },
+                                    animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)
+                                ) + fadeIn(animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)),
+                                exit = slideOutVertically(
+                                    targetOffsetY = { it },
+                                    animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)
+                                ) + fadeOut(animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing))
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    shadowElevation = 2.dp,
+                                    tonalElevation = 2.dp
+                                ) {
+                                    Column {
+                                        DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.date_newest_first)) },
+                                        onClick = {
+                                            onSortOptionChange(SortOption.DATE_DESCENDING)
+                                            sortMenuVisibility.targetState = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.date_oldest_first)) },
+                                        onClick = {
+                                            onSortOptionChange(SortOption.DATE_ASCENDING)
+                                            sortMenuVisibility.targetState = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.amount_highest_first)) },
+                                        onClick = {
+                                            onSortOptionChange(SortOption.AMOUNT_DESCENDING)
+                                            sortMenuVisibility.targetState = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.amount_lowest_first)) },
+                                        onClick = {
+                                            onSortOptionChange(SortOption.AMOUNT_ASCENDING)
+                                            sortMenuVisibility.targetState = false
+                                        }
+                                    )
+                                    }
                                 }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.date_oldest_first)) },
-                                onClick = {
-                                    onSortOptionChange(SortOption.DATE_ASCENDING)
-                                    showSortMenu = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.amount_highest_first)) },
-                                onClick = {
-                                    onSortOptionChange(SortOption.AMOUNT_DESCENDING)
-                                    showSortMenu = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.amount_lowest_first)) },
-                                onClick = {
-                                    onSortOptionChange(SortOption.AMOUNT_ASCENDING)
-                                    showSortMenu = false
-                                }
-                            )
+                            }
                         }
                     }
                     
