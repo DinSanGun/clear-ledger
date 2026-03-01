@@ -34,7 +34,11 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE seedKey IS NOT NULL AND userEdited = 0")
     suspend fun getSeededUnedited(): List<CategoryEntity>
 
-    /** Update only name and description (for locale refresh); does not touch color or other fields. */
-    @Query("UPDATE categories SET name = :name, description = :description WHERE id = :id")
-    suspend fun updateNameAndDescription(id: Long, name: String, description: String?)
+    /** Clear custom fields for all seeded, unedited categories (one-time migration). */
+    @Query("UPDATE categories SET customFieldTitlesJson = NULL WHERE seedKey IS NOT NULL AND userEdited = 0")
+    suspend fun clearCustomFieldsForSeededUnedited(): Int
+
+    /** Update name, description, and clear custom fields (for locale refresh); does not touch color or other fields. */
+    @Query("UPDATE categories SET name = :name, description = :description, customFieldTitlesJson = NULL WHERE id = :id")
+    suspend fun updateNameDescriptionAndCustomFields(id: Long, name: String, description: String?)
 }

@@ -55,12 +55,20 @@ class RoomCategoryRepository(
             val resIds = SEED_KEY_TO_RES_IDS[key] ?: continue
             val name = context.getString(resIds.first)
             val description = context.getString(resIds.second)
-            categoryDao.updateNameAndDescription(entity.id, name, description)
+            categoryDao.updateNameDescriptionAndCustomFields(entity.id, name, description)
             updated++
         }
         if (updated > 0) {
             Log.d(TAG, "updateLocalizedSeededCategories: updated $updated seeded categories for current locale")
         }
+    }
+
+    override suspend fun clearCustomFieldsForSeededCategories(): Int {
+        val count = categoryDao.clearCustomFieldsForSeededUnedited()
+        if (count > 0) {
+            Log.d(TAG, "clearCustomFieldsForSeededCategories: cleared custom fields from $count seeded categories")
+        }
+        return count
     }
 
     companion object {

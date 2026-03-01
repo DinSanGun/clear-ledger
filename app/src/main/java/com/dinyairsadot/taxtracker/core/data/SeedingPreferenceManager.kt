@@ -17,6 +17,17 @@ class SeedingPreferenceManager(context: Context) {
     companion object {
         private const val PREFS_NAME = "seeding_prefs"
         private const val KEY_HAS_SEEDED_DEFAULT_CATEGORIES = "has_seeded_default_categories"
+        private const val KEY_HAS_CLEARED_SEEDED_CUSTOM_FIELDS = "has_cleared_seeded_custom_fields"
+    }
+
+    /** Whether custom fields have been cleared from seeded categories (one-time migration). */
+    fun hasClearedSeededCustomFields(): Boolean =
+        sharedPrefs.getBoolean(KEY_HAS_CLEARED_SEEDED_CUSTOM_FIELDS, false)
+
+    fun setHasClearedSeededCustomFields(cleared: Boolean = true) {
+        sharedPrefs.edit()
+            .putBoolean(KEY_HAS_CLEARED_SEEDED_CUSTOM_FIELDS, cleared)
+            .apply()
     }
 
     /**

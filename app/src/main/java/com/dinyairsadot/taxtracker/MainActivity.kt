@@ -155,9 +155,14 @@ class MainActivity : ComponentActivity() {
                         isInitializing = false
                     }
 
-                    // After init: if saved language differs from last applied, update seeded categories once (idempotent)
+                    // After init: one-time migration to clear custom fields from seeded categories
                     LaunchedEffect(isInitializing) {
                         if (isInitializing) return@LaunchedEffect
+                        if (!rememberedSeedingPrefs.hasClearedSeededCustomFields()) {
+                            rememberedCategoryRepo.clearCustomFieldsForSeededCategories()
+                            rememberedSeedingPrefs.setHasClearedSeededCustomFields(true)
+                            Log.d(TAG, "[MAIN] Cleared custom fields from seeded categories")
+                        }
                         val current = languageManager.getCurrentLanguage()
                         val lastApplied = languageManager.getLastAppliedLanguage()
                         if (lastApplied != current) {
@@ -209,9 +214,7 @@ class MainActivity : ComponentActivity() {
                     name = getString(R.string.default_category_arnona),
                     colorHex = "#4CAF50",
                     description = getString(R.string.default_category_arnona_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_property_id)
-                    ),
+                    customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "arnona",
                     userEdited = false
@@ -222,10 +225,7 @@ class MainActivity : ComponentActivity() {
                     name = getString(R.string.default_category_electricity),
                     colorHex = "#FF9800",
                     description = getString(R.string.default_category_electricity_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_meter_id),
-                        getString(R.string.field_consumption_kwh)
-                    ),
+                    customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "electricity",
                     userEdited = false
@@ -236,10 +236,7 @@ class MainActivity : ComponentActivity() {
                     name = getString(R.string.default_category_water),
                     colorHex = "#2196F3",
                     description = getString(R.string.default_category_water_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_meter_id),
-                        getString(R.string.field_consumption_cubic_meters)
-                    ),
+                    customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "water",
                     userEdited = false
@@ -250,9 +247,7 @@ class MainActivity : ComponentActivity() {
                     name = getString(R.string.default_category_gas),
                     colorHex = "#9C27B0",
                     description = getString(R.string.default_category_gas_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_meter_id)
-                    ),
+                    customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "gas",
                     userEdited = false
@@ -263,9 +258,7 @@ class MainActivity : ComponentActivity() {
                     name = getString(R.string.default_category_phone_internet),
                     colorHex = "#00BCD4",
                     description = getString(R.string.default_category_phone_internet_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_account_number)
-                    ),
+                    customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "phone_internet",
                     userEdited = false
@@ -276,9 +269,7 @@ class MainActivity : ComponentActivity() {
                     name = getString(R.string.default_category_national_insurance),
                     colorHex = "#795548",
                     description = getString(R.string.default_category_national_insurance_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_id_number)
-                    ),
+                    customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "national_insurance",
                     userEdited = false
@@ -289,9 +280,7 @@ class MainActivity : ComponentActivity() {
                     name = getString(R.string.default_category_health_fund),
                     colorHex = "#3F51B5",
                     description = getString(R.string.default_category_health_fund_description),
-                    customFieldTitles = listOf(
-                        getString(R.string.field_id_number)
-                    ),
+                    customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "health_fund",
                     userEdited = false

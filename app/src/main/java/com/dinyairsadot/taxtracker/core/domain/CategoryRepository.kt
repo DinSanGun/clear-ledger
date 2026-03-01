@@ -9,4 +9,6 @@ interface CategoryRepository {
     suspend fun updateCategory(category: Category)
     /** Updates name/description only for seeded, unedited categories to match the given locale. */
     suspend fun updateLocalizedSeededCategories(context: Context)
+    /** Clears custom fields for all seeded, unedited categories (one-time migration). */
+    suspend fun clearCustomFieldsForSeededCategories(): Int
 }

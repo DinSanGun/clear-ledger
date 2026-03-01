@@ -58,4 +58,6 @@ object InMemoryCategoryRepository : CategoryRepository {
     override suspend fun updateLocalizedSeededCategories(context: Context) {
         // No-op: in-memory repo has no seeded rows to update
     }
+
+    override suspend fun clearCustomFieldsForSeededCategories(): Int = 0
 }
