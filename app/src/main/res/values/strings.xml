@@ -78,6 +78,7 @@
     <string name="notes">Notes</string>
     <string name="save_invoice">Save invoice</string>
     <string name="status">Status:</string>
+    <string name="paid">Paid</string>
     <string name="paid_full">Paid full</string>
     <string name="paid_credit">Paid credit</string>
     
@@ -154,8 +155,8 @@
 
     <!-- Service Period hybrid input -->
     <string name="service_period">Service Period</string>
-    <string name="service_period_mode_label">Service period input</string>
-    <string name="service_period_mode_month">Month</string>
+    <string name="service_period_mode_label">Service Period</string>
+    <string name="service_period_mode_month">By Month</string>
     <string name="service_period_mode_dates">Exact dates</string>
     <string name="service_period_month_label">Month *</string>
     <string name="service_period_from_label">From *</string>
@@ -176,7 +177,13 @@
     <string name="amount_due">Amount Due</string>
     <string name="document_number">Document Number</string>
     <string name="document_number_required">Document number is required</string>
+    <string name="invoice_number">Invoice number</string>
+    <string name="invoice_number_required">Invoice number is required</string>
+    <string name="notes_additional_info">Notes / Additional info</string>
     <string name="payment_method">Payment Method</string>
+    <string name="payment_method_credit">Credit</string>
+    <string name="payment_method_bank_transfer">Bank transfer</string>
+    <string name="payment_method_other">Other</string>
     <string name="confirmation_number">Confirmation Number</string>
     
     <!-- Category Pinned Defaults -->

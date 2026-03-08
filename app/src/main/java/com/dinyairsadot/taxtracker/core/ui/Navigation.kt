@@ -167,8 +167,8 @@ fun TaxTrackerNavHost(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onSaveCategory = { name, colorHex, description, customFieldTitles, pinnedSupplierName ->
-                    viewModel.addCategory(name, colorHex, description, customFieldTitles, pinnedSupplierName)
+                onSaveCategory = { name, colorHex, description, customFieldTitles ->
+                    viewModel.addCategory(name, colorHex, description, customFieldTitles)
                 },
                 existingNamesLower = existingNamesLower,
                 onCategorySaved = {
@@ -240,19 +240,17 @@ fun TaxTrackerNavHost(
                 initialDescription = categoryUi.description,
                 categoryColorHex = categoryUi.colorHex,
                 initialCustomFieldTitles = category.customFieldTitles,
-                initialPinnedSupplierName = category.pinnedDefaults[Category.PINNED_KEY_SUPPLIER_NAME],
                 otherNamesLower = otherNamesLower,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onSaveCategory = { name, colorHex, description, customFieldTitles, pinnedSupplierName ->
+                onSaveCategory = { name, colorHex, description, customFieldTitles ->
                     viewModel.updateCategory(
                         id = categoryUi.id,
                         name = name,
                         colorHex = colorHex,
                         description = description,
-                        customFieldTitles = customFieldTitles,
-                        pinnedSupplierName = pinnedSupplierName
+                        customFieldTitles = customFieldTitles
                     )
                 },
                 viewModel = viewModel
@@ -329,10 +327,7 @@ fun TaxTrackerNavHost(
                 categoryName = uiState.categoryName,
                 categoryColorHex = uiState.categoryColorHex,
                 categoryCustomFieldTitles = uiState.categoryCustomFieldTitles,
-                categoryPinnedSupplierName = uiState.categoryPinnedSupplierName,
-                getDefaultDocumentType = { categoryName -> viewModel.getDefaultDocumentType(categoryName) },
-                onNavigateBack = { navController.popBackStack() },
-                onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, confirmationNumber, notes, customFieldValues ->
+                onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, confirmationNumber, vendorName, notes, customFieldValues ->
                     viewModel.addInvoice(
                         categoryId = categoryId,
                         documentNumber = documentNumber,
@@ -345,11 +340,13 @@ fun TaxTrackerNavHost(
                         dueDate = dueDate,
                         paymentMethod = paymentMethod,
                         confirmationNumber = confirmationNumber,
+                        vendorName = vendorName,
                         notes = notes,
                         customFieldValues = customFieldValues
                     )
                     // AddInvoiceScreen will also call onNavigateBack() after this
-                }
+                },
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         // -------------------------
@@ -458,10 +455,11 @@ fun TaxTrackerNavHost(
                 initialDueDateText = invoiceUi.dueDateText,
                 initialPaymentMethod = invoiceUi.paymentMethod,
                 initialConfirmationNumber = invoiceUi.confirmationNumber,
+                initialVendorName = invoiceUi.vendorName,
                 initialNotes = invoiceUi.notes ?: "",
                 initialCustomFieldValues = invoiceUi.customFieldValues,
                 onNavigateBack = { navController.popBackStack() },
-                onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, confirmationNumber, notes, customFieldValues ->
+                onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, confirmationNumber, vendorName, notes, customFieldValues ->
                     viewModel.updateInvoice(
                         invoiceId = invoiceUi.id,
                         documentNumber = documentNumber,
@@ -474,6 +472,7 @@ fun TaxTrackerNavHost(
                         dueDate = dueDate,
                         paymentMethod = paymentMethod,
                         confirmationNumber = confirmationNumber,
+                        vendorName = vendorName,
                         notes = notes,
                         customFieldValues = customFieldValues
                     )

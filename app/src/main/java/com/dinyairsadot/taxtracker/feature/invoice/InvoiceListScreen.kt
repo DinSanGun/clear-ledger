@@ -383,9 +383,8 @@ private fun InvoiceItem(
 
                 Text(
                     text = when (invoice.paymentStatus) {
-                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_FULL -> stringResource(R.string.paid_in_full)
+                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID -> stringResource(R.string.paid)
                         com.dinyairsadot.taxtracker.core.domain.PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
-                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_CREDIT -> stringResource(R.string.paid_with_credit)
                     },
                     style = MaterialTheme.typography.bodySmall
                 )

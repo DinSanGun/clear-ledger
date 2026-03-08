@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
@@ -112,11 +111,10 @@ fun InvoiceDetailsScreen(
                         )
                     }
 
-                    // Display supplier name from pinned snapshot (not category defaults)
-                    invoice.pinnedSnapshot[Category.PINNED_KEY_SUPPLIER_NAME]?.takeIf { it.isNotBlank() }?.let { supplier ->
+                    invoice.vendorName?.takeIf { it.isNotBlank() }?.let { vendor ->
                         Spacer(modifier = Modifier.padding(top = 4.dp))
                         Text(
-                            text = stringResource(R.string.vendor_name_label, supplier),
+                            text = stringResource(R.string.vendor_name_label, vendor),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -131,9 +129,8 @@ fun InvoiceDetailsScreen(
                     Spacer(modifier = Modifier.padding(top = 4.dp))
 
                     val statusText = when (invoice.paymentStatus) {
-                        PaymentStatus.PAID_FULL -> stringResource(R.string.paid_in_full)
+                        PaymentStatus.PAID -> stringResource(R.string.paid)
                         PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
-                        PaymentStatus.PAID_CREDIT -> stringResource(R.string.paid_with_credit)
                     }
                     Text(
                         text = stringResource(R.string.status_label, statusText),

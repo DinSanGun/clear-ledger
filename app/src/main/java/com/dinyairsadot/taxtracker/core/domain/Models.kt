@@ -4,9 +4,14 @@ import java.time.Instant
 import java.time.LocalDate
 
 enum class PaymentStatus {
-    PAID_FULL,
-    NOT_PAID,
-    PAID_CREDIT
+    PAID,
+    NOT_PAID
+}
+
+enum class PaymentMethodOption(val value: String) {
+    CREDIT("credit"),
+    BANK_TRANSFER("bank_transfer"),
+    OTHER("other")
 }
 
 /**

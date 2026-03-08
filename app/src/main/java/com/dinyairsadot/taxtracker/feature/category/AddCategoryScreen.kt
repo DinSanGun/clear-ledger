@@ -33,8 +33,7 @@ fun AddCategoryScreen(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitles: List<String>,
-        pinnedSupplierName: String
+        customFieldTitles: List<String>
     ) -> Unit,
     existingNamesLower: Set<String>,
     onCategorySaved: () -> Unit
@@ -42,7 +41,6 @@ fun AddCategoryScreen(
     var name by rememberSaveable { mutableStateOf("") }
     var colorHex by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
-    var pinnedSupplierName by rememberSaveable { mutableStateOf("") }
 
     var customFieldTitles by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -113,8 +111,7 @@ fun AddCategoryScreen(
                 name.trim(),
                 colorHex.trim(),
                 description.trim(),
-                trimmedTitles,
-                pinnedSupplierName.trim()
+                trimmedTitles
             )
 
             onCategorySaved()
@@ -129,7 +126,6 @@ fun AddCategoryScreen(
         colorError = colorError,
         description = description,
         customFieldTitles = customFieldTitles,
-        pinnedSupplierName = pinnedSupplierName,
         newFieldName = newFieldName,
         selectedTopicId = selectedTopicId,
         fieldExistsError = fieldExistsError
@@ -162,9 +158,6 @@ fun AddCategoryScreen(
         },
         onRequestRemoveCustomField = { index ->
             pendingRemoveFieldIndex = index
-        },
-        onPinnedSupplierNameChange = { newSupplierName ->
-            pinnedSupplierName = newSupplierName
         },
         onNewFieldNameChange = { newName ->
             newFieldName = newName

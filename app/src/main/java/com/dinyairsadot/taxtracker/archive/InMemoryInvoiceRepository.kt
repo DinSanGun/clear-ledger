@@ -19,7 +19,7 @@ object InMemoryInvoiceRepository : InvoiceRepository {
             categoryId = 1L,
             invoiceNumber = "EL-2025-001",
             amount = 250.0,
-            paymentStatus = PaymentStatus.PAID_FULL,
+            paymentStatus = PaymentStatus.PAID,
             dueDate = LocalDate.now().minusDays(10),
             paymentDate = LocalDate.now().minusDays(5),
             consumptionValue = 120.0,

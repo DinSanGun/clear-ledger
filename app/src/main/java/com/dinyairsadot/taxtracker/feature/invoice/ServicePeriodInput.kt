@@ -79,14 +79,6 @@ fun ServicePeriodInput(
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     Column(modifier = modifier) {
-        // Section header
-        Text(
-            text = stringResource(R.string.service_period),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-
         when (mode) {
             ServicePeriodMode.DATE -> DateModeContent(
                 startDateText = startDateText,
@@ -272,12 +264,7 @@ private fun MonthModeContent(
             onValueChange = {},
             readOnly = true,
             modifier = Modifier.weight(1f),
-            label = {
-                Text(
-                    if (showEndMonth) stringResource(R.string.service_period_from_label)
-                    else stringResource(R.string.service_period_month_label)
-                )
-            },
+            label = null,
             isError = startMonthError != null,
             supportingText = { startMonthError?.let { Text(it) } }
         )
@@ -298,7 +285,7 @@ private fun MonthModeContent(
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier.weight(1f),
-                label = { Text(stringResource(R.string.service_period_to_label)) },
+                label = null,
                 isError = endMonthError != null,
                 supportingText = { endMonthError?.let { Text(it) } }
             )

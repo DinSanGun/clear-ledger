@@ -78,6 +78,7 @@
     <string name="notes">הערות</string>
     <string name="save_invoice">שמור חשבונית</string>
     <string name="status">סטטוס:</string>
+    <string name="paid">שולם</string>
     <string name="paid_full">שולם במלואו</string>
     <string name="paid_credit">שולם באשראי</string>
     
@@ -154,8 +155,8 @@
 
     <!-- Service Period hybrid input -->
     <string name="service_period">תקופת שירות</string>
-    <string name="service_period_mode_label">הזנת תקופת שירות</string>
-    <string name="service_period_mode_month">חודש</string>
+    <string name="service_period_mode_label">תקופת שירות</string>
+    <string name="service_period_mode_month">חודשית</string>
     <string name="service_period_mode_dates">תאריכים מדויקים</string>
     <string name="service_period_month_label">חודש *</string>
     <string name="service_period_from_label">מ *</string>
@@ -176,7 +177,13 @@
     <string name="amount_due">סכום לתשלום</string>
     <string name="document_number">מספר מסמך</string>
     <string name="document_number_required">מספר מסמך נדרש</string>
+    <string name="invoice_number">מספר חשבונית</string>
+    <string name="invoice_number_required">מספר חשבונית נדרש</string>
+    <string name="notes_additional_info">הערות / מידע נוסף</string>
     <string name="payment_method">אמצעי תשלום</string>
+    <string name="payment_method_credit">אשראי</string>
+    <string name="payment_method_bank_transfer">העברה בנקאית</string>
+    <string name="payment_method_other">אחר</string>
     <string name="confirmation_number">מספר אישור</string>
     
     <!-- Category Pinned Defaults -->

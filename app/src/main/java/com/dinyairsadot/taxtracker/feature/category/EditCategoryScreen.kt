@@ -38,22 +38,19 @@ fun EditCategoryScreen(
     categoryColorHex: String?,
     initialDescription: String?,
     initialCustomFieldTitles: List<String>,
-    initialPinnedSupplierName: String?,
     otherNamesLower: Set<String>,
     onNavigateBack: () -> Unit,
     onSaveCategory: (
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitles: List<String>,
-        pinnedSupplierName: String
+        customFieldTitles: List<String>
     ) -> Unit,
     viewModel: CategoryListViewModel
 ) {
     var name by rememberSaveable { mutableStateOf(initialName) }
     var colorHex by rememberSaveable { mutableStateOf(initialColorHex) }
     var description by rememberSaveable { mutableStateOf(initialDescription.orEmpty()) }
-    var pinnedSupplierName by rememberSaveable { mutableStateOf(initialPinnedSupplierName.orEmpty()) }
 
     var customFieldTitles by rememberSaveable { mutableStateOf(initialCustomFieldTitles) }
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -132,8 +129,7 @@ fun EditCategoryScreen(
                 name.trim(),
                 colorHex.trim(),
                 description.trim(),
-                trimmedTitles,
-                pinnedSupplierName.trim()
+                trimmedTitles
             )
             onNavigateBack()
         }
@@ -146,7 +142,6 @@ fun EditCategoryScreen(
         colorError = colorError,
         description = description,
         customFieldTitles = customFieldTitles,
-        pinnedSupplierName = pinnedSupplierName,
         newFieldName = newFieldName,
         selectedTopicId = selectedTopicId,
         fieldExistsError = fieldExistsError
@@ -179,9 +174,6 @@ fun EditCategoryScreen(
         },
         onRequestRemoveCustomField = { index ->
             pendingRemoveFieldIndex = index
-        },
-        onPinnedSupplierNameChange = { newSupplierName ->
-            pinnedSupplierName = newSupplierName
         },
         onNewFieldNameChange = { newName ->
             newFieldName = newName

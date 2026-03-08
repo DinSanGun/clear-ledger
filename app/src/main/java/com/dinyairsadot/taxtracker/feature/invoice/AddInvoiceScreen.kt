@@ -9,6 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,7 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.R
-import com.dinyairsadot.taxtracker.core.domain.DocumentType
+import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
@@ -52,9 +56,6 @@ fun AddInvoiceScreen(
     categoryName: String?,
     categoryColorHex: String?,
     categoryCustomFieldTitles: List<String>,
-    categoryPinnedSupplierName: String?,
-    getDefaultDocumentType: (String?) -> DocumentType?,
-    onNavigateBack: () -> Unit,
     onSaveInvoice: (
         documentNumber: String,
         amountDue: Double,
@@ -66,16 +67,15 @@ fun AddInvoiceScreen(
         dueDate: LocalDate?,
         paymentMethod: String?,
         confirmationNumber: String?,
+        vendorName: String?,
         notes: String,
         customFieldValues: List<String>
-    ) -> Unit
+    ) -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
-    
-    // Display-only field (prefilled from category, not saved to invoice)
-    var supplierName by rememberSaveable { mutableStateOf(categoryPinnedSupplierName ?: "") }
-    
-    // New core required fields
+
+    // Main required fields
     var documentNumberText by rememberSaveable { mutableStateOf("") }
     var amountText by rememberSaveable { mutableStateOf("") }
     var paymentStatus by rememberSaveable { mutableStateOf(PaymentStatus.NOT_PAID) }
@@ -83,7 +83,6 @@ fun AddInvoiceScreen(
     var servicePeriodEndText by rememberSaveable { mutableStateOf("") }
     var servicePeriodMode by rememberSaveable { mutableStateOf(ServicePeriodMode.MONTH) }
 
-    // MONTH mode state – always kept even if DATE mode is active (no branching in rememberSaveable)
     val today = LocalDate.now()
     var startYear by rememberSaveable { mutableStateOf(today.year) }
     var startMonth by rememberSaveable { mutableStateOf(today.monthValue) }
@@ -91,16 +90,17 @@ fun AddInvoiceScreen(
     var endMonth by rememberSaveable { mutableStateOf(today.monthValue) }
     var showEndMonth by rememberSaveable { mutableStateOf(false) }
 
-    // Optional core fields: payment date (shown by default), due date (hidden by default)
+    // Conditional fields: Paid/Credit group
     var paymentDateText by rememberSaveable { mutableStateOf("") }
-    var dueDateText by rememberSaveable { mutableStateOf("") }
-    var showDueDate by rememberSaveable { mutableStateOf(false) }
-
     var paymentMethod by rememberSaveable { mutableStateOf("") }
     var confirmationNumber by rememberSaveable { mutableStateOf("") }
-    var notes by rememberSaveable { mutableStateOf("") }
-    
+
+    // Conditional fields: Not paid group
+    var dueDateText by rememberSaveable { mutableStateOf("") }
+
     var currency by rememberSaveable { mutableStateOf(Currency.ILS) }
+    var vendorName by rememberSaveable { mutableStateOf("") }
+    var notes by rememberSaveable { mutableStateOf("") }
     var customFieldValues by rememberSaveable {
         mutableStateOf(List(categoryCustomFieldTitles.size) { "" })
     }
@@ -108,6 +108,7 @@ fun AddInvoiceScreen(
     // Validation state
     var documentNumberError by rememberSaveable { mutableStateOf<String?>(null) }
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
+    var paymentStatusError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodStartError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodEndError by rememberSaveable { mutableStateOf<String?>(null) }
     var startMonthError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -117,13 +118,13 @@ fun AddInvoiceScreen(
     var amountTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodStartTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodEndTouched by rememberSaveable { mutableStateOf(false) }
-    
+
     fun handleSave() {
         var hasError = false
         val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
         if (documentNumberText.trim().isBlank()) {
-            documentNumberError = context.getString(R.string.document_number_required)
+            documentNumberError = context.getString(R.string.invoice_number_required)
             hasError = true
         } else {
             documentNumberError = null
@@ -137,11 +138,12 @@ fun AddInvoiceScreen(
             amountError = null
         }
 
+        paymentStatusError = null
+
         var finalStartText = ""
         var finalEndText = ""
 
         if (servicePeriodMode == ServicePeriodMode.MONTH) {
-            // Month mode: derive dates from picked month(s)
             val actualEndYear = if (showEndMonth) endYear else startYear
             val actualEndMonth = if (showEndMonth) endMonth else startMonth
             if (showEndMonth) {
@@ -162,50 +164,51 @@ fun AddInvoiceScreen(
                 finalEndText = YearMonth.of(actualEndYear, actualEndMonth).atEndOfMonth().format(dateFormatter)
             }
         } else {
-            // Date mode: validate free-text / picker fields
             val trimmedStart = servicePeriodStartText.trim()
-            val startDate = if (trimmedStart.isBlank()) {
-                servicePeriodStartError = context.getString(R.string.date_required)
-                hasError = true
-                null
-            } else {
-                val d = runCatching {
-                    LocalDate.parse(trimmedStart, dateFormatter)
-                }.getOrNull()
-                if (d == null) {
-                    servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
-                    hasError = true
-                } else {
-                    servicePeriodStartError = null
-                }
-                d
-            }
-
             val trimmedEnd = servicePeriodEndText.trim()
-            val endDate = if (trimmedEnd.isBlank()) {
-                servicePeriodEndError = context.getString(R.string.date_required)
-                hasError = true
-                null
+            if (trimmedStart.isBlank() && trimmedEnd.isBlank()) {
+                servicePeriodStartError = null
+                servicePeriodEndError = null
+                finalStartText = ""
+                finalEndText = ""
             } else {
-                val d = runCatching {
-                    LocalDate.parse(trimmedEnd, dateFormatter)
-                }.getOrNull()
-                if (d == null) {
-                    servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
+                val startDate = if (trimmedStart.isBlank()) {
+                    servicePeriodStartError = context.getString(R.string.date_required)
                     hasError = true
+                    null
                 } else {
-                    servicePeriodEndError = null
+                    val d = runCatching { LocalDate.parse(trimmedStart, dateFormatter) }.getOrNull()
+                    if (d == null) {
+                        servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
+                        hasError = true
+                    } else {
+                        servicePeriodStartError = null
+                    }
+                    d
                 }
-                d
-            }
 
-            if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
-                servicePeriodEndError = context.getString(R.string.service_period_end_before_start)
-                hasError = true
-            }
+                val endDate = if (trimmedEnd.isBlank()) {
+                    servicePeriodEndError = context.getString(R.string.date_required)
+                    hasError = true
+                    null
+                } else {
+                    val d = runCatching { LocalDate.parse(trimmedEnd, dateFormatter) }.getOrNull()
+                    if (d == null) {
+                        servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
+                        hasError = true
+                    } else {
+                        servicePeriodEndError = null
+                    }
+                    d
+                }
 
-            finalStartText = trimmedStart
-            finalEndText = trimmedEnd
+                if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+                    servicePeriodEndError = context.getString(R.string.service_period_end_before_start)
+                    hasError = true
+                }
+                finalStartText = trimmedStart
+                finalEndText = trimmedEnd
+            }
         }
 
         if (hasError) return
@@ -226,11 +229,15 @@ fun AddInvoiceScreen(
             dueDate,
             paymentMethod.takeIf { it.isNotBlank() },
             confirmationNumber.takeIf { it.isNotBlank() },
+            vendorName.trim().takeIf { it.isNotBlank() },
             notes.trim(),
             customFieldValues
         )
         onNavigateBack()
     }
+
+    val showPaidGroup = paymentStatus == PaymentStatus.PAID
+    val showDueDateGroup = paymentStatus == PaymentStatus.NOT_PAID
 
     Scaffold(
         topBar = {
@@ -258,64 +265,47 @@ fun AddInvoiceScreen(
         ) {
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Supplier Name (display only, prefilled from category, not saved to invoice)
-            OutlinedTextField(
-                value = supplierName,
-                onValueChange = { supplierName = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.vendor_name)) }
-            )
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Document Number (REQUIRED)
+            // ── Main section ──
+            // Invoice number *
             OutlinedTextField(
                 value = documentNumberText,
-                onValueChange = { 
+                onValueChange = {
                     documentNumberText = it
                     documentNumberTouched = true
-                    if (documentNumberError != null) {
-                        documentNumberError = null
-                    }
+                    documentNumberError = null
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused && documentNumberTouched) {
-                            if (documentNumberText.trim().isBlank()) {
-                                documentNumberError = context.getString(R.string.document_number_required)
-                            } else {
-                                documentNumberError = null
-                            }
+                            documentNumberError = if (documentNumberText.trim().isBlank()) {
+                                context.getString(R.string.invoice_number_required)
+                            } else null
                         }
                     },
-                label = { Text("${stringResource(R.string.document_number)} *") },
+                label = { Text("${stringResource(R.string.invoice_number)} *") },
                 isError = documentNumberError != null,
                 supportingText = documentNumberError?.let { err -> { Text(err) } }
             )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Amount Due (REQUIRED) with currency selector
+            // Amount due *
             OutlinedTextField(
                 value = amountText,
-                onValueChange = { 
+                onValueChange = {
                     amountText = it
                     amountTouched = true
-                    if (amountError != null) {
-                        amountError = null
-                    }
+                    amountError = null
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused && amountTouched) {
-                            val amount = amountText.toDoubleOrNull()
-                            if (amount == null || amount <= 0.0) {
-                                amountError = context.getString(R.string.enter_valid_amount)
-                            } else {
-                                amountError = null
-                            }
+                            val amt = amountText.toDoubleOrNull()
+                            amountError = if (amt == null || amt <= 0.0) {
+                                context.getString(R.string.enter_valid_amount)
+                            } else null
                         }
                     },
                 label = { Text("${stringResource(R.string.amount_due)} *") },
@@ -349,7 +339,10 @@ fun AddInvoiceScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(if (currency == Currency.USD) stringResource(R.string.currency_usd) else stringResource(R.string.currency_ils))
+                                Text(
+                                    if (currency == Currency.USD) stringResource(R.string.currency_usd)
+                                    else stringResource(R.string.currency_ils)
+                                )
                             }
                         }
                     }
@@ -358,7 +351,7 @@ fun AddInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Service period mode selector (per-invoice)
+            // Service period (optional)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -366,6 +359,7 @@ fun AddInvoiceScreen(
                 Text(
                     text = stringResource(R.string.service_period_mode_label) + ":",
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(end = 8.dp)
                 )
                 TextButton(onClick = { servicePeriodMode = ServicePeriodMode.MONTH }) {
@@ -384,7 +378,6 @@ fun AddInvoiceScreen(
 
             ServicePeriodInput(
                 mode = servicePeriodMode,
-                // DATE mode
                 startDateText = servicePeriodStartText,
                 onStartDateTextChange = {
                     servicePeriodStartText = it
@@ -399,7 +392,6 @@ fun AddInvoiceScreen(
                 },
                 endDateError = servicePeriodEndError,
                 onEndDateTouched = { servicePeriodEndTouched = true },
-                // MONTH mode
                 startYear = startYear,
                 startMonth = startMonth,
                 onStartMonthSelected = { y, m -> startYear = y; startMonth = m; startMonthError = null },
@@ -407,7 +399,11 @@ fun AddInvoiceScreen(
                 showEndMonth = showEndMonth,
                 onToggleEndMonth = {
                     showEndMonth = !showEndMonth
-                    if (!showEndMonth) { endYear = startYear; endMonth = startMonth; endMonthError = null }
+                    if (!showEndMonth) {
+                        endYear = startYear
+                        endMonth = startMonth
+                        endMonthError = null
+                    }
                 },
                 endYear = endYear,
                 endMonth = endMonth,
@@ -418,7 +414,7 @@ fun AddInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Payment Status (REQUIRED)
+            // Payment status *
             PaymentStatusSelector(
                 selected = paymentStatus,
                 onSelectedChange = { paymentStatus = it }
@@ -426,8 +422,35 @@ fun AddInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Due date (optional, exact-date only, hidden by default)
-            if (showDueDate) {
+            // ── Conditional: Paid ──
+            if (showPaidGroup) {
+                PaymentMethodSelector(
+                    selected = paymentMethod,
+                    onSelected = { paymentMethod = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+
+                OutlinedTextField(
+                    value = confirmationNumber,
+                    onValueChange = { confirmationNumber = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.confirmation_number)) }
+                )
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+
+                ExactDateField(
+                    value = paymentDateText,
+                    onValueChange = { paymentDateText = it },
+                    label = stringResource(R.string.payment_date_label_hint),
+                    error = null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+            }
+
+            // ── Conditional: Not paid ──
+            if (showDueDateGroup) {
                 ExactDateField(
                     value = dueDateText,
                     onValueChange = { dueDateText = it },
@@ -436,55 +459,17 @@ fun AddInvoiceScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.padding(top = 8.dp))
-            } else {
-                TextButton(onClick = { showDueDate = true }) {
-                    Text(stringResource(R.string.add_due_date))
-                }
-                Spacer(modifier = Modifier.padding(top = 8.dp))
             }
-
-            // Payment Method (OPTIONAL)
-            OutlinedTextField(
-                value = paymentMethod,
-                onValueChange = { paymentMethod = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.payment_method)) }
-            )
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Confirmation Number (OPTIONAL)
-            OutlinedTextField(
-                value = confirmationNumber,
-                onValueChange = { confirmationNumber = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.confirmation_number)) }
-            )
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Payment date (optional, exact-date only, shown by default)
-            ExactDateField(
-                value = paymentDateText,
-                onValueChange = { paymentDateText = it },
-                label = stringResource(R.string.payment_date_label_hint),
-                error = null,
-                modifier = Modifier.fillMaxWidth()
-            )
 
             // Custom fields
             if (categoryCustomFieldTitles.isNotEmpty()) {
-                Spacer(modifier = Modifier.padding(top = 8.dp))
-                
                 categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
                     Spacer(modifier = Modifier.padding(top = 8.dp))
                     OutlinedTextField(
                         value = customFieldValues.getOrNull(index) ?: "",
                         onValueChange = { newValue ->
                             val newList = customFieldValues.toMutableList()
-                            while (newList.size <= index) {
-                                newList.add("")
-                            }
+                            while (newList.size <= index) newList.add("")
                             newList[index] = newValue
                             customFieldValues = newList
                         },
@@ -492,7 +477,16 @@ fun AddInvoiceScreen(
                         label = { Text(fieldTitle) }
                     )
                 }
+                Spacer(modifier = Modifier.padding(top = 8.dp))
             }
+
+            // ── Bottom optional fields ──
+            OutlinedTextField(
+                value = vendorName,
+                onValueChange = { vendorName = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.vendor_name)) }
+            )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
@@ -500,7 +494,7 @@ fun AddInvoiceScreen(
                 value = notes,
                 onValueChange = { notes = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.notes)) },
+                label = { Text(stringResource(R.string.notes_additional_info)) },
                 minLines = 3
             )
 
@@ -520,6 +514,67 @@ fun AddInvoiceScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PaymentMethodSelector(
+    selected: String,
+    onSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val displayText = when (selected) {
+        PaymentMethodOption.CREDIT.value -> stringResource(R.string.payment_method_credit)
+        PaymentMethodOption.BANK_TRANSFER.value -> stringResource(R.string.payment_method_bank_transfer)
+        PaymentMethodOption.OTHER.value -> stringResource(R.string.payment_method_other)
+        else -> ""
+    }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = displayText,
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            label = { Text(stringResource(R.string.payment_method)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("—") },
+                onClick = {
+                    onSelected("")
+                    expanded = false
+                }
+            )
+            PaymentMethodOption.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            when (option) {
+                                PaymentMethodOption.CREDIT -> stringResource(R.string.payment_method_credit)
+                                PaymentMethodOption.BANK_TRANSFER -> stringResource(R.string.payment_method_bank_transfer)
+                                PaymentMethodOption.OTHER -> stringResource(R.string.payment_method_other)
+                            }
+                        )
+                    },
+                    onClick = {
+                        onSelected(option.value)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun PaymentStatusSelector(
     selected: PaymentStatus,
@@ -532,32 +587,20 @@ fun PaymentStatusSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = stringResource(R.string.status),
+            text = "${stringResource(R.string.status)} *",
             fontWeight = FontWeight.Normal,
             modifier = Modifier.padding(end = 8.dp)
         )
-        TextButton(
-            onClick = { onSelectedChange(PaymentStatus.NOT_PAID) }
-        ) {
+        TextButton(onClick = { onSelectedChange(PaymentStatus.NOT_PAID) }) {
             Text(
                 text = stringResource(R.string.not_paid),
                 fontWeight = if (selected == PaymentStatus.NOT_PAID) FontWeight.Bold else FontWeight.Normal
             )
         }
-        TextButton(
-            onClick = { onSelectedChange(PaymentStatus.PAID_FULL) }
-        ) {
+        TextButton(onClick = { onSelectedChange(PaymentStatus.PAID) }) {
             Text(
-                text = stringResource(R.string.paid_full),
-                fontWeight = if (selected == PaymentStatus.PAID_FULL) FontWeight.Bold else FontWeight.Normal
-            )
-        }
-        TextButton(
-            onClick = { onSelectedChange(PaymentStatus.PAID_CREDIT) }
-        ) {
-            Text(
-                text = stringResource(R.string.paid_credit),
-                fontWeight = if (selected == PaymentStatus.PAID_CREDIT) FontWeight.Bold else FontWeight.Normal
+                text = stringResource(R.string.paid),
+                fontWeight = if (selected == PaymentStatus.PAID) FontWeight.Bold else FontWeight.Normal
             )
         }
     }

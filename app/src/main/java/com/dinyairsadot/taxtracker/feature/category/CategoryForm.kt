@@ -56,7 +56,6 @@ data class CategoryFormState(
     val colorError: String? = null,
     val description: String = "",
     val customFieldTitles: List<String> = emptyList(), // List of custom field titles (up to 10)
-    val pinnedSupplierName: String = "", // Pinned default supplier name for this category
     val newFieldName: String = "", // New field name input
     val selectedTopicId: String? = null, // Selected topic for catalog browsing
     val fieldExistsError: String? = null  // Error when trying to add duplicate field
@@ -70,7 +69,6 @@ data class CategoryFormCallbacks(
     val onCustomFieldTitleChange: (index: Int, value: String) -> Unit,
     val onAddCustomFieldClick: () -> Unit,
     val onRequestRemoveCustomField: (index: Int) -> Unit,
-    val onPinnedSupplierNameChange: (String) -> Unit,
     val onNewFieldNameChange: (String) -> Unit,
     val onAddNewFieldFromInput: () -> Unit,
     val onTopicSelected: (String?) -> Unit,
@@ -119,14 +117,6 @@ fun CategoryForm(
             value = state.description,
             onValueChange = callbacks.onDescriptionChange,
             label = { Text(stringResource(R.string.description_optional)) },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Pinned default supplier name
-        OutlinedTextField(
-            value = state.pinnedSupplierName,
-            onValueChange = callbacks.onPinnedSupplierNameChange,
-            label = { Text(stringResource(R.string.pinned_supplier_name)) },
             modifier = Modifier.fillMaxWidth()
         )
 

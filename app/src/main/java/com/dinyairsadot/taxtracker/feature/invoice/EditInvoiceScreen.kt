@@ -1,19 +1,7 @@
 package com.dinyairsadot.taxtracker.feature.invoice
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -45,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.R
+import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
@@ -68,6 +57,7 @@ fun EditInvoiceScreen(
     initialDueDateText: String?,
     initialPaymentMethod: String?,
     initialConfirmationNumber: String?,
+    initialVendorName: String?,
     initialNotes: String,
     initialCustomFieldValues: List<String>,
     onNavigateBack: () -> Unit,
@@ -82,13 +72,13 @@ fun EditInvoiceScreen(
         dueDate: LocalDate?,
         paymentMethod: String?,
         confirmationNumber: String?,
+        vendorName: String?,
         notes: String,
         customFieldValues: List<String>
     ) -> Unit
 ) {
     val context = LocalContext.current
-    
-    // Core required fields
+
     var documentNumberText by rememberSaveable { mutableStateOf(initialDocumentNumber) }
     var amountText by rememberSaveable { mutableStateOf(initialAmount) }
     var paymentStatus by rememberSaveable { mutableStateOf(initialPaymentStatus) }
@@ -96,10 +86,8 @@ fun EditInvoiceScreen(
     var servicePeriodEndText by rememberSaveable { mutableStateOf(initialServicePeriodEndText) }
     var paymentDateText by rememberSaveable { mutableStateOf(initialPaymentDateText ?: "") }
     var dueDateText by rememberSaveable { mutableStateOf(initialDueDateText ?: "") }
-    var showDueDate by rememberSaveable { mutableStateOf(initialDueDateText != null) }
     var servicePeriodMode by rememberSaveable { mutableStateOf(initialServicePeriodMode) }
 
-    // MONTH mode state – parse initial dates so the pickers pre-populate correctly
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val today = LocalDate.now()
     val parsedStart = remember {
@@ -120,11 +108,10 @@ fun EditInvoiceScreen(
         mutableStateOf(parsedEnd.year != parsedStart.year || parsedEnd.monthValue != parsedStart.monthValue)
     }
 
-    // Optional core fields
     var paymentMethod by rememberSaveable { mutableStateOf(initialPaymentMethod ?: "") }
     var confirmationNumber by rememberSaveable { mutableStateOf(initialConfirmationNumber ?: "") }
+    var vendorName by rememberSaveable { mutableStateOf(initialVendorName.orEmpty()) }
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
-    
     var currency by rememberSaveable { mutableStateOf(Currency.ILS) }
     var customFieldValues by rememberSaveable {
         mutableStateOf(
@@ -134,7 +121,6 @@ fun EditInvoiceScreen(
         )
     }
 
-    // Validation state
     var documentNumberError by rememberSaveable { mutableStateOf<String?>(null) }
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodStartError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -146,13 +132,13 @@ fun EditInvoiceScreen(
     var amountTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodStartTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodEndTouched by rememberSaveable { mutableStateOf(false) }
-    
+
     fun handleSave() {
         var hasError = false
         val fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
         if (documentNumberText.trim().isBlank()) {
-            documentNumberError = context.getString(R.string.document_number_required)
+            documentNumberError = context.getString(R.string.invoice_number_required)
             hasError = true
         } else {
             documentNumberError = null
@@ -191,44 +177,50 @@ fun EditInvoiceScreen(
             }
         } else {
             val trimmedStart = servicePeriodStartText.trim()
-            val startDate = if (trimmedStart.isBlank()) {
-                servicePeriodStartError = context.getString(R.string.date_required)
-                hasError = true
-                null
-            } else {
-                val d = runCatching { LocalDate.parse(trimmedStart, fmt) }.getOrNull()
-                if (d == null) {
-                    servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
-                    hasError = true
-                } else {
-                    servicePeriodStartError = null
-                }
-                d
-            }
-
             val trimmedEnd = servicePeriodEndText.trim()
-            val endDate = if (trimmedEnd.isBlank()) {
-                servicePeriodEndError = context.getString(R.string.date_required)
-                hasError = true
-                null
+            if (trimmedStart.isBlank() && trimmedEnd.isBlank()) {
+                servicePeriodStartError = null
+                servicePeriodEndError = null
+                finalStartText = ""
+                finalEndText = ""
             } else {
-                val d = runCatching { LocalDate.parse(trimmedEnd, fmt) }.getOrNull()
-                if (d == null) {
-                    servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
+                val startDate = if (trimmedStart.isBlank()) {
+                    servicePeriodStartError = context.getString(R.string.date_required)
                     hasError = true
+                    null
                 } else {
-                    servicePeriodEndError = null
+                    val d = runCatching { LocalDate.parse(trimmedStart, fmt) }.getOrNull()
+                    if (d == null) {
+                        servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
+                        hasError = true
+                    } else {
+                        servicePeriodStartError = null
+                    }
+                    d
                 }
-                d
-            }
 
-            if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
-                servicePeriodEndError = context.getString(R.string.service_period_end_before_start)
-                hasError = true
-            }
+                val endDate = if (trimmedEnd.isBlank()) {
+                    servicePeriodEndError = context.getString(R.string.date_required)
+                    hasError = true
+                    null
+                } else {
+                    val d = runCatching { LocalDate.parse(trimmedEnd, fmt) }.getOrNull()
+                    if (d == null) {
+                        servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
+                        hasError = true
+                    } else {
+                        servicePeriodEndError = null
+                    }
+                    d
+                }
 
-            finalStartText = trimmedStart
-            finalEndText = trimmedEnd
+                if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+                    servicePeriodEndError = context.getString(R.string.service_period_end_before_start)
+                    hasError = true
+                }
+                finalStartText = trimmedStart
+                finalEndText = trimmedEnd
+            }
         }
 
         if (hasError) return
@@ -249,11 +241,15 @@ fun EditInvoiceScreen(
             dueDate,
             paymentMethod.takeIf { it.isNotBlank() },
             confirmationNumber.takeIf { it.isNotBlank() },
+            vendorName.trim().takeIf { it.isNotBlank() },
             notes.trim(),
             customFieldValues
         )
         onNavigateBack()
     }
+
+    val showPaidGroup = paymentStatus == PaymentStatus.PAID
+    val showDueDateGroup = paymentStatus == PaymentStatus.NOT_PAID
 
     Scaffold(
         topBar = {
@@ -281,54 +277,45 @@ fun EditInvoiceScreen(
         ) {
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Document Number (REQUIRED)
+            // Main section
             OutlinedTextField(
                 value = documentNumberText,
-                onValueChange = { 
+                onValueChange = {
                     documentNumberText = it
                     documentNumberTouched = true
-                    if (documentNumberError != null) {
-                        documentNumberError = null
-                    }
+                    documentNumberError = null
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused && documentNumberTouched) {
-                            if (documentNumberText.trim().isBlank()) {
-                                documentNumberError = context.getString(R.string.document_number_required)
-                            } else {
-                                documentNumberError = null
-                            }
+                            documentNumberError = if (documentNumberText.trim().isBlank()) {
+                                context.getString(R.string.invoice_number_required)
+                            } else null
                         }
                     },
-                label = { Text("${stringResource(R.string.document_number)} *") },
+                label = { Text("${stringResource(R.string.invoice_number)} *") },
                 isError = documentNumberError != null,
                 supportingText = documentNumberError?.let { err -> { Text(err) } }
             )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Amount Due (REQUIRED) with currency selector
             OutlinedTextField(
                 value = amountText,
-                onValueChange = { 
+                onValueChange = {
                     amountText = it
                     amountTouched = true
-                    if (amountError != null) {
-                        amountError = null
-                    }
+                    amountError = null
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .onFocusChanged { focusState ->
                         if (!focusState.isFocused && amountTouched) {
-                            val amount = amountText.toDoubleOrNull()
-                            if (amount == null || amount <= 0.0) {
-                                amountError = context.getString(R.string.enter_valid_amount)
-                            } else {
-                                amountError = null
-                            }
+                            val amt = amountText.toDoubleOrNull()
+                            amountError = if (amt == null || amt <= 0.0) {
+                                context.getString(R.string.enter_valid_amount)
+                            } else null
                         }
                     },
                 label = { Text("${stringResource(R.string.amount_due)} *") },
@@ -362,7 +349,10 @@ fun EditInvoiceScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(if (currency == Currency.USD) stringResource(R.string.currency_usd) else stringResource(R.string.currency_ils))
+                                Text(
+                                    if (currency == Currency.USD) stringResource(R.string.currency_usd)
+                                    else stringResource(R.string.currency_ils)
+                                )
                             }
                         }
                     }
@@ -371,7 +361,6 @@ fun EditInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Service period mode selector (per-invoice)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -379,6 +368,7 @@ fun EditInvoiceScreen(
                 Text(
                     text = stringResource(R.string.service_period_mode_label) + ":",
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(end = 8.dp)
                 )
                 TextButton(onClick = { servicePeriodMode = ServicePeriodMode.MONTH }) {
@@ -397,7 +387,6 @@ fun EditInvoiceScreen(
 
             ServicePeriodInput(
                 mode = servicePeriodMode,
-                // DATE mode
                 startDateText = servicePeriodStartText,
                 onStartDateTextChange = {
                     servicePeriodStartText = it
@@ -412,7 +401,6 @@ fun EditInvoiceScreen(
                 },
                 endDateError = servicePeriodEndError,
                 onEndDateTouched = { servicePeriodEndTouched = true },
-                // MONTH mode
                 startYear = startYear,
                 startMonth = startMonth,
                 onStartMonthSelected = { y, m -> startYear = y; startMonth = m; startMonthError = null },
@@ -420,7 +408,11 @@ fun EditInvoiceScreen(
                 showEndMonth = showEndMonth,
                 onToggleEndMonth = {
                     showEndMonth = !showEndMonth
-                    if (!showEndMonth) { endYear = startYear; endMonth = startMonth; endMonthError = null }
+                    if (!showEndMonth) {
+                        endYear = startYear
+                        endMonth = startMonth
+                        endMonthError = null
+                    }
                 },
                 endYear = endYear,
                 endMonth = endMonth,
@@ -431,7 +423,6 @@ fun EditInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Payment Status (REQUIRED)
             PaymentStatusSelector(
                 selected = paymentStatus,
                 onSelectedChange = { paymentStatus = it }
@@ -439,8 +430,35 @@ fun EditInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Due date (optional, exact-date only, hidden by default)
-            if (showDueDate) {
+            // Conditional: Paid
+            if (showPaidGroup) {
+                PaymentMethodSelector(
+                    selected = paymentMethod,
+                    onSelected = { paymentMethod = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+
+                OutlinedTextField(
+                    value = confirmationNumber,
+                    onValueChange = { confirmationNumber = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.confirmation_number)) }
+                )
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+
+                ExactDateField(
+                    value = paymentDateText,
+                    onValueChange = { paymentDateText = it },
+                    label = stringResource(R.string.payment_date_label_hint),
+                    error = null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+            }
+
+            // Conditional: Not paid
+            if (showDueDateGroup) {
                 ExactDateField(
                     value = dueDateText,
                     onValueChange = { dueDateText = it },
@@ -449,55 +467,17 @@ fun EditInvoiceScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.padding(top = 8.dp))
-            } else {
-                TextButton(onClick = { showDueDate = true }) {
-                    Text(stringResource(R.string.add_due_date))
-                }
-                Spacer(modifier = Modifier.padding(top = 8.dp))
             }
-
-            // Payment Method (OPTIONAL)
-            OutlinedTextField(
-                value = paymentMethod,
-                onValueChange = { paymentMethod = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.payment_method)) }
-            )
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Confirmation Number (OPTIONAL)
-            OutlinedTextField(
-                value = confirmationNumber,
-                onValueChange = { confirmationNumber = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.confirmation_number)) }
-            )
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Payment date (optional, exact-date only, shown by default)
-            ExactDateField(
-                value = paymentDateText,
-                onValueChange = { paymentDateText = it },
-                label = stringResource(R.string.payment_date_label_hint),
-                error = null,
-                modifier = Modifier.fillMaxWidth()
-            )
 
             // Custom fields
             if (categoryCustomFieldTitles.isNotEmpty()) {
-                Spacer(modifier = Modifier.padding(top = 8.dp))
-                
                 categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
                     Spacer(modifier = Modifier.padding(top = 8.dp))
                     OutlinedTextField(
                         value = customFieldValues.getOrNull(index) ?: "",
                         onValueChange = { newValue ->
                             val newList = customFieldValues.toMutableList()
-                            while (newList.size <= index) {
-                                newList.add("")
-                            }
+                            while (newList.size <= index) newList.add("")
                             newList[index] = newValue
                             customFieldValues = newList
                         },
@@ -505,7 +485,16 @@ fun EditInvoiceScreen(
                         label = { Text(fieldTitle) }
                     )
                 }
+                Spacer(modifier = Modifier.padding(top = 8.dp))
             }
+
+            // Bottom optional fields
+            OutlinedTextField(
+                value = vendorName,
+                onValueChange = { vendorName = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.vendor_name)) }
+            )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
@@ -513,7 +502,7 @@ fun EditInvoiceScreen(
                 value = notes,
                 onValueChange = { notes = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.notes)) },
+                label = { Text(stringResource(R.string.notes_additional_info)) },
                 minLines = 3
             )
 
@@ -527,7 +516,7 @@ fun EditInvoiceScreen(
                     containerColor = Color(0xFF4CAF50)
                 )
             ) {
-                Text(stringResource(R.string.save_changes))
+                Text(stringResource(R.string.save_invoice))
             }
         }
     }

@@ -11,6 +11,12 @@ class PaymentStatusConverter {
 
     @TypeConverter
     fun toPaymentStatus(value: String?): PaymentStatus? {
-        return value?.let { PaymentStatus.valueOf(it) }
+        return when (value) {
+            "PAID" -> PaymentStatus.PAID
+            "NOT_PAID" -> PaymentStatus.NOT_PAID
+            // Legacy values from pre-migration
+            "PAID_FULL", "PAID_CREDIT" -> PaymentStatus.PAID
+            else -> value?.let { runCatching { PaymentStatus.valueOf(it) }.getOrNull() }
+        }
     }
 }

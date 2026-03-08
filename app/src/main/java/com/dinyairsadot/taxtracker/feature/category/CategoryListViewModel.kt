@@ -53,7 +53,7 @@ class CategoryListViewModel(
                 val categories = categoryRepository.getCategories()
                 val uiCategories = categories.map { category ->
                     val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                    val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_FULL }
+                    val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
                     val totalCount = invoices.size
                     category.toUi(unpaidCount, totalCount)
                 }
@@ -88,7 +88,7 @@ class CategoryListViewModel(
                 val categories = categoryRepository.getCategories()
                 val uiCategories = categories.map { category ->
                     val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                    val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_FULL }
+                    val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
                     val totalCount = invoices.size
                     category.toUi(unpaidCount, totalCount)
                 }
@@ -121,19 +121,12 @@ class CategoryListViewModel(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitles: List<String>,
-        pinnedSupplierName: String
+        customFieldTitles: List<String>
     ) {
         viewModelScope.launch {
             try {
                 // ✅ If color is blank, use a default
                 val safeColorHex = if (colorHex.isBlank()) "#FF9800" else colorHex.trim()
-
-                // Build pinned defaults map
-                val pinnedDefaults = mutableMapOf<String, String>()
-                if (pinnedSupplierName.isNotBlank()) {
-                    pinnedDefaults[Category.PINNED_KEY_SUPPLIER_NAME] = pinnedSupplierName
-                }
 
                 // Use id=0 to let Room auto-generate the ID
                 val newCategory = Category(
@@ -142,7 +135,7 @@ class CategoryListViewModel(
                     colorHex = safeColorHex,
                     description = description.ifBlank { null },
                     customFieldTitles = customFieldTitles,
-                    pinnedDefaults = pinnedDefaults
+                    pinnedDefaults = emptyMap()
                 )
 
                 categoryRepository.addCategory(newCategory)
@@ -151,7 +144,7 @@ class CategoryListViewModel(
                 _uiState.value = _uiState.value.copy(
                     categories = updated.map { category ->
                         val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_FULL }
+                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
                         val totalCount = invoices.size
                         category.toUi(unpaidCount, totalCount)
                     },
@@ -174,7 +167,7 @@ class CategoryListViewModel(
                 _uiState.value = _uiState.value.copy(
                     categories = updated.map { category ->
                         val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_FULL }
+                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
                         val totalCount = invoices.size
                         category.toUi(unpaidCount, totalCount)
                     },
@@ -193,19 +186,12 @@ class CategoryListViewModel(
         name: String,
         colorHex: String,
         description: String,
-        customFieldTitles: List<String>,
-        pinnedSupplierName: String
+        customFieldTitles: List<String>
     ) {
         viewModelScope.launch {
             try {
                 // Reuse the same safe color logic as addCategory
                 val safeColorHex = if (colorHex.isBlank()) "#FF9800" else colorHex.trim()
-
-                // Build pinned defaults map
-                val pinnedDefaults = mutableMapOf<String, String>()
-                if (pinnedSupplierName.isNotBlank()) {
-                    pinnedDefaults[Category.PINNED_KEY_SUPPLIER_NAME] = pinnedSupplierName
-                }
 
                 val updatedCategory = Category(
                     id = id,
@@ -213,7 +199,7 @@ class CategoryListViewModel(
                     colorHex = safeColorHex,
                     description = description.trim().ifBlank { null },
                     customFieldTitles = customFieldTitles,
-                    pinnedDefaults = pinnedDefaults
+                    pinnedDefaults = emptyMap()
                 )
 
                 categoryRepository.updateCategory(updatedCategory)
@@ -222,7 +208,7 @@ class CategoryListViewModel(
                 _uiState.value = _uiState.value.copy(
                     categories = updatedList.map { category ->
                         val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID_FULL }
+                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
                         val totalCount = invoices.size
                         category.toUi(unpaidCount, totalCount)
                     },

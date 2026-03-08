@@ -62,7 +62,6 @@ data class InvoiceListUiState(
     val categoryName: String? = null,
     val categoryColorHex: String? = null,
     val categoryCustomFieldTitles: List<String> = emptyList(),
-    val categoryPinnedSupplierName: String? = null,
     val invoices: List<InvoiceUi> = emptyList(),
     val errorMessage: String? = null,
     val sortOption: SortOption = SortOption.DATE_DESCENDING
@@ -116,16 +115,14 @@ class InvoiceListViewModel(
                 _uiState.value = _uiState.value.copy(
                     categoryName = category?.name,
                     categoryColorHex = category?.colorHex,
-                    categoryCustomFieldTitles = category?.customFieldTitles ?: emptyList(),
-                    categoryPinnedSupplierName = category?.pinnedDefaults?.get(Category.PINNED_KEY_SUPPLIER_NAME)
+                    categoryCustomFieldTitles = category?.customFieldTitles ?: emptyList()
                 )
             } catch (_: Exception) {
                 // If category can't be loaded, keep title fallback in UI
                 _uiState.value = _uiState.value.copy(
                     categoryName = null,
                     categoryColorHex = null,
-                    categoryCustomFieldTitles = emptyList(),
-                    categoryPinnedSupplierName = null
+                    categoryCustomFieldTitles = emptyList()
                 )
             }
         }
@@ -199,6 +196,7 @@ class InvoiceListViewModel(
         dueDate: LocalDate?,
         paymentMethod: String?,
         confirmationNumber: String?,
+        vendorName: String?,
         notes: String,
         customFieldValues: List<String> = emptyList()
     ) {
@@ -225,7 +223,7 @@ class InvoiceListViewModel(
                 invoiceNumber = documentNumber,  // Map new to old
                 amount = amountDue,             // Map new to old
                 paymentStatus = paymentStatus,
-                vendorName = null,
+                vendorName = vendorName,
                 issueDate = null,
                 dueDate = dueDate,
                 paymentDate = paymentDate,
@@ -267,6 +265,7 @@ class InvoiceListViewModel(
         dueDate: LocalDate?,
         paymentMethod: String?,
         confirmationNumber: String?,
+        vendorName: String?,
         notes: String,
         customFieldValues: List<String> = emptyList()
     ) {
@@ -288,6 +287,7 @@ class InvoiceListViewModel(
                 invoiceNumber = documentNumber,
                 amount = amountDue,
                 paymentStatus = paymentStatus,
+                vendorName = vendorName,
                 dueDate = dueDate,
                 paymentDate = paymentDate,
                 servicePeriodStart = servicePeriodStart,
