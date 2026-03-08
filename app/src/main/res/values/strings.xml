@@ -149,8 +149,25 @@
     <string name="service_period_end">Service Period End (DD/MM/YYYY)</string>
     <string name="issue_date_label">Issue Date: %1$s</string>
     <string name="paid_date_label">Paid Date: %1$s</string>
-    <string name="service_period_label">Service Period: %1$s - %2$s</string>
+    <string name="service_period_label">Service Period: %1$s</string>
     <string name="vendor_name_label">Vendor: %1$s</string>
+
+    <!-- Service Period hybrid input -->
+    <string name="service_period">Service Period</string>
+    <string name="service_period_mode_label">Service period input</string>
+    <string name="service_period_mode_month">Month</string>
+    <string name="service_period_mode_dates">Exact dates</string>
+    <string name="service_period_month_label">Month *</string>
+    <string name="service_period_from_label">From *</string>
+    <string name="service_period_to_label">To</string>
+    <string name="service_period_start_short">Start *</string>
+    <string name="service_period_end_short">End *</string>
+    <string name="add_end_month">Add end month</string>
+    <string name="remove_end_month">Remove end month</string>
+    <string name="month_required">Month is required</string>
+    <string name="service_period_end_before_start">End must not be before start</string>
+    <string name="pick_month">Pick month</string>
+    <string name="format_hint_dd_mm_yyyy">DD/MM/YYYY</string>
     
     <!-- New Core Invoice Fields -->
     <string name="amount_due">Amount Due</string>

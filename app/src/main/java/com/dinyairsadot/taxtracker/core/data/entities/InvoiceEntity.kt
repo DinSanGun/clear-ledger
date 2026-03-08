@@ -7,9 +7,11 @@ import androidx.room.TypeConverters
 import com.dinyairsadot.taxtracker.core.data.converters.DocumentTypeConverter
 import com.dinyairsadot.taxtracker.core.data.converters.LocalDateConverter
 import com.dinyairsadot.taxtracker.core.data.converters.PaymentStatusConverter
+import com.dinyairsadot.taxtracker.core.data.converters.ServicePeriodModeConverter
 import com.dinyairsadot.taxtracker.core.data.converters.StringListConverter
 import com.dinyairsadot.taxtracker.core.data.converters.StringMapConverter
 import com.dinyairsadot.taxtracker.core.domain.Invoice
+import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 
 @Entity(
     tableName = "invoices",
@@ -25,6 +27,7 @@ import com.dinyairsadot.taxtracker.core.domain.Invoice
 @TypeConverters(
     LocalDateConverter::class,
     PaymentStatusConverter::class,
+    ServicePeriodModeConverter::class,
     StringListConverter::class,
     DocumentTypeConverter::class
 )
@@ -53,7 +56,9 @@ data class InvoiceEntity(
     val paymentMethodString: String? = null,
     val confirmationNumber: String? = null,
     // Pinned snapshot
-    val pinnedSnapshotJson: String? = null
+    val pinnedSnapshotJson: String? = null,
+    // Explicit service-period input mode. Non-null; migration sets DEFAULT 'MONTH'.
+    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH
 ) {
     fun toDomain(): Invoice {
         val issueDate = issueDateEpochDay?.let { 
@@ -108,7 +113,8 @@ data class InvoiceEntity(
             documentNumber = documentNumber ?: invoiceNumber,
             paymentMethod = paymentMethodString,
             confirmationNumber = confirmationNumber,
-            pinnedSnapshot = pinnedSnapshot
+            pinnedSnapshot = pinnedSnapshot,
+            servicePeriodMode = servicePeriodMode
         )
     }
     
@@ -166,7 +172,8 @@ data class InvoiceEntity(
                 documentNumber = invoice.documentNumber,
                 paymentMethodString = invoice.paymentMethod,
                 confirmationNumber = invoice.confirmationNumber,
-                pinnedSnapshotJson = pinnedSnapshotJson
+                pinnedSnapshotJson = pinnedSnapshotJson,
+                servicePeriodMode = invoice.servicePeriodMode
             )
         }
     }

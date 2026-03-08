@@ -9,6 +9,20 @@ enum class PaymentStatus {
     PAID_CREDIT
 }
 
+/**
+ * Controls how the service period is entered and stored for an invoice.
+ *
+ * MONTH – user picks a start month (+ optional end month). Dates are snapped:
+ *         startDate = first day of start month, endDate = last day of end month.
+ * DATE  – user picks exact calendar dates; stored as-is.
+ *
+ * This enum is the single source of truth. Mode must NEVER be inferred from dates.
+ */
+enum class ServicePeriodMode {
+    MONTH,
+    DATE
+}
+
 enum class CustomFieldType {
     TEXT,
     NUMBER,
@@ -31,7 +45,7 @@ data class Category(
     val supplierName: String? = null,  // Kept for backward compatibility
     val pinnedDefaults: Map<String, String> = emptyMap(),  // Pinned default values (e.g., "supplierName" -> "Israel Electric Company")
     val seedKey: String? = null,       // Stable key for seeded categories (e.g. "arnona"); null for user-created
-    val userEdited: Boolean = false     // True after user saves edits; prevents locale overwrite
+    val userEdited: Boolean = false    // True after user saves edits; prevents locale overwrite
 ) {
     // Backward compatibility: getters for old field names
     val customFieldTitle1: String? get() = customFieldTitles.getOrNull(0)
@@ -89,7 +103,9 @@ data class Invoice(
     val paymentMethod: String? = null,
     val confirmationNumber: String? = null,
     // Pinned snapshot: captures category.pinnedDefaults at invoice creation time
-    val pinnedSnapshot: Map<String, String> = emptyMap()
+    val pinnedSnapshot: Map<String, String> = emptyMap(),
+    // Explicit mode – source of truth; chosen per-invoice in the form.
+    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH
 ) {
     // Backward compatibility: getters for old field names
     val customFieldValue1: String? get() = customFieldValues.getOrNull(0)

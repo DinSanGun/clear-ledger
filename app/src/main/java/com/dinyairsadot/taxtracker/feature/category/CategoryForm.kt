@@ -59,7 +59,7 @@ data class CategoryFormState(
     val pinnedSupplierName: String = "", // Pinned default supplier name for this category
     val newFieldName: String = "", // New field name input
     val selectedTopicId: String? = null, // Selected topic for catalog browsing
-    val fieldExistsError: String? = null // Error when trying to add duplicate field
+    val fieldExistsError: String? = null  // Error when trying to add duplicate field
 )
 
 data class CategoryFormCallbacks(

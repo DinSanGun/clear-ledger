@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
+import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.ui.parseCategoryColorOrDefault
 import androidx.compose.material3.TopAppBarDefaults
@@ -163,10 +164,15 @@ fun InvoiceDetailsScreen(
                         )
                     }
 
-                    if (invoice.servicePeriodStartText != null && invoice.servicePeriodEndText != null) {
+                    formatServicePeriodForDisplay(
+                        invoice.servicePeriodStartText,
+                        invoice.servicePeriodEndText,
+                        invoice.servicePeriodMode,
+                        LocalContext.current.resources.configuration.locales[0]
+                    )?.let { formattedPeriod ->
                         Spacer(modifier = Modifier.padding(top = 4.dp))
                         Text(
-                            text = stringResource(R.string.service_period_label, invoice.servicePeriodStartText, invoice.servicePeriodEndText),
+                            text = stringResource(R.string.service_period_label, formattedPeriod),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

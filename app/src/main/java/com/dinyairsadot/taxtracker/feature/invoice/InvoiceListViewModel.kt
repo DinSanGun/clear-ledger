@@ -15,6 +15,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
+import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
 import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
 import android.content.Context
@@ -49,7 +50,9 @@ data class InvoiceUi(
     val paymentMethod: String? = null,
     val confirmationNumber: String? = null,
     // Pinned snapshot
-    val pinnedSnapshot: Map<String, String> = emptyMap()
+    val pinnedSnapshot: Map<String, String> = emptyMap(),
+    // Explicit mode; never infer this from dates.
+    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH
 )
 
 data class InvoiceListUiState(
@@ -189,6 +192,7 @@ class InvoiceListViewModel(
         paymentStatus: PaymentStatus,
         servicePeriodStartText: String,
         servicePeriodEndText: String,
+        servicePeriodMode: ServicePeriodMode,
         paymentMethod: String?,
         confirmationNumber: String?,
         notes: String,
@@ -234,7 +238,8 @@ class InvoiceListViewModel(
                 paymentMethod = paymentMethod,
                 confirmationNumber = confirmationNumber,
                 // Pinned snapshot: capture category defaults at creation time
-                pinnedSnapshot = pinnedSnapshot
+                pinnedSnapshot = pinnedSnapshot,
+                servicePeriodMode = servicePeriodMode
             )
 
             invoiceRepository.addInvoice(newInvoice)
@@ -253,6 +258,7 @@ class InvoiceListViewModel(
         paymentStatus: PaymentStatus,
         servicePeriodStartText: String,
         servicePeriodEndText: String,
+        servicePeriodMode: ServicePeriodMode,
         paymentMethod: String?,
         confirmationNumber: String?,
         notes: String,
@@ -285,7 +291,8 @@ class InvoiceListViewModel(
                 amountDue = amountDue,
                 documentNumber = documentNumber,
                 paymentMethod = paymentMethod,
-                confirmationNumber = confirmationNumber
+                confirmationNumber = confirmationNumber,
+                servicePeriodMode = servicePeriodMode
             )
 
             invoiceRepository.updateInvoice(updated)
@@ -330,6 +337,7 @@ private fun Invoice.toUi(): InvoiceUi {
         amountDue = this.amountDue,
         paymentMethod = this.paymentMethod,
         confirmationNumber = this.confirmationNumber,
-        pinnedSnapshot = this.pinnedSnapshot
+        pinnedSnapshot = this.pinnedSnapshot,
+        servicePeriodMode = this.servicePeriodMode
     )
 }

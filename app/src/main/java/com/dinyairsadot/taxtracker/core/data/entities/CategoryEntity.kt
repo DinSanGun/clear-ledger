@@ -17,7 +17,7 @@ data class CategoryEntity(
     val supplierName: String? = null, // Kept for backward compatibility
     val pinnedDefaultsJson: String? = null, // Stored as JSON Map<String, String>, converted via StringMapConverter
     val seedKey: String? = null,       // Stable key for seeded categories; null for user-created (no backfill)
-    val userEdited: Boolean = false   // True after user saves; prevents locale overwrite
+    val userEdited: Boolean = false    // True after user saves; prevents locale overwrite
 ) {
     fun toDomain(): Category {
         val customFieldTitles = if (customFieldTitlesJson.isNullOrBlank()) {

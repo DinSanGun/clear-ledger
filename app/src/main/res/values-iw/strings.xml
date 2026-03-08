@@ -149,8 +149,25 @@
     <string name="service_period_end">סוף תקופת שירות (DD/MM/YYYY)</string>
     <string name="issue_date_label">תאריך הנפקה: %1$s</string>
     <string name="paid_date_label">תאריך תשלום: %1$s</string>
-    <string name="service_period_label">תקופת שירות: %1$s - %2$s</string>
+    <string name="service_period_label">תקופת שירות: %1$s</string>
     <string name="vendor_name_label">ספק: %1$s</string>
+
+    <!-- Service Period hybrid input -->
+    <string name="service_period">תקופת שירות</string>
+    <string name="service_period_mode_label">הזנת תקופת שירות</string>
+    <string name="service_period_mode_month">חודש</string>
+    <string name="service_period_mode_dates">תאריכים מדויקים</string>
+    <string name="service_period_month_label">חודש *</string>
+    <string name="service_period_from_label">מ *</string>
+    <string name="service_period_to_label">עד</string>
+    <string name="service_period_start_short">התחלה *</string>
+    <string name="service_period_end_short">סיום *</string>
+    <string name="add_end_month">הוסף חודש סיום</string>
+    <string name="remove_end_month">הסר חודש סיום</string>
+    <string name="month_required">חודש נדרש</string>
+    <string name="service_period_end_before_start">תאריך סיום לא יכול להיות לפני ההתחלה</string>
+    <string name="pick_month">בחר חודש</string>
+    <string name="format_hint_dd_mm_yyyy">DD/MM/YYYY</string>
     
     <!-- New Core Invoice Fields -->
     <string name="amount_due">סכום לתשלום</string>

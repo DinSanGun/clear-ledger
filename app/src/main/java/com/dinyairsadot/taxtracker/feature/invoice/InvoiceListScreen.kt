@@ -67,6 +67,7 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.invoice.SortOption
+import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
 import com.dinyairsadot.taxtracker.R
 
 private const val SORT_MENU_ANIM_MS = 420
@@ -392,6 +393,18 @@ private fun InvoiceItem(
                 invoice.dueDateText?.let { due ->
                     Text(
                         text = stringResource(R.string.due, due),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                formatServicePeriodForDisplay(
+                    invoice.servicePeriodStartText,
+                    invoice.servicePeriodEndText,
+                    invoice.servicePeriodMode,
+                    context.resources.configuration.locales[0]
+                )?.let { servicePeriod ->
+                    Text(
+                        text = servicePeriod,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

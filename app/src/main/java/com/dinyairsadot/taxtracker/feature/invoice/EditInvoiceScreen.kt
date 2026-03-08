@@ -1,6 +1,5 @@
 package com.dinyairsadot.taxtracker.feature.invoice
 
-import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,6 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,12 +45,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.R
-import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
+import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +58,7 @@ fun EditInvoiceScreen(
     invoiceId: Long,
     categoryColorHex: String?,
     categoryCustomFieldTitles: List<String>,
+    initialServicePeriodMode: ServicePeriodMode,
     initialDocumentNumber: String,
     initialAmount: String,
     initialPaymentStatus: PaymentStatus,
@@ -75,6 +75,7 @@ fun EditInvoiceScreen(
         paymentStatus: PaymentStatus,
         servicePeriodStartText: String,
         servicePeriodEndText: String,
+        servicePeriodMode: ServicePeriodMode,
         paymentMethod: String?,
         confirmationNumber: String?,
         notes: String,
@@ -89,7 +90,29 @@ fun EditInvoiceScreen(
     var paymentStatus by rememberSaveable { mutableStateOf(initialPaymentStatus) }
     var servicePeriodStartText by rememberSaveable { mutableStateOf(initialServicePeriodStartText) }
     var servicePeriodEndText by rememberSaveable { mutableStateOf(initialServicePeriodEndText) }
-    
+    var servicePeriodMode by rememberSaveable { mutableStateOf(initialServicePeriodMode) }
+
+    // MONTH mode state – parse initial dates so the pickers pre-populate correctly
+    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val today = LocalDate.now()
+    val parsedStart = remember {
+        initialServicePeriodStartText.trim().let {
+            runCatching { LocalDate.parse(it, dateFormatter) }.getOrNull()
+        } ?: today
+    }
+    val parsedEnd = remember {
+        initialServicePeriodEndText.trim().let {
+            runCatching { LocalDate.parse(it, dateFormatter) }.getOrNull()
+        } ?: parsedStart
+    }
+    var startYear by rememberSaveable { mutableStateOf(parsedStart.year) }
+    var startMonth by rememberSaveable { mutableStateOf(parsedStart.monthValue) }
+    var endYear by rememberSaveable { mutableStateOf(parsedEnd.year) }
+    var endMonth by rememberSaveable { mutableStateOf(parsedEnd.monthValue) }
+    var showEndMonth by rememberSaveable {
+        mutableStateOf(parsedEnd.year != parsedStart.year || parsedEnd.monthValue != parsedStart.monthValue)
+    }
+
     // Optional core fields
     var paymentMethod by rememberSaveable { mutableStateOf(initialPaymentMethod ?: "") }
     var confirmationNumber by rememberSaveable { mutableStateOf(initialConfirmationNumber ?: "") }
@@ -109,60 +132,25 @@ fun EditInvoiceScreen(
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodStartError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodEndError by rememberSaveable { mutableStateOf<String?>(null) }
-    
+    var startMonthError by rememberSaveable { mutableStateOf<String?>(null) }
+    var endMonthError by rememberSaveable { mutableStateOf<String?>(null) }
+
     var documentNumberTouched by rememberSaveable { mutableStateOf(false) }
     var amountTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodStartTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodEndTouched by rememberSaveable { mutableStateOf(false) }
     
-    // Date picker logic
-    fun showDatePicker(
-        currentDateText: String,
-        onDateSelected: (String) -> Unit,
-        onTouched: () -> Unit,
-        onErrorCleared: () -> Unit
-    ) {
-        val cal = java.util.Calendar.getInstance()
-        if (currentDateText.isNotBlank()) {
-            val trimmed = currentDateText.trim()
-            try {
-                val date = LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                cal.set(date.year, date.monthValue - 1, date.dayOfMonth)
-            } catch (e: Exception) {
-                try {
-                    val date = LocalDate.parse(trimmed)
-                    cal.set(date.year, date.monthValue - 1, date.dayOfMonth)
-                } catch (e2: Exception) {
-                    // Use current date
-                }
-            }
-        }
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                val selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
-                onDateSelected(selectedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-                onTouched()
-                onErrorCleared()
-            },
-            cal.get(java.util.Calendar.YEAR),
-            cal.get(java.util.Calendar.MONTH),
-            cal.get(java.util.Calendar.DAY_OF_MONTH)
-        ).show()
-    }
-
     fun handleSave() {
         var hasError = false
-        
-        // Validate document number
+        val fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
         if (documentNumberText.trim().isBlank()) {
             documentNumberError = context.getString(R.string.document_number_required)
             hasError = true
         } else {
             documentNumberError = null
         }
-        
-        // Validate amount
+
         val amount = amountText.toDoubleOrNull()
         if (amount == null || amount <= 0.0) {
             amountError = context.getString(R.string.enter_valid_amount)
@@ -170,55 +158,81 @@ fun EditInvoiceScreen(
         } else {
             amountError = null
         }
-        
-        // Validate service period start (required)
-        val trimmedStart = servicePeriodStartText.trim()
-        if (trimmedStart.isBlank()) {
-            servicePeriodStartError = context.getString(R.string.date_required)
-            hasError = true
-        } else {
-            val isValid = try {
-                LocalDate.parse(trimmedStart, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                true
-            } catch (e: DateTimeParseException) {
-                false
-            }
-            if (!isValid) {
-                servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
-                hasError = true
+
+        var finalStartText = ""
+        var finalEndText = ""
+
+        if (servicePeriodMode == ServicePeriodMode.MONTH) {
+            val actualEndYear = if (showEndMonth) endYear else startYear
+            val actualEndMonth = if (showEndMonth) endMonth else startMonth
+            if (showEndMonth) {
+                val startYM = YearMonth.of(startYear, startMonth)
+                val endYM = YearMonth.of(actualEndYear, actualEndMonth)
+                if (endYM.isBefore(startYM)) {
+                    endMonthError = context.getString(R.string.service_period_end_before_start)
+                    hasError = true
+                } else {
+                    endMonthError = null
+                }
             } else {
-                servicePeriodStartError = null
+                endMonthError = null
             }
-        }
-        
-        // Validate service period end (required)
-        val trimmedEnd = servicePeriodEndText.trim()
-        if (trimmedEnd.isBlank()) {
-            servicePeriodEndError = context.getString(R.string.date_required)
-            hasError = true
+            startMonthError = null
+            if (!hasError) {
+                finalStartText = LocalDate.of(startYear, startMonth, 1).format(fmt)
+                finalEndText = YearMonth.of(actualEndYear, actualEndMonth).atEndOfMonth().format(fmt)
+            }
         } else {
-            val isValid = try {
-                LocalDate.parse(trimmedEnd, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                true
-            } catch (e: DateTimeParseException) {
-                false
-            }
-            if (!isValid) {
-                servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
+            val trimmedStart = servicePeriodStartText.trim()
+            val startDate = if (trimmedStart.isBlank()) {
+                servicePeriodStartError = context.getString(R.string.date_required)
                 hasError = true
+                null
             } else {
-                servicePeriodEndError = null
+                val d = runCatching { LocalDate.parse(trimmedStart, fmt) }.getOrNull()
+                if (d == null) {
+                    servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
+                    hasError = true
+                } else {
+                    servicePeriodStartError = null
+                }
+                d
             }
+
+            val trimmedEnd = servicePeriodEndText.trim()
+            val endDate = if (trimmedEnd.isBlank()) {
+                servicePeriodEndError = context.getString(R.string.date_required)
+                hasError = true
+                null
+            } else {
+                val d = runCatching { LocalDate.parse(trimmedEnd, fmt) }.getOrNull()
+                if (d == null) {
+                    servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
+                    hasError = true
+                } else {
+                    servicePeriodEndError = null
+                }
+                d
+            }
+
+            if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+                servicePeriodEndError = context.getString(R.string.service_period_end_before_start)
+                hasError = true
+            }
+
+            finalStartText = trimmedStart
+            finalEndText = trimmedEnd
         }
-        
+
         if (hasError) return
-        
+
         onSaveInvoice(
             documentNumberText.trim(),
             amount!!,
             paymentStatus,
-            trimmedStart,
-            trimmedEnd,
+            finalStartText,
+            finalEndText,
+            servicePeriodMode,
             paymentMethod.takeIf { it.isNotBlank() },
             confirmationNumber.takeIf { it.isNotBlank() },
             notes.trim(),
@@ -351,119 +365,63 @@ fun EditInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Service Period Start (REQUIRED) with calendar picker
+            // Service period mode selector (per-invoice)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
-                    value = servicePeriodStartText,
-                    onValueChange = { 
-                        servicePeriodStartText = it
-                        servicePeriodStartTouched = true
-                        if (servicePeriodStartError != null) {
-                            servicePeriodStartError = null
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .onFocusChanged { focusState ->
-                            if (!focusState.isFocused && servicePeriodStartTouched) {
-                                val trimmed = servicePeriodStartText.trim()
-                                if (trimmed.isBlank()) {
-                                    servicePeriodStartError = context.getString(R.string.date_required)
-                                } else {
-                                    val isValid = try {
-                                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                                        true
-                                    } catch (e: DateTimeParseException) {
-                                        false
-                                    }
-                                    if (!isValid) {
-                                        servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
-                                    } else {
-                                        servicePeriodStartError = null
-                                    }
-                                }
-                            }
-                        },
-                    label = { Text("${stringResource(R.string.service_period_start)} *") },
-                    isError = servicePeriodStartError != null,
-                    supportingText = { servicePeriodStartError?.let { Text(it) } }
+                Text(
+                    text = stringResource(R.string.service_period_mode_label) + ":",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(end = 8.dp)
                 )
-                IconButton(onClick = {
-                    showDatePicker(
-                        servicePeriodStartText,
-                        { servicePeriodStartText = it },
-                        { servicePeriodStartTouched = true },
-                        { servicePeriodStartError = null }
+                TextButton(onClick = { servicePeriodMode = ServicePeriodMode.MONTH }) {
+                    Text(
+                        stringResource(R.string.service_period_mode_month),
+                        fontWeight = if (servicePeriodMode == ServicePeriodMode.MONTH) FontWeight.Bold else FontWeight.Normal
                     )
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.CalendarToday,
-                        contentDescription = stringResource(R.string.pick_date)
+                }
+                TextButton(onClick = { servicePeriodMode = ServicePeriodMode.DATE }) {
+                    Text(
+                        stringResource(R.string.service_period_mode_dates),
+                        fontWeight = if (servicePeriodMode == ServicePeriodMode.DATE) FontWeight.Bold else FontWeight.Normal
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
-            // Service Period End (REQUIRED) with calendar picker
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = servicePeriodEndText,
-                    onValueChange = { 
-                        servicePeriodEndText = it
-                        servicePeriodEndTouched = true
-                        if (servicePeriodEndError != null) {
-                            servicePeriodEndError = null
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .onFocusChanged { focusState ->
-                            if (!focusState.isFocused && servicePeriodEndTouched) {
-                                val trimmed = servicePeriodEndText.trim()
-                                if (trimmed.isBlank()) {
-                                    servicePeriodEndError = context.getString(R.string.date_required)
-                                } else {
-                                    val isValid = try {
-                                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                                        true
-                                    } catch (e: DateTimeParseException) {
-                                        false
-                                    }
-                                    if (!isValid) {
-                                        servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
-                                    } else {
-                                        servicePeriodEndError = null
-                                    }
-                                }
-                            }
-                        },
-                    label = { Text("${stringResource(R.string.service_period_end)} *") },
-                    isError = servicePeriodEndError != null,
-                    supportingText = { servicePeriodEndError?.let { Text(it) } }
-                )
-                IconButton(onClick = {
-                    showDatePicker(
-                        servicePeriodEndText,
-                        { servicePeriodEndText = it },
-                        { servicePeriodEndTouched = true },
-                        { servicePeriodEndError = null }
-                    )
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.CalendarToday,
-                        contentDescription = stringResource(R.string.pick_date)
-                    )
-                }
-            }
+            ServicePeriodInput(
+                mode = servicePeriodMode,
+                // DATE mode
+                startDateText = servicePeriodStartText,
+                onStartDateTextChange = {
+                    servicePeriodStartText = it
+                    servicePeriodStartError = null
+                },
+                startDateError = servicePeriodStartError,
+                onStartDateTouched = { servicePeriodStartTouched = true },
+                endDateText = servicePeriodEndText,
+                onEndDateTextChange = {
+                    servicePeriodEndText = it
+                    servicePeriodEndError = null
+                },
+                endDateError = servicePeriodEndError,
+                onEndDateTouched = { servicePeriodEndTouched = true },
+                // MONTH mode
+                startYear = startYear,
+                startMonth = startMonth,
+                onStartMonthSelected = { y, m -> startYear = y; startMonth = m; startMonthError = null },
+                startMonthError = startMonthError,
+                showEndMonth = showEndMonth,
+                onToggleEndMonth = {
+                    showEndMonth = !showEndMonth
+                    if (!showEndMonth) { endYear = startYear; endMonth = startMonth; endMonthError = null }
+                },
+                endYear = endYear,
+                endMonth = endMonth,
+                onEndMonthSelected = { y, m -> endYear = y; endMonth = m; endMonthError = null },
+                endMonthError = endMonthError,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
