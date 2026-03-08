@@ -111,6 +111,7 @@ data class Invoice(
     val amountDue: Double = amount,  // defaults to old amount
     val documentNumber: String = invoiceNumber,  // defaults to old invoiceNumber
     val paymentMethod: String? = null,
+    val numberOfPayments: String? = null,
     val confirmationNumber: String? = null,
     // Pinned snapshot: captures category.pinnedDefaults at invoice creation time
     val pinnedSnapshot: Map<String, String> = emptyMap(),

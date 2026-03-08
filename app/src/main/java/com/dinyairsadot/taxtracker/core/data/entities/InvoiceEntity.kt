@@ -54,6 +54,7 @@ data class InvoiceEntity(
     val amountDue: Double? = null,
     val documentNumber: String? = null,
     val paymentMethodString: String? = null,
+    val numberOfPayments: String? = null,
     val confirmationNumber: String? = null,
     // Pinned snapshot
     val pinnedSnapshotJson: String? = null,
@@ -112,6 +113,7 @@ data class InvoiceEntity(
             amountDue = amountDue ?: amount,
             documentNumber = documentNumber ?: invoiceNumber,
             paymentMethod = paymentMethodString,
+            numberOfPayments = numberOfPayments,
             confirmationNumber = confirmationNumber,
             pinnedSnapshot = pinnedSnapshot,
             servicePeriodMode = servicePeriodMode
@@ -171,6 +173,7 @@ data class InvoiceEntity(
                 amountDue = invoice.amountDue,
                 documentNumber = invoice.documentNumber,
                 paymentMethodString = invoice.paymentMethod,
+                numberOfPayments = invoice.numberOfPayments,
                 confirmationNumber = invoice.confirmationNumber,
                 pinnedSnapshotJson = pinnedSnapshotJson,
                 servicePeriodMode = invoice.servicePeriodMode

@@ -20,7 +20,7 @@ import com.dinyairsadot.taxtracker.core.data.entities.InvoiceEntity
 
 @Database(
     entities = [CategoryEntity::class, InvoiceEntity::class],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(
@@ -141,6 +141,12 @@ abstract class TaxTrackerDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE invoices ADD COLUMN numberOfPayments TEXT")
+            }
+        }
+
         val MIGRATION_8_9 = object : Migration(8, 9) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // Remove defaultServicePeriodMode from categories (mode is now per-invoice).
@@ -175,7 +181,7 @@ abstract class TaxTrackerDatabase : RoomDatabase() {
                     TaxTrackerDatabase::class.java,
                     "tax_tracker_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
                     .build()
                 INSTANCE = instance
                 instance

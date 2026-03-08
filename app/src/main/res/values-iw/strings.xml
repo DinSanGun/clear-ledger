@@ -184,6 +184,7 @@
     <string name="payment_method_credit">אשראי</string>
     <string name="payment_method_bank_transfer">העברה בנקאית</string>
     <string name="payment_method_other">אחר</string>
+    <string name="number_of_payments_hint">מספר תשלומים</string>
     <string name="confirmation_number">מספר אישור</string>
     
     <!-- Category Pinned Defaults -->

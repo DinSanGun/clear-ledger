@@ -184,6 +184,7 @@
     <string name="payment_method_credit">Credit</string>
     <string name="payment_method_bank_transfer">Bank transfer</string>
     <string name="payment_method_other">Other</string>
+    <string name="number_of_payments_hint">Number of payments</string>
     <string name="confirmation_number">Confirmation Number</string>
     
     <!-- Category Pinned Defaults -->

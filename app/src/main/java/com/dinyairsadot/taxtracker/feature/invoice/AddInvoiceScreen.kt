@@ -66,6 +66,7 @@ fun AddInvoiceScreen(
         paymentDate: LocalDate?,
         dueDate: LocalDate?,
         paymentMethod: String?,
+        numberOfPayments: String?,
         confirmationNumber: String?,
         vendorName: String?,
         notes: String,
@@ -93,6 +94,7 @@ fun AddInvoiceScreen(
     // Conditional fields: Paid/Credit group
     var paymentDateText by rememberSaveable { mutableStateOf("") }
     var paymentMethod by rememberSaveable { mutableStateOf("") }
+    var numberOfPayments by rememberSaveable { mutableStateOf("") }
     var confirmationNumber by rememberSaveable { mutableStateOf("") }
 
     // Conditional fields: Not paid group
@@ -228,6 +230,7 @@ fun AddInvoiceScreen(
             paymentDate,
             dueDate,
             paymentMethod.takeIf { it.isNotBlank() },
+            numberOfPayments.takeIf { it.isNotBlank() },
             confirmationNumber.takeIf { it.isNotBlank() },
             vendorName.trim().takeIf { it.isNotBlank() },
             notes.trim(),
@@ -429,6 +432,15 @@ fun AddInvoiceScreen(
                     onSelected = { paymentMethod = it },
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (paymentMethod == PaymentMethodOption.CREDIT.value) {
+                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                    OutlinedTextField(
+                        value = numberOfPayments,
+                        onValueChange = { numberOfPayments = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.number_of_payments_hint)) }
+                    )
+                }
                 Spacer(modifier = Modifier.padding(top = 8.dp))
 
                 OutlinedTextField(

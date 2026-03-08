@@ -50,6 +50,7 @@ data class InvoiceUi(
     val documentNumber: String = invoiceNumber,  // New field (fallback to invoiceNumber for compatibility)
     val amountDue: Double = amount,              // New field (fallback to amount for compatibility)
     val paymentMethod: String? = null,
+    val numberOfPayments: String? = null,
     val confirmationNumber: String? = null,
     // Pinned snapshot
     val pinnedSnapshot: Map<String, String> = emptyMap(),
@@ -195,6 +196,7 @@ class InvoiceListViewModel(
         paymentDate: LocalDate?,
         dueDate: LocalDate?,
         paymentMethod: String?,
+        numberOfPayments: String?,
         confirmationNumber: String?,
         vendorName: String?,
         notes: String,
@@ -238,6 +240,7 @@ class InvoiceListViewModel(
                 amountDue = amountDue,
                 documentNumber = documentNumber,
                 paymentMethod = paymentMethod,
+                numberOfPayments = numberOfPayments,
                 confirmationNumber = confirmationNumber,
                 // Pinned snapshot: capture category defaults at creation time
                 pinnedSnapshot = pinnedSnapshot,
@@ -264,6 +267,7 @@ class InvoiceListViewModel(
         paymentDate: LocalDate?,
         dueDate: LocalDate?,
         paymentMethod: String?,
+        numberOfPayments: String?,
         confirmationNumber: String?,
         vendorName: String?,
         notes: String,
@@ -298,6 +302,7 @@ class InvoiceListViewModel(
                 amountDue = amountDue,
                 documentNumber = documentNumber,
                 paymentMethod = paymentMethod,
+                numberOfPayments = numberOfPayments,
                 confirmationNumber = confirmationNumber,
                 servicePeriodMode = servicePeriodMode
             )
@@ -344,6 +349,7 @@ private fun Invoice.toUi(): InvoiceUi {
         documentNumber = this.documentNumber,
         amountDue = this.amountDue,
         paymentMethod = this.paymentMethod,
+        numberOfPayments = this.numberOfPayments,
         confirmationNumber = this.confirmationNumber,
         pinnedSnapshot = this.pinnedSnapshot,
         servicePeriodMode = this.servicePeriodMode
