@@ -291,7 +291,7 @@ fun AddInvoiceScreen(
                     },
                 label = { Text("${stringResource(R.string.document_number)} *") },
                 isError = documentNumberError != null,
-                supportingText = { documentNumberError?.let { Text(it) } }
+                supportingText = documentNumberError?.let { err -> { Text(err) } }
             )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
