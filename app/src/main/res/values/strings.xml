@@ -71,7 +71,7 @@
     <string name="edit_invoice_title">Edit invoice</string>
     <string name="amount">Amount</string>
     <string name="enter_valid_amount">Enter a valid amount</string>
-    <string name="due_date_dd_mm_yyyy">Due date (DD/MM/YYYY)</string>
+    <string name="due_date_dd_mm_yyyy">Due date (deadline)</string>
     <string name="date_required">Date is required</string>
     <string name="use_format_dd_mm_yyyy">Use format DD/MM/YYYY</string>
     <string name="pick_date">Pick date</string>
@@ -86,7 +86,6 @@
     <string name="edit_invoice">Edit invoice</string>
     <string name="amount_label">Amount: %1$s</string>
     <string name="status_label">Status: %1$s</string>
-    <string name="due_date_label">Due date: %1$s</string>
     <string name="notes_label">Notes:</string>
     
     <!-- Document Type -->
@@ -144,11 +143,12 @@
     <!-- Invoice Fields -->
     <string name="vendor_name">Vendor/Body Name</string>
     <string name="issue_date_dd_mm_yyyy">Issue Date (DD/MM/YYYY)</string>
-    <string name="paid_date_dd_mm_yyyy">Paid Date (DD/MM/YYYY)</string>
+    <string name="paid_date_dd_mm_yyyy">Payment date (actual)</string>
     <string name="service_period_start">Service Period Start (DD/MM/YYYY)</string>
     <string name="service_period_end">Service Period End (DD/MM/YYYY)</string>
     <string name="issue_date_label">Issue Date: %1$s</string>
-    <string name="paid_date_label">Paid Date: %1$s</string>
+    <string name="paid_date_label">Actual payment date: %1$s</string>
+    <string name="due_date_label">Payment deadline: %1$s</string>
     <string name="service_period_label">Service Period: %1$s</string>
     <string name="vendor_name_label">Vendor: %1$s</string>
 
@@ -167,6 +167,9 @@
     <string name="month_required">Month is required</string>
     <string name="service_period_end_before_start">End must not be before start</string>
     <string name="pick_month">Pick month</string>
+    <string name="payment_date_label_hint">Payment date</string>
+    <string name="due_date_label_hint">Due date (deadline)</string>
+    <string name="add_due_date">Add due date</string>
     <string name="format_hint_dd_mm_yyyy">DD/MM/YYYY</string>
     
     <!-- New Core Invoice Fields -->

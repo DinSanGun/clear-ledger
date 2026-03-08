@@ -37,8 +37,10 @@ data class InvoiceUi(
     val vendorName: String? = null,
     val issueDateText: String? = null,
     val dueDateText: String?,
-    val dueDate: LocalDate? = null, // Add for sorting
+    val dueDate: LocalDate? = null,
     val paymentDateText: String? = null,
+    /** Fallback for sort when dueDate is null (service period end). Used for ordering only, not for display. */
+    val servicePeriodEnd: LocalDate? = null,
     val servicePeriodStartText: String? = null,
     val servicePeriodEndText: String? = null,
     val notes: String?,
@@ -167,11 +169,11 @@ class InvoiceListViewModel(
     private fun sortInvoices(invoices: List<InvoiceUi>, sortOption: SortOption): List<InvoiceUi> {
         return when (sortOption) {
             SortOption.DATE_DESCENDING -> invoices.sortedWith(
-                compareByDescending<InvoiceUi> { it.dueDate ?: LocalDate.MIN }
+                compareByDescending<InvoiceUi> { it.dueDate ?: it.servicePeriodEnd ?: LocalDate.MIN }
                     .thenByDescending { it.id }
             )
             SortOption.DATE_ASCENDING -> invoices.sortedWith(
-                compareBy<InvoiceUi> { it.dueDate ?: LocalDate.MAX }
+                compareBy<InvoiceUi> { it.dueDate ?: it.servicePeriodEnd ?: LocalDate.MAX }
                     .thenBy { it.id }
             )
             SortOption.AMOUNT_DESCENDING -> invoices.sortedWith(
@@ -193,6 +195,8 @@ class InvoiceListViewModel(
         servicePeriodStartText: String,
         servicePeriodEndText: String,
         servicePeriodMode: ServicePeriodMode,
+        paymentDate: LocalDate?,
+        dueDate: LocalDate?,
         paymentMethod: String?,
         confirmationNumber: String?,
         notes: String,
@@ -223,8 +227,8 @@ class InvoiceListViewModel(
                 paymentStatus = paymentStatus,
                 vendorName = null,
                 issueDate = null,
-                dueDate = servicePeriodEnd,      // Use service period end as due date for sorting
-                paymentDate = null,
+                dueDate = dueDate,
+                paymentDate = paymentDate,
                 servicePeriodStart = servicePeriodStart,
                 servicePeriodEnd = servicePeriodEnd,
                 consumptionValue = null,
@@ -259,6 +263,8 @@ class InvoiceListViewModel(
         servicePeriodStartText: String,
         servicePeriodEndText: String,
         servicePeriodMode: ServicePeriodMode,
+        paymentDate: LocalDate?,
+        dueDate: LocalDate?,
         paymentMethod: String?,
         confirmationNumber: String?,
         notes: String,
@@ -282,7 +288,8 @@ class InvoiceListViewModel(
                 invoiceNumber = documentNumber,
                 amount = amountDue,
                 paymentStatus = paymentStatus,
-                dueDate = servicePeriodEnd,  // Use service period end as due date for sorting
+                dueDate = dueDate,
+                paymentDate = paymentDate,
                 servicePeriodStart = servicePeriodStart,
                 servicePeriodEnd = servicePeriodEnd,
                 notes = notes.ifBlank { null },
@@ -325,8 +332,9 @@ private fun Invoice.toUi(): InvoiceUi {
         vendorName = this.vendorName,
         issueDateText = this.issueDate?.format(dateFormatter),
         dueDateText = this.dueDate?.format(dateFormatter),
-        dueDate = this.dueDate, // Include for sorting
+        dueDate = this.dueDate,
         paymentDateText = this.paymentDate?.format(dateFormatter),
+        servicePeriodEnd = this.servicePeriodEnd,
         servicePeriodStartText = this.servicePeriodStart?.format(dateFormatter),
         servicePeriodEndText = this.servicePeriodEnd?.format(dateFormatter),
         notes = this.notes,

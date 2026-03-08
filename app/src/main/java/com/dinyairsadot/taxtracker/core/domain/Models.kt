@@ -74,10 +74,13 @@ data class CustomFieldDefinition(
 
 /**
  * Represents a single invoice / bill entry.
- * New minimal core fields (prepared for future migration):
- * - amountDue, documentNumber, servicePeriodStart, servicePeriodEnd (required in new model)
- * - paymentMethod (optional)
- * Old fields kept for backward compatibility during transition.
+ *
+ * Date semantics:
+ * - [paymentDate]: actual date the invoice was paid (optional)
+ * - [dueDate]: deadline to pay (optional). Never inferred from service period.
+ *
+ * New minimal core fields: amountDue, documentNumber, servicePeriodStart, servicePeriodEnd,
+ * paymentMethod (optional). Old fields kept for backward compatibility.
  */
 data class Invoice(
     val id: Long,
@@ -88,7 +91,9 @@ data class Invoice(
     val paymentStatus: PaymentStatus,
     val vendorName: String? = null,
     val issueDate: LocalDate? = null,
+    /** Deadline to pay. Optional; never inferred from service period. */
     val dueDate: LocalDate? = null,
+    /** Actual date the invoice was paid. Optional. */
     val paymentDate: LocalDate? = null,
     val servicePeriodStart: LocalDate? = null,
     val servicePeriodEnd: LocalDate? = null,

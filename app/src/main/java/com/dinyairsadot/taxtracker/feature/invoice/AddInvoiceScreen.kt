@@ -62,6 +62,8 @@ fun AddInvoiceScreen(
         servicePeriodStartText: String,
         servicePeriodEndText: String,
         servicePeriodMode: ServicePeriodMode,
+        paymentDate: LocalDate?,
+        dueDate: LocalDate?,
         paymentMethod: String?,
         confirmationNumber: String?,
         notes: String,
@@ -89,7 +91,11 @@ fun AddInvoiceScreen(
     var endMonth by rememberSaveable { mutableStateOf(today.monthValue) }
     var showEndMonth by rememberSaveable { mutableStateOf(false) }
 
-    // Optional core fields
+    // Optional core fields: payment date (shown by default), due date (hidden by default)
+    var paymentDateText by rememberSaveable { mutableStateOf("") }
+    var dueDateText by rememberSaveable { mutableStateOf("") }
+    var showDueDate by rememberSaveable { mutableStateOf(false) }
+
     var paymentMethod by rememberSaveable { mutableStateOf("") }
     var confirmationNumber by rememberSaveable { mutableStateOf("") }
     var notes by rememberSaveable { mutableStateOf("") }
@@ -204,6 +210,11 @@ fun AddInvoiceScreen(
 
         if (hasError) return
 
+        val paymentDate = paymentDateText.trim().takeIf { it.isNotBlank() }
+            ?.let { runCatching { LocalDate.parse(it, dateFormatter) }.getOrNull() }
+        val dueDate = dueDateText.trim().takeIf { it.isNotBlank() }
+            ?.let { runCatching { LocalDate.parse(it, dateFormatter) }.getOrNull() }
+
         onSaveInvoice(
             documentNumberText.trim(),
             amount!!,
@@ -211,6 +222,8 @@ fun AddInvoiceScreen(
             finalStartText,
             finalEndText,
             servicePeriodMode,
+            paymentDate,
+            dueDate,
             paymentMethod.takeIf { it.isNotBlank() },
             confirmationNumber.takeIf { it.isNotBlank() },
             notes.trim(),
@@ -345,14 +358,6 @@ fun AddInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Payment Status (REQUIRED)
-            PaymentStatusSelector(
-                selected = paymentStatus,
-                onSelectedChange = { paymentStatus = it }
-            )
-
-            Spacer(modifier = Modifier.padding(top = 8.dp))
-
             // Service period mode selector (per-invoice)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -413,6 +418,31 @@ fun AddInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
+            // Payment Status (REQUIRED)
+            PaymentStatusSelector(
+                selected = paymentStatus,
+                onSelectedChange = { paymentStatus = it }
+            )
+
+            Spacer(modifier = Modifier.padding(top = 8.dp))
+
+            // Due date (optional, exact-date only, hidden by default)
+            if (showDueDate) {
+                ExactDateField(
+                    value = dueDateText,
+                    onValueChange = { dueDateText = it },
+                    label = stringResource(R.string.due_date_label_hint),
+                    error = null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+            } else {
+                TextButton(onClick = { showDueDate = true }) {
+                    Text(stringResource(R.string.add_due_date))
+                }
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+            }
+
             // Payment Method (OPTIONAL)
             OutlinedTextField(
                 value = paymentMethod,
@@ -429,6 +459,17 @@ fun AddInvoiceScreen(
                 onValueChange = { confirmationNumber = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.confirmation_number)) }
+            )
+
+            Spacer(modifier = Modifier.padding(top = 8.dp))
+
+            // Payment date (optional, exact-date only, shown by default)
+            ExactDateField(
+                value = paymentDateText,
+                onValueChange = { paymentDateText = it },
+                label = stringResource(R.string.payment_date_label_hint),
+                error = null,
+                modifier = Modifier.fillMaxWidth()
             )
 
             // Custom fields

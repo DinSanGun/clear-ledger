@@ -390,13 +390,6 @@ private fun InvoiceItem(
                     style = MaterialTheme.typography.bodySmall
                 )
 
-                invoice.dueDateText?.let { due ->
-                    Text(
-                        text = stringResource(R.string.due, due),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
                 formatServicePeriodForDisplay(
                     invoice.servicePeriodStartText,
                     invoice.servicePeriodEndText,

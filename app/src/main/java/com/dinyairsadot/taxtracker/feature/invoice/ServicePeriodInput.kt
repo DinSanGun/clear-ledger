@@ -319,3 +319,59 @@ private fun MonthModeContent(
         )
     }
 }
+
+/**
+ * Optional exact-date field for payment date / due date.
+ * Uses OutlinedTextField + DatePickerDialog. No monthly mode toggle.
+ */
+@Composable
+fun ExactDateField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: String?,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    fun showPicker(currentText: String, onPicked: (String) -> Unit) {
+        val cal = java.util.Calendar.getInstance()
+        currentText.trim().takeIf { it.isNotBlank() }?.let {
+            runCatching {
+                val d = LocalDate.parse(it, dateFormatter)
+                cal.set(d.year, d.monthValue - 1, d.dayOfMonth)
+            }
+        }
+        DatePickerDialog(
+            context,
+            { _, year, month, day ->
+                onPicked(LocalDate.of(year, month + 1, day).format(dateFormatter))
+            },
+            cal.get(java.util.Calendar.YEAR),
+            cal.get(java.util.Calendar.MONTH),
+            cal.get(java.util.Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.weight(1f),
+            label = { Text(label) },
+            supportingText = {
+                if (error != null) Text(error)
+                else Text(stringResource(R.string.format_hint_dd_mm_yyyy))
+            },
+            isError = error != null
+        )
+        IconButton(onClick = { showPicker(value, onValueChange) }) {
+            Icon(Icons.Filled.CalendarToday, contentDescription = stringResource(R.string.pick_date))
+        }
+    }
+}

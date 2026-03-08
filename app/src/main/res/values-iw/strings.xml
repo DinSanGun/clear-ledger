@@ -71,7 +71,7 @@
     <string name="edit_invoice_title">ערוך חשבונית</string>
     <string name="amount">סכום</string>
     <string name="enter_valid_amount">הזן סכום תקין</string>
-    <string name="due_date_dd_mm_yyyy">תאריך תשלום (DD/MM/YYYY)</string>
+    <string name="due_date_dd_mm_yyyy">תאריך יעד לתשלום (DD/MM/YYYY)</string>
     <string name="date_required">תאריך נדרש</string>
     <string name="use_format_dd_mm_yyyy">השתמש בפורמט DD/MM/YYYY</string>
     <string name="pick_date">בחר תאריך</string>
@@ -86,7 +86,6 @@
     <string name="edit_invoice">ערוך חשבונית</string>
     <string name="amount_label">סכום: %1$s</string>
     <string name="status_label">סטטוס: %1$s</string>
-    <string name="due_date_label">תאריך תשלום: %1$s</string>
     <string name="notes_label">הערות:</string>
     
     <!-- Document Type -->
@@ -144,11 +143,12 @@
     <!-- Invoice Fields -->
     <string name="vendor_name">שם ספק/גוף</string>
     <string name="issue_date_dd_mm_yyyy">תאריך הנפקה (DD/MM/YYYY)</string>
-    <string name="paid_date_dd_mm_yyyy">תאריך תשלום (DD/MM/YYYY)</string>
+    <string name="paid_date_dd_mm_yyyy">תאריך תשלום בפועל (DD/MM/YYYY)</string>
     <string name="service_period_start">תחילת תקופת שירות (DD/MM/YYYY)</string>
     <string name="service_period_end">סוף תקופת שירות (DD/MM/YYYY)</string>
     <string name="issue_date_label">תאריך הנפקה: %1$s</string>
-    <string name="paid_date_label">תאריך תשלום: %1$s</string>
+    <string name="paid_date_label">תאריך תשלום בפועל: %1$s</string>
+    <string name="due_date_label">תאריך יעד לתשלום: %1$s</string>
     <string name="service_period_label">תקופת שירות: %1$s</string>
     <string name="vendor_name_label">ספק: %1$s</string>
 
@@ -167,6 +167,9 @@
     <string name="month_required">חודש נדרש</string>
     <string name="service_period_end_before_start">תאריך סיום לא יכול להיות לפני ההתחלה</string>
     <string name="pick_month">בחר חודש</string>
+    <string name="payment_date_label_hint">תאריך תשלום</string>
+    <string name="due_date_label_hint">תאריך יעד לתשלום</string>
+    <string name="add_due_date">הוסף תאריך יעד לתשלום</string>
     <string name="format_hint_dd_mm_yyyy">DD/MM/YYYY</string>
     
     <!-- New Core Invoice Fields -->
