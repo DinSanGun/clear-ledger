@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
+import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.ui.parseCategoryColorOrDefault
 import androidx.compose.material3.TopAppBarDefaults
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
@@ -136,6 +137,39 @@ fun InvoiceDetailsScreen(
                         text = stringResource(R.string.status_label, statusText),
                         style = MaterialTheme.typography.bodyMedium
                     )
+
+                    // Payment details (shown only when present)
+                    invoice.paymentMethod?.takeIf { it.isNotBlank() }?.let { methodValue ->
+                        val methodLabel = when (methodValue) {
+                            PaymentMethodOption.CREDIT.value -> stringResource(R.string.payment_method_credit)
+                            PaymentMethodOption.BANK_TRANSFER.value -> stringResource(R.string.payment_method_bank_transfer)
+                            PaymentMethodOption.OTHER.value -> stringResource(R.string.payment_method_other)
+                            else -> null
+                        }
+                        methodLabel?.let { label ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.payment_method_label, label),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+
+                    invoice.numberOfPayments?.takeIf { it.isNotBlank() }?.let { count ->
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = stringResource(R.string.number_of_payments_label, count),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    invoice.confirmationNumber?.takeIf { it.isNotBlank() }?.let { confirmation ->
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = stringResource(R.string.confirmation_number_label, confirmation),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
 
                     invoice.issueDateText?.let { issue ->
                         Spacer(modifier = Modifier.padding(top = 4.dp))

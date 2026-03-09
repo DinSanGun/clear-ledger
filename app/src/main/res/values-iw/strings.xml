@@ -87,6 +87,9 @@
     <string name="edit_invoice">ערוך חשבונית</string>
     <string name="amount_label">סכום: %1$s</string>
     <string name="status_label">סטטוס: %1$s</string>
+    <string name="payment_method_label">אמצעי תשלום: %1$s</string>
+    <string name="number_of_payments_label">מספר תשלומים: %1$s</string>
+    <string name="confirmation_number_label">מספר אישור: %1$s</string>
     <string name="notes_label">הערות:</string>
     
     <!-- Document Type -->

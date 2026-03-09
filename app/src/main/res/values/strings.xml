@@ -87,6 +87,9 @@
     <string name="edit_invoice">Edit invoice</string>
     <string name="amount_label">Amount: %1$s</string>
     <string name="status_label">Status: %1$s</string>
+    <string name="payment_method_label">Payment method: %1$s</string>
+    <string name="number_of_payments_label">Number of payments: %1$s</string>
+    <string name="confirmation_number_label">Confirmation number: %1$s</string>
     <string name="notes_label">Notes:</string>
     
     <!-- Document Type -->
