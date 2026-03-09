@@ -2,6 +2,7 @@ package com.dinyairsadot.taxtracker.feature.invoice
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -243,6 +244,7 @@ fun AddInvoiceScreen(
     val showDueDateGroup = paymentStatus == PaymentStatus.NOT_PAID
 
     Scaffold(
+        contentWindowInsets = WindowInsets.systemBars,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.add_invoice_title)) },
@@ -262,9 +264,9 @@ fun AddInvoiceScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
+                .imePadding()
         ) {
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
@@ -522,6 +524,9 @@ fun AddInvoiceScreen(
             ) {
                 Text(stringResource(R.string.save_invoice))
             }
+
+            // Small bottom buffer so user can scroll Save button above keyboard
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

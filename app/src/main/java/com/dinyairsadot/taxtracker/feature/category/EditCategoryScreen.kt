@@ -1,6 +1,9 @@
 package com.dinyairsadot.taxtracker.feature.category
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -191,6 +194,7 @@ fun EditCategoryScreen(
     )
 
     Scaffold(
+        contentWindowInsets = WindowInsets.systemBars,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.edit_category_title)) },
@@ -236,7 +240,9 @@ fun EditCategoryScreen(
             state = formState,
             callbacks = formCallbacks,
             saveButtonLabel = stringResource(R.string.save_changes),
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .imePadding()
         )
     }
 }
