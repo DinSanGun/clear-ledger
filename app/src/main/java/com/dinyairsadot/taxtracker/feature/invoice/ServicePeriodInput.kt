@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Icon
@@ -18,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Renders the "Service Period" section for invoice add/edit screens.
@@ -126,6 +131,7 @@ private fun DateModeContent(
     dateFormatter: DateTimeFormatter,
     context: android.content.Context
 ) {
+    val coroutineScope = rememberCoroutineScope()
     fun showPicker(currentText: String, onPicked: (String) -> Unit) {
         val cal = java.util.Calendar.getInstance()
         currentText.trim().takeIf { it.isNotBlank() }?.let {
@@ -146,6 +152,7 @@ private fun DateModeContent(
     }
 
     // Start
+    val startBringIntoViewRequester = remember { BringIntoViewRequester() }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -159,8 +166,17 @@ private fun DateModeContent(
             },
             modifier = Modifier
                 .weight(1f)
+                .bringIntoViewRequester(startBringIntoViewRequester)
                 .onFocusChanged { fs ->
-                    if (!fs.isFocused) onStartDateTouched()
+                    if (fs.isFocused) {
+                        coroutineScope.launch {
+                            delay(250)
+                            startBringIntoViewRequester.bringIntoView()
+                        }
+                    }
+                    if (!fs.isFocused) {
+                        onStartDateTouched()
+                    }
                 },
             label = { Text(stringResource(R.string.service_period_start_short)) },
             supportingText = {
@@ -175,6 +191,7 @@ private fun DateModeContent(
     }
 
     // End
+    val endBringIntoViewRequester = remember { BringIntoViewRequester() }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -188,8 +205,17 @@ private fun DateModeContent(
             },
             modifier = Modifier
                 .weight(1f)
+                .bringIntoViewRequester(endBringIntoViewRequester)
                 .onFocusChanged { fs ->
-                    if (!fs.isFocused) onEndDateTouched()
+                    if (fs.isFocused) {
+                        coroutineScope.launch {
+                            delay(250)
+                            endBringIntoViewRequester.bringIntoView()
+                        }
+                    }
+                    if (!fs.isFocused) {
+                        onEndDateTouched()
+                    }
                 },
             label = { Text(stringResource(R.string.service_period_end_short)) },
             supportingText = {
@@ -321,6 +347,7 @@ fun ExactDateField(
 ) {
     val context = LocalContext.current
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val coroutineScope = rememberCoroutineScope()
 
     fun showPicker(currentText: String, onPicked: (String) -> Unit) {
         val cal = java.util.Calendar.getInstance()
@@ -341,6 +368,7 @@ fun ExactDateField(
         ).show()
     }
 
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -349,7 +377,17 @@ fun ExactDateField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .bringIntoViewRequester(bringIntoViewRequester)
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                        coroutineScope.launch {
+                            delay(250)
+                            bringIntoViewRequester.bringIntoView()
+                        }
+                    }
+                },
             label = { Text(label) },
             supportingText = {
                 if (error != null) Text(error)

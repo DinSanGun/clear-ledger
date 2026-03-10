@@ -1,9 +1,23 @@
 package com.dinyairsadot.taxtracker.feature.invoice
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -26,6 +40,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,6 +52,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.dinyairsadot.taxtracker.R
 import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
@@ -76,6 +94,7 @@ fun AddInvoiceScreen(
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     // Main required fields
     var documentNumberText by rememberSaveable { mutableStateOf("") }
@@ -264,14 +283,16 @@ fun AddInvoiceScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
-                .imePadding()
+
         ) {
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
             // ── Main section ──
             // Invoice number *
+            val documentNumberBringIntoViewRequester = remember { BringIntoViewRequester() }
             OutlinedTextField(
                 value = documentNumberText,
                 onValueChange = {
@@ -281,8 +302,15 @@ fun AddInvoiceScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .bringIntoViewRequester(documentNumberBringIntoViewRequester)
                     .onFocusChanged { focusState ->
-                        if (!focusState.isFocused && documentNumberTouched) {
+                        if (focusState.isFocused) {
+                            coroutineScope.launch {
+                                // Wait briefly for the IME to appear so we scroll to the right position.
+                                delay(250)
+                                documentNumberBringIntoViewRequester.bringIntoView()
+                            }
+                        } else if (documentNumberTouched) {
                             documentNumberError = if (documentNumberText.trim().isBlank()) {
                                 context.getString(R.string.invoice_number_required)
                             } else null
@@ -296,6 +324,7 @@ fun AddInvoiceScreen(
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
             // Amount due *
+            val amountBringIntoViewRequester = remember { BringIntoViewRequester() }
             OutlinedTextField(
                 value = amountText,
                 onValueChange = {
@@ -305,8 +334,14 @@ fun AddInvoiceScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .bringIntoViewRequester(amountBringIntoViewRequester)
                     .onFocusChanged { focusState ->
-                        if (!focusState.isFocused && amountTouched) {
+                        if (focusState.isFocused) {
+                            coroutineScope.launch {
+                                delay(250)
+                                amountBringIntoViewRequester.bringIntoView()
+                            }
+                        } else if (amountTouched) {
                             val amt = amountText.toDoubleOrNull()
                             amountError = if (amt == null || amt <= 0.0) {
                                 context.getString(R.string.enter_valid_amount)
@@ -436,19 +471,41 @@ fun AddInvoiceScreen(
                 )
                 if (paymentMethod == PaymentMethodOption.CREDIT.value) {
                     Spacer(modifier = Modifier.padding(top = 8.dp))
+                    val numberOfPaymentsBringIntoViewRequester = remember { BringIntoViewRequester() }
                     OutlinedTextField(
                         value = numberOfPayments,
                         onValueChange = { numberOfPayments = it },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .bringIntoViewRequester(numberOfPaymentsBringIntoViewRequester)
+                            .onFocusChanged { focusState ->
+                                if (focusState.isFocused) {
+                                    coroutineScope.launch {
+                                        delay(250)
+                                        numberOfPaymentsBringIntoViewRequester.bringIntoView()
+                                    }
+                                }
+                            },
                         placeholder = { Text(stringResource(R.string.number_of_payments_hint)) }
                     )
                 }
                 Spacer(modifier = Modifier.padding(top = 8.dp))
 
+                val confirmationNumberBringIntoViewRequester = remember { BringIntoViewRequester() }
                 OutlinedTextField(
                     value = confirmationNumber,
                     onValueChange = { confirmationNumber = it },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .bringIntoViewRequester(confirmationNumberBringIntoViewRequester)
+                        .onFocusChanged { focusState ->
+                            if (focusState.isFocused) {
+                                coroutineScope.launch {
+                                    delay(250)
+                                    confirmationNumberBringIntoViewRequester.bringIntoView()
+                                }
+                            }
+                        },
                     label = { Text(stringResource(R.string.confirmation_number)) }
                 )
                 Spacer(modifier = Modifier.padding(top = 8.dp))
@@ -479,6 +536,7 @@ fun AddInvoiceScreen(
             if (categoryCustomFieldTitles.isNotEmpty()) {
                 categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
                     Spacer(modifier = Modifier.padding(top = 8.dp))
+                    val customFieldBringIntoViewRequester = remember { BringIntoViewRequester() }
                     OutlinedTextField(
                         value = customFieldValues.getOrNull(index) ?: "",
                         onValueChange = { newValue ->
@@ -487,7 +545,17 @@ fun AddInvoiceScreen(
                             newList[index] = newValue
                             customFieldValues = newList
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .bringIntoViewRequester(customFieldBringIntoViewRequester)
+                            .onFocusChanged { focusState ->
+                                if (focusState.isFocused) {
+                                    coroutineScope.launch {
+                                        delay(250)
+                                        customFieldBringIntoViewRequester.bringIntoView()
+                                    }
+                                }
+                            },
                         label = { Text(fieldTitle) }
                     )
                 }
@@ -495,19 +563,41 @@ fun AddInvoiceScreen(
             }
 
             // ── Bottom optional fields ──
+            val vendorBringIntoViewRequester = remember { BringIntoViewRequester() }
             OutlinedTextField(
                 value = vendorName,
                 onValueChange = { vendorName = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(vendorBringIntoViewRequester)
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            coroutineScope.launch {
+                                delay(250)
+                                vendorBringIntoViewRequester.bringIntoView()
+                            }
+                        }
+                    },
                 label = { Text(stringResource(R.string.vendor_name)) }
             )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
+            val notesBringIntoViewRequester = remember { BringIntoViewRequester() }
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(notesBringIntoViewRequester)
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            coroutineScope.launch {
+                                delay(250)
+                                notesBringIntoViewRequester.bringIntoView()
+                            }
+                        }
+                    },
                 label = { Text(stringResource(R.string.notes_additional_info)) },
                 minLines = 3
             )
