@@ -1,25 +1,21 @@
 package com.dinyairsadot.taxtracker.feature.invoice
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dinyairsadot.taxtracker.core.domain.Category
+import com.dinyairsadot.taxtracker.R
+import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.Invoice
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
+import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
-import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
-import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
-import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
-import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
-import android.content.Context
-import com.dinyairsadot.taxtracker.R
 
 
 enum class SortOption {
@@ -27,6 +23,11 @@ enum class SortOption {
     DATE_ASCENDING,
     AMOUNT_DESCENDING,
     AMOUNT_ASCENDING
+}
+
+sealed interface InvoiceListScope {
+    data object AllInvoices : InvoiceListScope
+    data class CategoryInvoices(val categoryId: Long) : InvoiceListScope
 }
 
 data class InvoiceUi(
@@ -63,8 +64,13 @@ data class InvoiceListUiState(
     val categoryName: String? = null,
     val categoryColorHex: String? = null,
     val categoryCustomFieldTitles: List<String> = emptyList(),
-    val invoices: List<InvoiceUi> = emptyList(),
+    val sourceInvoices: List<InvoiceUi> = emptyList(),
+    val visibleInvoices: List<InvoiceUi> = emptyList(),
     val errorMessage: String? = null,
+    val searchQuery: String = "",
+    val servicePeriodStartFilter: LocalDate? = null,
+    val servicePeriodEndFilter: LocalDate? = null,
+    val statusFilter: PaymentStatus? = null,
     val sortOption: SortOption = SortOption.DATE_DESCENDING
 )
 
@@ -73,6 +79,8 @@ class InvoiceListViewModel(
     private val categoryRepository: CategoryRepository,
     private val context: Context
 ) : ViewModel() {
+
+    private var currentScope: InvoiceListScope? = null
 
     private val _uiState = MutableStateFlow(InvoiceListUiState(isLoading = true))
     val uiState: StateFlow<InvoiceListUiState> = _uiState.asStateFlow()
@@ -136,32 +144,64 @@ class InvoiceListViewModel(
     fun loadInvoices(categoryId: Long) {
         _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
+        val scope = InvoiceListScope.CategoryInvoices(categoryId)
+        currentScope = scope
+
         viewModelScope.launch {
-            try {
-                val invoices = invoiceRepository.getInvoicesForCategory(categoryId)
-                val sortedInvoices = sortInvoices(invoices.map { it.toUi() }, _uiState.value.sortOption)
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    invoices = sortedInvoices,
-                    errorMessage = null
-                )
-            } catch (_: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    invoices = emptyList(),
-                    errorMessage = context.getString(R.string.failed_to_load_invoices)
-                )
-            }
+            loadInvoicesForScope(scope)
         }
     }
-    
+
+    private suspend fun loadInvoicesForScope(scope: InvoiceListScope) {
+        try {
+            val invoices: List<Invoice> = when (scope) {
+                is InvoiceListScope.AllInvoices -> invoiceRepository.getAllInvoices()
+                is InvoiceListScope.CategoryInvoices -> invoiceRepository.getInvoicesForCategory(scope.categoryId)
+            }
+            val uiInvoices = invoices.map { it.toUi() }
+            updateStateAndRecompute { state ->
+                state.copy(
+                    isLoading = false,
+                    sourceInvoices = uiInvoices,
+                    errorMessage = null
+                )
+            }
+        } catch (_: Exception) {
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                sourceInvoices = emptyList(),
+                visibleInvoices = emptyList(),
+                errorMessage = context.getString(R.string.failed_to_load_invoices)
+            )
+        }
+    }
+
+    private fun updateStateAndRecompute(transform: (InvoiceListUiState) -> InvoiceListUiState) {
+        val intermediate = transform(_uiState.value)
+        val filtered = applySearchAndFilters(intermediate.sourceInvoices, intermediate)
+        val sorted = sortInvoices(filtered, intermediate.sortOption)
+        _uiState.value = intermediate.copy(visibleInvoices = sorted)
+    }
+
+    private fun applySearchAndFilters(
+        invoices: List<InvoiceUi>,
+        state: InvoiceListUiState
+    ): List<InvoiceUi> {
+        var result = invoices
+
+        // Placeholder pipeline for future search and filters.
+        // Future steps may use:
+        // - state.searchQuery
+        // - state.servicePeriodStartFilter / servicePeriodEndFilter (service period is the primary date)
+        // - state.statusFilter
+
+        return result
+    }
+
     fun setSortOption(sortOption: SortOption) {
-        val currentInvoices = _uiState.value.invoices
-        val sortedInvoices = sortInvoices(currentInvoices, sortOption)
-        _uiState.value = _uiState.value.copy(
-            sortOption = sortOption,
-            invoices = sortedInvoices
-        )
+        updateStateAndRecompute { state ->
+            state.copy(sortOption = sortOption)
+        }
     }
     
     private fun sortInvoices(invoices: List<InvoiceUi>, sortOption: SortOption): List<InvoiceUi> {

@@ -9,6 +9,10 @@ class RoomInvoiceRepository(
     private val invoiceDao: InvoiceDao
 ) : InvoiceRepository {
     
+    override suspend fun getAllInvoices(): List<Invoice> {
+        return invoiceDao.getAll().map { it.toDomain() }
+    }
+
     override suspend fun getInvoicesForCategory(categoryId: Long): List<Invoice> {
         return invoiceDao.getByCategoryId(categoryId).map { it.toDomain() }
     }

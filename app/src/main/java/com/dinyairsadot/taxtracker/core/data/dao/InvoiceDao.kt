@@ -9,6 +9,9 @@ import com.dinyairsadot.taxtracker.core.data.entities.InvoiceEntity
 
 @Dao
 interface InvoiceDao {
+    @Query("SELECT * FROM invoices")
+    suspend fun getAll(): List<InvoiceEntity>
+
     @Query("SELECT * FROM invoices WHERE categoryId = :categoryId ORDER BY dueDateEpochDay DESC, id DESC")
     suspend fun getByCategoryId(categoryId: Long): List<InvoiceEntity>
     

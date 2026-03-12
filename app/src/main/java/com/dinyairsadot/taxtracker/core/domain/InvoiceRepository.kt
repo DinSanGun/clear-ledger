@@ -8,6 +8,11 @@ interface InvoiceRepository {
     suspend fun getInvoicesForCategory(categoryId: Long): List<Invoice>
 
     /**
+     * Returns all invoices across all categories.
+     */
+    suspend fun getAllInvoices(): List<Invoice>
+
+    /**
      * Returns a single invoice by its id, or null if it does not exist.
      */
     suspend fun getInvoiceById(id: Long): Invoice?

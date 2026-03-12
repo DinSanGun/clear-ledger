@@ -371,7 +371,7 @@ fun TaxTrackerNavHost(
             )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            val invoice = uiState.invoices.firstOrNull { it.id == invoiceId }
+            val invoice = uiState.visibleInvoices.firstOrNull { it.id == invoiceId }
 
             if (invoice == null) {
                 Scaffold(
@@ -432,7 +432,7 @@ fun TaxTrackerNavHost(
             )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            val invoiceUi = uiState.invoices.firstOrNull { it.id == invoiceId }
+            val invoiceUi = uiState.visibleInvoices.firstOrNull { it.id == invoiceId }
 
             if (invoiceUi == null) {
                 // If we somehow got here without an invoice, just go back

@@ -46,6 +46,10 @@ object InMemoryInvoiceRepository : InvoiceRepository {
         return invoices.filter { it.categoryId == categoryId }
     }
 
+    override suspend fun getAllInvoices(): List<Invoice> {
+        return invoices.toList()
+    }
+
     override suspend fun getInvoiceById(id: Long): Invoice? {
         return invoices.firstOrNull { it.id == id }
     }

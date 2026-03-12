@@ -240,7 +240,7 @@ fun InvoiceListScreen(
                     )
                 }
 
-                uiState.invoices.isEmpty() -> {
+                uiState.visibleInvoices.isEmpty() -> {
                     EmptyInvoicesState(
                         categoryId = categoryId,
                         modifier = Modifier.align(Alignment.Center)
@@ -249,7 +249,7 @@ fun InvoiceListScreen(
 
                 else -> {
                     InvoiceListContent(
-                        invoices = uiState.invoices,
+                        invoices = uiState.visibleInvoices,
                         modifier = Modifier.fillMaxSize(),
                         onInvoiceClick = onInvoiceClick,
                         onRequestDeleteInvoice = { id -> pendingDeleteInvoiceId = id }
