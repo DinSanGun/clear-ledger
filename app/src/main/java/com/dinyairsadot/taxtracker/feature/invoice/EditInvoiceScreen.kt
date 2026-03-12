@@ -129,7 +129,34 @@ fun EditInvoiceScreen(
         mutableStateOf(parsedEnd.year != parsedStart.year || parsedEnd.monthValue != parsedStart.monthValue)
     }
 
-    var paymentMethod by rememberSaveable { mutableStateOf(initialPaymentMethod ?: "") }
+    var paymentMethod by rememberSaveable {
+        mutableStateOf(
+            when (initialPaymentMethod) {
+                null, "" -> PaymentMethodOption.NOT_SPECIFIED.value
+                PaymentMethodOption.CREDIT.value,
+                PaymentMethodOption.BANK_TRANSFER.value,
+                PaymentMethodOption.CASH.value,
+                PaymentMethodOption.CHECK.value,
+                PaymentMethodOption.DIGITAL_WALLET.value,
+                PaymentMethodOption.OTHER.value -> initialPaymentMethod
+                else -> PaymentMethodOption.OTHER.value
+            }
+        )
+    }
+    var paymentMethodOtherText by rememberSaveable {
+        mutableStateOf(
+            when (initialPaymentMethod) {
+                null, "" -> ""
+                PaymentMethodOption.CREDIT.value,
+                PaymentMethodOption.BANK_TRANSFER.value,
+                PaymentMethodOption.CASH.value,
+                PaymentMethodOption.CHECK.value,
+                PaymentMethodOption.DIGITAL_WALLET.value,
+                PaymentMethodOption.OTHER.value -> ""
+                else -> initialPaymentMethod
+            }
+        )
+    }
     var numberOfPayments by rememberSaveable { mutableStateOf(initialNumberOfPayments ?: "") }
     var confirmationNumber by rememberSaveable { mutableStateOf(initialConfirmationNumber ?: "") }
     var vendorName by rememberSaveable { mutableStateOf(initialVendorName.orEmpty()) }
@@ -252,6 +279,15 @@ fun EditInvoiceScreen(
         val dueDate = dueDateText.trim().takeIf { it.isNotBlank() }
             ?.let { runCatching { LocalDate.parse(it, fmt) }.getOrNull() }
 
+        val finalPaymentMethod = when (paymentMethod) {
+            PaymentMethodOption.OTHER.value -> {
+                val custom = paymentMethodOtherText.trim()
+                if (custom.isNotBlank()) custom else PaymentMethodOption.OTHER.value
+            }
+            PaymentMethodOption.NOT_SPECIFIED.value, "" -> ""
+            else -> paymentMethod
+        }
+
         onSaveInvoice(
             documentNumberText.trim(),
             amount!!,
@@ -261,7 +297,7 @@ fun EditInvoiceScreen(
             servicePeriodMode,
             paymentDate,
             dueDate,
-            paymentMethod.takeIf { it.isNotBlank() },
+            finalPaymentMethod.takeIf { it.isNotBlank() },
             numberOfPayments.takeIf { it.isNotBlank() },
             confirmationNumber.takeIf { it.isNotBlank() },
             vendorName.trim().takeIf { it.isNotBlank() },
@@ -475,6 +511,15 @@ fun EditInvoiceScreen(
                     onSelected = { paymentMethod = it },
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (paymentMethod == PaymentMethodOption.OTHER.value) {
+                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                    OutlinedTextField(
+                        value = paymentMethodOtherText,
+                        onValueChange = { paymentMethodOtherText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.payment_method_specify_other)) }
+                    )
+                }
                 if (paymentMethod == PaymentMethodOption.CREDIT.value) {
                     Spacer(modifier = Modifier.padding(top = 8.dp))
                     val numberOfPaymentsBringIntoViewRequester = remember { BringIntoViewRequester() }

@@ -184,9 +184,14 @@
     <string name="invoice_number_required">Invoice number is required</string>
     <string name="notes_additional_info">Notes / Additional info</string>
     <string name="payment_method">Payment Method</string>
-    <string name="payment_method_credit">Credit</string>
-    <string name="payment_method_bank_transfer">Bank transfer</string>
+    <string name="payment_method_not_specified">Not specified</string>
+    <string name="payment_method_credit">Credit Card</string>
+    <string name="payment_method_bank_transfer">Bank Transfer</string>
+    <string name="payment_method_cash">Cash</string>
+    <string name="payment_method_check">Check</string>
+    <string name="payment_method_digital_wallet">Digital Wallet</string>
     <string name="payment_method_other">Other</string>
+    <string name="payment_method_specify_other">Specify payment method</string>
     <string name="number_of_payments_hint">Number of payments</string>
     <string name="confirmation_number">Confirmation Number</string>
     

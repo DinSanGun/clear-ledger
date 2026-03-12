@@ -115,7 +115,8 @@ fun AddInvoiceScreen(
 
     // Conditional fields: Paid/Credit group
     var paymentDateText by rememberSaveable { mutableStateOf("") }
-    var paymentMethod by rememberSaveable { mutableStateOf("") }
+    var paymentMethod by rememberSaveable { mutableStateOf(PaymentMethodOption.NOT_SPECIFIED.value) }
+    var paymentMethodOtherText by rememberSaveable { mutableStateOf("") }
     var numberOfPayments by rememberSaveable { mutableStateOf("") }
     var confirmationNumber by rememberSaveable { mutableStateOf("") }
 
@@ -242,6 +243,15 @@ fun AddInvoiceScreen(
         val dueDate = dueDateText.trim().takeIf { it.isNotBlank() }
             ?.let { runCatching { LocalDate.parse(it, dateFormatter) }.getOrNull() }
 
+        val finalPaymentMethod = when (paymentMethod) {
+            PaymentMethodOption.OTHER.value -> {
+                val custom = paymentMethodOtherText.trim()
+                if (custom.isNotBlank()) custom else PaymentMethodOption.OTHER.value
+            }
+            PaymentMethodOption.NOT_SPECIFIED.value, "" -> ""
+            else -> paymentMethod
+        }
+
         onSaveInvoice(
             documentNumberText.trim(),
             amount!!,
@@ -251,7 +261,7 @@ fun AddInvoiceScreen(
             servicePeriodMode,
             paymentDate,
             dueDate,
-            paymentMethod.takeIf { it.isNotBlank() },
+            finalPaymentMethod.takeIf { it.isNotBlank() },
             numberOfPayments.takeIf { it.isNotBlank() },
             confirmationNumber.takeIf { it.isNotBlank() },
             vendorName.trim().takeIf { it.isNotBlank() },
@@ -471,6 +481,15 @@ fun AddInvoiceScreen(
                     onSelected = { paymentMethod = it },
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (paymentMethod == PaymentMethodOption.OTHER.value) {
+                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                    OutlinedTextField(
+                        value = paymentMethodOtherText,
+                        onValueChange = { paymentMethodOtherText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.payment_method_specify_other)) }
+                    )
+                }
                 if (paymentMethod == PaymentMethodOption.CREDIT.value) {
                     Spacer(modifier = Modifier.padding(top = 8.dp))
                     val numberOfPaymentsBringIntoViewRequester = remember { BringIntoViewRequester() }
@@ -634,10 +653,14 @@ fun PaymentMethodSelector(
     val density = LocalDensity.current
     var textFieldWidth by remember { mutableStateOf(0.dp) }
     val displayText = when (selected) {
+        PaymentMethodOption.NOT_SPECIFIED.value, "" -> stringResource(R.string.payment_method_not_specified)
         PaymentMethodOption.CREDIT.value -> stringResource(R.string.payment_method_credit)
         PaymentMethodOption.BANK_TRANSFER.value -> stringResource(R.string.payment_method_bank_transfer)
+        PaymentMethodOption.CASH.value -> stringResource(R.string.payment_method_cash)
+        PaymentMethodOption.CHECK.value -> stringResource(R.string.payment_method_check)
+        PaymentMethodOption.DIGITAL_WALLET.value -> stringResource(R.string.payment_method_digital_wallet)
         PaymentMethodOption.OTHER.value -> stringResource(R.string.payment_method_other)
-        else -> ""
+        else -> stringResource(R.string.payment_method_not_specified)
     }
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -663,20 +686,26 @@ fun PaymentMethodSelector(
             modifier = Modifier.width(textFieldWidth)
         ) {
             DropdownMenuItem(
-                text = { Text("—") },
+                text = { Text(stringResource(R.string.payment_method_not_specified)) },
                 onClick = {
-                    onSelected("")
+                    onSelected(PaymentMethodOption.NOT_SPECIFIED.value)
                     expanded = false
                 }
             )
-            PaymentMethodOption.entries.forEach { option ->
+            PaymentMethodOption.entries
+                .filter { it != PaymentMethodOption.NOT_SPECIFIED }
+                .forEach { option ->
                 DropdownMenuItem(
                     text = {
                         Text(
                             when (option) {
                                 PaymentMethodOption.CREDIT -> stringResource(R.string.payment_method_credit)
                                 PaymentMethodOption.BANK_TRANSFER -> stringResource(R.string.payment_method_bank_transfer)
+                                PaymentMethodOption.CASH -> stringResource(R.string.payment_method_cash)
+                                PaymentMethodOption.CHECK -> stringResource(R.string.payment_method_check)
+                                PaymentMethodOption.DIGITAL_WALLET -> stringResource(R.string.payment_method_digital_wallet)
                                 PaymentMethodOption.OTHER -> stringResource(R.string.payment_method_other)
+                                PaymentMethodOption.NOT_SPECIFIED -> stringResource(R.string.payment_method_not_specified)
                             }
                         )
                     },

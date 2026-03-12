@@ -143,16 +143,17 @@ fun InvoiceDetailsScreen(
                         val methodLabel = when (methodValue) {
                             PaymentMethodOption.CREDIT.value -> stringResource(R.string.payment_method_credit)
                             PaymentMethodOption.BANK_TRANSFER.value -> stringResource(R.string.payment_method_bank_transfer)
+                            PaymentMethodOption.CASH.value -> stringResource(R.string.payment_method_cash)
+                            PaymentMethodOption.CHECK.value -> stringResource(R.string.payment_method_check)
+                            PaymentMethodOption.DIGITAL_WALLET.value -> stringResource(R.string.payment_method_digital_wallet)
                             PaymentMethodOption.OTHER.value -> stringResource(R.string.payment_method_other)
-                            else -> null
+                            else -> methodValue
                         }
-                        methodLabel?.let { label ->
-                            Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.payment_method_label, label),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            text = stringResource(R.string.payment_method_label, methodLabel),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
 
                     invoice.numberOfPayments?.takeIf { it.isNotBlank() }?.let { count ->

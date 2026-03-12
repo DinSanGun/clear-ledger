@@ -9,8 +9,12 @@ enum class PaymentStatus {
 }
 
 enum class PaymentMethodOption(val value: String) {
+    NOT_SPECIFIED(""),
     CREDIT("credit"),
     BANK_TRANSFER("bank_transfer"),
+    CASH("cash"),
+    CHECK("check"),
+    DIGITAL_WALLET("digital_wallet"),
     OTHER("other")
 }
 

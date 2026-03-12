@@ -184,9 +184,14 @@
     <string name="invoice_number_required">מספר חשבונית נדרש</string>
     <string name="notes_additional_info">הערות / מידע נוסף</string>
     <string name="payment_method">אמצעי תשלום</string>
-    <string name="payment_method_credit">אשראי</string>
+    <string name="payment_method_not_specified">לא צוין</string>
+    <string name="payment_method_credit">כרטיס אשראי</string>
     <string name="payment_method_bank_transfer">העברה בנקאית</string>
+    <string name="payment_method_cash">מזומן</string>
+    <string name="payment_method_check">צ׳ק</string>
+    <string name="payment_method_digital_wallet">ארנק דיגיטלי</string>
     <string name="payment_method_other">אחר</string>
+    <string name="payment_method_specify_other">ציין אמצעי תשלום</string>
     <string name="number_of_payments_hint">מספר תשלומים</string>
     <string name="confirmation_number">מספר אישור</string>
     
