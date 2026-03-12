@@ -2,6 +2,7 @@ package com.dinyairsadot.taxtracker.feature.invoice
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,16 +26,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.ui.graphics.Color
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
-import com.dinyairsadot.taxtracker.core.ui.parseCategoryColorOrDefault
-import androidx.compose.material3.TopAppBarDefaults
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.LocalContentColor
 import com.dinyairsadot.taxtracker.R
 
@@ -88,164 +87,198 @@ fun InvoiceDetailsScreen(
                     .padding(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    val invoiceNumberText = invoice.invoiceNumber.ifBlank {
-                        stringResource(R.string.invoice_number_fallback, invoice.id)
+                    IconButton(
+                        onClick = onEditClick,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = stringResource(R.string.edit_invoice)
+                        )
                     }
-                    Text(
-                        text = stringResource(R.string.invoice_number_label, invoiceNumberText),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
 
-                    invoice.documentType?.let { docType ->
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        val docTypeText = when (docType) {
-                            DocumentType.BILL_DEMAND -> stringResource(R.string.document_type_bill_demand)
-                            DocumentType.TAX_INVOICE -> stringResource(R.string.document_type_tax_invoice)
-                            DocumentType.INVOICE_RECEIPT -> stringResource(R.string.document_type_invoice_receipt)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        val invoiceNumberText = invoice.invoiceNumber.ifBlank {
+                            stringResource(R.string.invoice_number_fallback, invoice.id)
                         }
                         Text(
-                            text = stringResource(R.string.document_type_label, docTypeText),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    invoice.vendorName?.takeIf { it.isNotBlank() }?.let { vendor ->
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            text = stringResource(R.string.vendor_name_label, vendor),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.padding(top = 8.dp))
-
-                    Text(
-                        text = stringResource(R.string.amount_label, invoice.amount.toString()),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Spacer(modifier = Modifier.padding(top = 4.dp))
-
-                    val statusText = when (invoice.paymentStatus) {
-                        PaymentStatus.PAID -> stringResource(R.string.paid)
-                        PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
-                    }
-                    Text(
-                        text = stringResource(R.string.status_label, statusText),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    // Payment details (shown only when present)
-                    invoice.paymentMethod?.takeIf { it.isNotBlank() }?.let { methodValue ->
-                        val methodLabel = when (methodValue) {
-                            PaymentMethodOption.CREDIT.value -> stringResource(R.string.payment_method_credit)
-                            PaymentMethodOption.BANK_TRANSFER.value -> stringResource(R.string.payment_method_bank_transfer)
-                            PaymentMethodOption.CASH.value -> stringResource(R.string.payment_method_cash)
-                            PaymentMethodOption.CHECK.value -> stringResource(R.string.payment_method_check)
-                            PaymentMethodOption.DIGITAL_WALLET.value -> stringResource(R.string.payment_method_digital_wallet)
-                            PaymentMethodOption.OTHER.value -> stringResource(R.string.payment_method_other)
-                            else -> methodValue
-                        }
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            text = stringResource(R.string.payment_method_label, methodLabel),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    invoice.numberOfPayments?.takeIf { it.isNotBlank() }?.let { count ->
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            text = stringResource(R.string.number_of_payments_label, count),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    invoice.confirmationNumber?.takeIf { it.isNotBlank() }?.let { confirmation ->
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            text = stringResource(R.string.confirmation_number_label, confirmation),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    invoice.issueDateText?.let { issue ->
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            text = stringResource(R.string.issue_date_label, issue),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    invoice.dueDateText?.let { due ->
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            text = stringResource(R.string.due_date_label, due),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    invoice.paymentDateText?.let { paid ->
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            text = stringResource(R.string.paid_date_label, paid),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    formatServicePeriodForDisplay(
-                        invoice.servicePeriodStartText,
-                        invoice.servicePeriodEndText,
-                        invoice.servicePeriodMode,
-                        LocalContext.current.resources.configuration.locales[0]
-                    )?.let { formattedPeriod ->
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
-                        Text(
-                            text = stringResource(R.string.service_period_label, formattedPeriod),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    invoice.notes?.takeIf { it.isNotBlank() }?.let { notes ->
-                        Spacer(modifier = Modifier.padding(top = 8.dp))
-                        Text(
-                            text = stringResource(R.string.notes_label),
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = stringResource(R.string.invoice_number_label, invoiceNumberText),
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold
                         )
-                        Spacer(modifier = Modifier.padding(top = 2.dp))
+
+                        invoice.documentType?.let { docType ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            val docTypeText = when (docType) {
+                                DocumentType.BILL_DEMAND -> stringResource(R.string.document_type_bill_demand)
+                                DocumentType.TAX_INVOICE -> stringResource(R.string.document_type_tax_invoice)
+                                DocumentType.INVOICE_RECEIPT -> stringResource(R.string.document_type_invoice_receipt)
+                            }
+                            Text(
+                                text = stringResource(R.string.document_type_label, docTypeText),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        invoice.vendorName?.takeIf { it.isNotBlank() }?.let { vendor ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.vendor_name_label, vendor),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.padding(top = 8.dp))
+
                         Text(
-                            text = notes,
+                            text = stringResource(R.string.amount_label, invoice.amount.toString()),
                             style = MaterialTheme.typography.bodyMedium
                         )
-                    }
 
-                    // Custom fields
-                    if (categoryCustomFieldTitles.isNotEmpty() && invoice.customFieldValues.isNotEmpty()) {
-                        categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
-                            invoice.customFieldValues.getOrNull(index)?.takeIf { it.isNotBlank() }?.let { value ->
-                                Spacer(modifier = Modifier.padding(top = 8.dp))
-                                Text(
-                                    text = "$fieldTitle:",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Spacer(modifier = Modifier.padding(top = 2.dp))
-                                Text(
-                                    text = value,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+                        Spacer(modifier = Modifier.padding(top = 4.dp))
+
+                        val statusText = when (invoice.paymentStatus) {
+                            PaymentStatus.PAID -> stringResource(R.string.paid)
+                            PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.status),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+                            Text(
+                                text = statusText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = invoice.paymentStatus.toDisplayColor()
+                            )
+                        }
+
+                        // Payment details (shown only when present)
+                        invoice.paymentMethod?.takeIf { it.isNotBlank() }?.let { methodValue ->
+                            val methodLabel = when (methodValue) {
+                                PaymentMethodOption.CREDIT.value -> stringResource(R.string.payment_method_credit)
+                                PaymentMethodOption.BANK_TRANSFER.value -> stringResource(R.string.payment_method_bank_transfer)
+                                PaymentMethodOption.CASH.value -> stringResource(R.string.payment_method_cash)
+                                PaymentMethodOption.CHECK.value -> stringResource(R.string.payment_method_check)
+                                PaymentMethodOption.DIGITAL_WALLET.value -> stringResource(R.string.payment_method_digital_wallet)
+                                PaymentMethodOption.OTHER.value -> stringResource(R.string.payment_method_other)
+                                else -> methodValue
+                            }
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.payment_method_label, methodLabel),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        invoice.numberOfPayments?.takeIf { it.isNotBlank() }?.let { count ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.number_of_payments_label, count),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        invoice.confirmationNumber?.takeIf { it.isNotBlank() }?.let { confirmation ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.confirmation_number_label, confirmation),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        invoice.issueDateText?.let { issue ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.issue_date_label, issue),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        invoice.dueDateText?.let { due ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.due_date_label, due),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        invoice.paymentDateText?.let { paid ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.paid_date_label, paid),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        formatServicePeriodForDisplay(
+                            invoice.servicePeriodStartText,
+                            invoice.servicePeriodEndText,
+                            invoice.servicePeriodMode,
+                            LocalContext.current.resources.configuration.locales[0]
+                        )?.let { formattedPeriod ->
+                            Spacer(modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                text = stringResource(R.string.service_period_label, formattedPeriod),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        invoice.notes?.takeIf { it.isNotBlank() }?.let { notes ->
+                            Spacer(modifier = Modifier.padding(top = 8.dp))
+                            Text(
+                                text = stringResource(R.string.notes_label),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.padding(top = 2.dp))
+                            Text(
+                                text = notes,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        // Custom fields
+                        if (categoryCustomFieldTitles.isNotEmpty() && invoice.customFieldValues.isNotEmpty()) {
+                            categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
+                                invoice.customFieldValues.getOrNull(index)?.takeIf { it.isNotBlank() }?.let { value ->
+                                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                                    Text(
+                                        text = "$fieldTitle:",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Spacer(modifier = Modifier.padding(top = 2.dp))
+                                    Text(
+                                        text = value,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PaymentStatus.toDisplayColor(): Color {
+    return when (this) {
+        PaymentStatus.PAID -> Color(0xFF4CAF50)
+        PaymentStatus.NOT_PAID -> MaterialTheme.colorScheme.error
     }
 }

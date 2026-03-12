@@ -60,6 +60,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
@@ -69,6 +70,7 @@ import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.invoice.SortOption
 import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
 import com.dinyairsadot.taxtracker.R
+import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 
 private const val SORT_MENU_ANIM_MS = 420
 
@@ -362,75 +364,109 @@ private fun InvoiceItem(
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left content (everything that should flow top->bottom)
+            // Invoice data block
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 84.dp) // reserve space for amount + delete so they never overlap text
+                    .weight(1f)
             ) {
                 val invoiceNumberText = invoice.invoiceNumber.ifBlank {
                     stringResource(R.string.invoice_number_fallback, invoice.id)
                 }
                 Text(
-                    text = stringResource(R.string.invoice_number_label, invoiceNumberText),
+                    text = stringResource(R.string.invoice_number_label, invoiceNumberText.truncateForList()),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.padding(top = 2.dp))
+
+                val statusText = when (invoice.paymentStatus) {
+                    PaymentStatus.PAID -> stringResource(R.string.paid)
+                    PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
+                }
+                val statusColor = invoice.paymentStatus.toDisplayColor()
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val servicePeriod = formatServicePeriodForDisplay(
+                        invoice.servicePeriodStartText,
+                        invoice.servicePeriodEndText,
+                        invoice.servicePeriodMode,
+                        context.resources.configuration.locales[0]
+                    )
+
+                    servicePeriod?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        Text(
+                            text = " \u2022 ",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    Text(
+                        text = statusText,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = statusColor
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(top = 2.dp))
+
+                Text(
+                    text = formatAmountILS(invoice.amount, context),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
 
-                Spacer(modifier = Modifier.padding(top = 4.dp))
-
-                Text(
-                    text = when (invoice.paymentStatus) {
-                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID -> stringResource(R.string.paid)
-                        com.dinyairsadot.taxtracker.core.domain.PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
-                    },
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                formatServicePeriodForDisplay(
-                    invoice.servicePeriodStartText,
-                    invoice.servicePeriodEndText,
-                    invoice.servicePeriodMode,
-                    context.resources.configuration.locales[0]
-                )?.let { servicePeriod ->
-                    Text(
-                        text = servicePeriod,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
                 invoice.notes?.takeIf { it.isNotBlank() }?.let { notes ->
-                    Spacer(modifier = Modifier.padding(top = 4.dp))
+                    Spacer(modifier = Modifier.padding(top = 2.dp))
                     Text(
                         text = notes,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
 
-            // Right content pinned to the vertical center of the entire card content
-            Row(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = formatAmountILS(invoice.amount, context),
-                    style = MaterialTheme.typography.titleMedium
+            IconButton(onClick = onDeleteClick) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.delete_invoice),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.delete_invoice),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
         }
+    }
+}
+
+private fun String.truncateForList(maxChars: Int = 12): String {
+    if (this.length <= maxChars) return this
+    return this.take(maxChars) + "…"
+}
+
+@Composable
+private fun PaymentStatus.toDisplayColor(): Color {
+    return when (this) {
+        PaymentStatus.PAID -> Color(0xFF4CAF50)
+        PaymentStatus.NOT_PAID -> MaterialTheme.colorScheme.error
     }
 }
 

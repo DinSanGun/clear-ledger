@@ -55,6 +55,7 @@ import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
+import androidx.compose.material3.LocalContentColor
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -322,6 +323,16 @@ fun EditInvoiceScreen(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
                         )
+                    }
+                },
+                actions = {
+                    TextButton(
+                        onClick = { handleSave() },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = LocalContentColor.current
+                        )
+                    ) {
+                        Text(text = stringResource(R.string.save))
                     }
                 }
             )
