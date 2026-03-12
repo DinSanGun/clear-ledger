@@ -158,18 +158,24 @@ fun CategoryForm(
                 }
         )
 
+        // Slightly larger gap before custom fields section
+        Spacer(modifier = Modifier.height(4.dp))
+
         // Custom fields section
-        if (state.customFieldTitles.isNotEmpty()) {
-            Text(
-                text = stringResource(R.string.add_custom_field),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-        
+        HorizontalDivider()
+
+        Text(
+            text = stringResource(R.string.add_custom_fields_section_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 8.dp, bottom = 0.dp)
+        )
+
         // Render all custom fields dynamically
         state.customFieldTitles.forEachIndexed { index, title ->
+            if (index > 0) {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -203,9 +209,10 @@ fun CategoryForm(
 
         // Add new field UI (if space available)
         if (state.customFieldTitles.size < Category.MAX_CUSTOM_FIELDS) {
-            Spacer(modifier = Modifier.height(8.dp))
-            
             // 1) FIRST: Text input + Add button (easiest path)
+            if (state.customFieldTitles.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

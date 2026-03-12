@@ -34,6 +34,7 @@
     <string name="field_title">כותרת שדה %1$d</string>
     <string name="field_number">שדה %1$d</string>
     <string name="add_custom_field">הוסף שדה מותאם אישית</string>
+    <string name="add_custom_fields_section_title">הוסף שדות מותאמים</string>
     <string name="remove_field">הסר שדה</string>
     <string name="remove_custom_field">הסר שדה מותאם אישית?</string>
     <string name="remove_custom_field_confirmation">הסרת \"%1$s\" תמחק כל מידע שנשמר בחשבוניות עבור שדה זה. האם אתה בטוח שברצונך להסיר אותו?</string>
