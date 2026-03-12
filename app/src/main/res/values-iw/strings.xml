@@ -67,6 +67,14 @@
     <string name="paid_with_credit">שולם באשראי</string>
     <string name="due">תשלום: %1$s</string>
     <string name="failed_to_load_invoices">נכשל בטעינת חשבוניות</string>
+    <string name="search_invoices_placeholder">חיפוש חשבוניות…</string>
+    <string name="search_by_invoice_number_placeholder">חיפוש לפי מספר חשבונית…</string>
+    <string name="search_by_amount_placeholder">חיפוש לפי סכום…</string>
+    <string name="search_mode_invoice_number">מספר חשבונית</string>
+    <string name="search_mode_amount">סכום</string>
+    <string name="search_selector_invoice_dropdown">מספר חשבונית ▾</string>
+    <string name="search_selector_amount_dropdown">סכום ▾</string>
+    <string name="search_by_label">חיפוש לפי</string>
     
     <!-- Add/Edit Invoice Screen -->
     <string name="add_invoice_title">הוסף חשבונית</string>

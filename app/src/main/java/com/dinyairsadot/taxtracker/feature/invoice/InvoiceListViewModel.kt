@@ -25,6 +25,11 @@ enum class SortOption {
     AMOUNT_ASCENDING
 }
 
+enum class SearchMode {
+    INVOICE_NUMBER,
+    AMOUNT
+}
+
 sealed interface InvoiceListScope {
     data object AllInvoices : InvoiceListScope
     data class CategoryInvoices(val categoryId: Long) : InvoiceListScope
@@ -68,6 +73,7 @@ data class InvoiceListUiState(
     val visibleInvoices: List<InvoiceUi> = emptyList(),
     val errorMessage: String? = null,
     val searchQuery: String = "",
+    val searchMode: SearchMode = SearchMode.INVOICE_NUMBER,
     val servicePeriodStartFilter: LocalDate? = null,
     val servicePeriodEndFilter: LocalDate? = null,
     val statusFilter: PaymentStatus? = null,
@@ -187,20 +193,42 @@ class InvoiceListViewModel(
         invoices: List<InvoiceUi>,
         state: InvoiceListUiState
     ): List<InvoiceUi> {
-        var result = invoices
+        val rawQuery = state.searchQuery.trim()
+        if (rawQuery.isBlank()) {
+            return invoices
+        }
 
-        // Placeholder pipeline for future search and filters.
-        // Future steps may use:
-        // - state.searchQuery
-        // - state.servicePeriodStartFilter / servicePeriodEndFilter (service period is the primary date)
-        // - state.statusFilter
-
-        return result
+        return when (state.searchMode) {
+            SearchMode.INVOICE_NUMBER -> {
+                val normalizedQuery = rawQuery.lowercase()
+                invoices.filter { invoice ->
+                    invoice.invoiceNumber.lowercase().contains(normalizedQuery)
+                }
+            }
+            SearchMode.AMOUNT -> {
+                val query = rawQuery
+                invoices.filter { invoice ->
+                    invoice.amount.toString().contains(query)
+                }
+            }
+        }
     }
 
     fun setSortOption(sortOption: SortOption) {
         updateStateAndRecompute { state ->
             state.copy(sortOption = sortOption)
+        }
+    }
+
+    fun setSearchQuery(query: String) {
+        updateStateAndRecompute { state ->
+            state.copy(searchQuery = query)
+        }
+    }
+
+    fun setSearchMode(mode: SearchMode) {
+        updateStateAndRecompute { state ->
+            state.copy(searchMode = mode)
         }
     }
     

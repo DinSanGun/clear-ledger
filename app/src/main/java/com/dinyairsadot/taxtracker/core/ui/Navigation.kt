@@ -299,8 +299,14 @@ fun TaxTrackerNavHost(
                 categoryColorHex = uiState.categoryColorHex,
                 onSortOptionChange = { sortOption ->
                     viewModel.setSortOption(sortOption)
+                },
+                onSearchQueryChange = { query ->
+                    viewModel.setSearchQuery(query)
+                },
+                onSearchModeChange = { mode ->
+                    viewModel.setSearchMode(mode)
                 }
-                )
+            )
         }
         // -------------------------
         // Invoice add screen

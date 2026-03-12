@@ -67,6 +67,14 @@
     <string name="paid_with_credit">Paid with credit</string>
     <string name="due">Due: %1$s</string>
     <string name="failed_to_load_invoices">Failed to load invoices</string>
+    <string name="search_invoices_placeholder">Search invoices…</string>
+    <string name="search_by_invoice_number_placeholder">Search by invoice number…</string>
+    <string name="search_by_amount_placeholder">Search by amount…</string>
+    <string name="search_mode_invoice_number">Invoice number</string>
+    <string name="search_mode_amount">Amount</string>
+    <string name="search_selector_invoice_dropdown">Invoice # ▾</string>
+    <string name="search_selector_amount_dropdown">Amount ▾</string>
+    <string name="search_by_label">Search by</string>
     
     <!-- Add/Edit Invoice Screen -->
     <string name="add_invoice_title">Add invoice</string>

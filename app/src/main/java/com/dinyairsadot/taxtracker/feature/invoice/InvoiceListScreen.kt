@@ -43,6 +43,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Surface
@@ -85,8 +88,10 @@ fun InvoiceListScreen(
     onInvoiceClick: (Long) -> Unit,
     onDeleteInvoice: (Long) -> Unit,
     categoryColorHex: String?,
-    onSortOptionChange: (SortOption) -> Unit
-    ) {
+    onSortOptionChange: (SortOption) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchModeChange: (SearchMode) -> Unit
+) {
 
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -240,20 +245,35 @@ fun InvoiceListScreen(
                     )
                 }
 
-                uiState.visibleInvoices.isEmpty() -> {
-                    EmptyInvoicesState(
-                        categoryId = categoryId,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
                 else -> {
-                    InvoiceListContent(
-                        invoices = uiState.visibleInvoices,
-                        modifier = Modifier.fillMaxSize(),
-                        onInvoiceClick = onInvoiceClick,
-                        onRequestDeleteInvoice = { id -> pendingDeleteInvoiceId = id }
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        SearchBar(
+                            searchQuery = uiState.searchQuery,
+                            onSearchQueryChange = onSearchQueryChange,
+                            searchMode = uiState.searchMode,
+                            onSearchModeChange = onSearchModeChange
+                        )
+
+                        if (uiState.visibleInvoices.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                EmptyInvoicesState(
+                                    categoryId = categoryId
+                                )
+                            }
+                        } else {
+                            InvoiceListContent(
+                                invoices = uiState.visibleInvoices,
+                                modifier = Modifier.weight(1f),
+                                onInvoiceClick = onInvoiceClick,
+                                onRequestDeleteInvoice = { id -> pendingDeleteInvoiceId = id }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -279,6 +299,108 @@ fun InvoiceListScreen(
                 TextButton(onClick = { pendingDeleteInvoiceId = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
+    }
+}
+
+@Composable
+private fun SearchBar(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    searchMode: SearchMode,
+    onSearchModeChange: (SearchMode) -> Unit
+) {
+    val placeholderRes = when (searchMode) {
+        SearchMode.INVOICE_NUMBER -> R.string.search_by_invoice_number_placeholder
+        SearchMode.AMOUNT -> R.string.search_by_amount_placeholder
+    }
+
+    val modeIndicator = when (searchMode) {
+        SearchMode.INVOICE_NUMBER -> "# ▾"
+        SearchMode.AMOUNT -> "₪ ▾"
+    }
+
+    var showModeMenu by remember { mutableStateOf(false) }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text(stringResource(placeholderRes)) },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        disabledBorderColor = Color.Transparent,
+                        errorBorderColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent
+                    ),
+                    trailingIcon = {
+                        Box {
+                            Row(
+                                modifier = Modifier
+                                    .clickable { showModeMenu = true }
+                                    .padding(start = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = modeIndicator,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showModeMenu,
+                                onDismissRequest = { showModeMenu = false }
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.search_by_label),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 4.dp)
+                                )
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(4.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.search_mode_invoice_number)) },
+                                    onClick = {
+                                        onSearchModeChange(SearchMode.INVOICE_NUMBER)
+                                        showModeMenu = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.search_mode_amount)) },
+                                    onClick = {
+                                        onSearchModeChange(SearchMode.AMOUNT)
+                                        showModeMenu = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+        }
     }
 }
 
@@ -336,7 +458,7 @@ private fun InvoiceListContent(
 ) {
     val context = LocalContext.current
     LazyColumn(
-        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
             items(invoices) { invoice ->
