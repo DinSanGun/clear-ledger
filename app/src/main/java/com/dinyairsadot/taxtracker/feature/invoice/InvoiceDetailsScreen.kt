@@ -93,8 +93,11 @@ fun InvoiceDetailsScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
+                    val invoiceNumberText = invoice.invoiceNumber.ifBlank {
+                        stringResource(R.string.invoice_number_fallback, invoice.id)
+                    }
                     Text(
-                        text = invoice.invoiceNumber.ifBlank { stringResource(R.string.invoice_number_fallback, invoice.id) },
+                        text = stringResource(R.string.invoice_number_label, invoiceNumberText),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )

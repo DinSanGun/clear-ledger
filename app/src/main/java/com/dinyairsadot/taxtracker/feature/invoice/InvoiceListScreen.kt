@@ -373,8 +373,11 @@ private fun InvoiceItem(
                     .fillMaxWidth()
                     .padding(end = 84.dp) // reserve space for amount + delete so they never overlap text
             ) {
+                val invoiceNumberText = invoice.invoiceNumber.ifBlank {
+                    stringResource(R.string.invoice_number_fallback, invoice.id)
+                }
                 Text(
-                    text = invoice.invoiceNumber.ifBlank { stringResource(R.string.invoice_number_fallback, invoice.id) },
+                    text = stringResource(R.string.invoice_number_label, invoiceNumberText),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )

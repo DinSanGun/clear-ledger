@@ -59,7 +59,8 @@
     <string name="please_try_again_later">Please try again later.</string>
     <string name="no_invoices_yet">No invoices yet</string>
     <string name="tap_to_add_first_invoice">Tap + to add your first invoice for this category.</string>
-    <string name="invoice_number_fallback">Invoice #%1$d</string>
+    <string name="invoice_number_fallback">%1$d</string>
+    <string name="invoice_number_label">Invoice No. %1$s</string>
     <string name="paid_in_full">Paid in full</string>
     <string name="not_paid">Not paid</string>
     <string name="paid_with_credit">Paid with credit</string>
