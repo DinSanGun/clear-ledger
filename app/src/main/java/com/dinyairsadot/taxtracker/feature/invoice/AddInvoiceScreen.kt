@@ -48,7 +48,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -629,6 +631,8 @@ fun PaymentMethodSelector(
     modifier: Modifier = Modifier
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    val density = LocalDensity.current
+    var textFieldWidth by remember { mutableStateOf(0.dp) }
     val displayText = when (selected) {
         PaymentMethodOption.CREDIT.value -> stringResource(R.string.payment_method_credit)
         PaymentMethodOption.BANK_TRANSFER.value -> stringResource(R.string.payment_method_bank_transfer)
@@ -646,13 +650,17 @@ fun PaymentMethodSelector(
             readOnly = true,
             modifier = Modifier
                 .menuAnchor()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    textFieldWidth = with(density) { coordinates.size.width.toDp() }
+                },
             label = { Text(stringResource(R.string.payment_method)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
         )
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.width(textFieldWidth)
         ) {
             DropdownMenuItem(
                 text = { Text("—") },
