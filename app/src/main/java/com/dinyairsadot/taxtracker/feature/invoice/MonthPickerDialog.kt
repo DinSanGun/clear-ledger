@@ -1,5 +1,8 @@
 package com.dinyairsadot.taxtracker.feature.invoice
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,9 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.dinyairsadot.taxtracker.R
 import java.time.Month
 import java.time.format.TextStyle
@@ -97,18 +103,37 @@ fun MonthPickerDialog(
                             val month = row * 3 + col + 1 // 1..12
                             val label = Month.of(month).getDisplayName(TextStyle.SHORT, locale)
                             val isSelected = month == selectedMonth
+
+                            val targetBackgroundColor =
+                                if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+                            val backgroundColor by animateColorAsState(
+                                targetValue = targetBackgroundColor,
+                                animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+                                label = "monthBackgroundColor"
+                            )
+
+                            val targetTextColor =
+                                if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                            val textColor by animateColorAsState(
+                                targetValue = targetTextColor,
+                                animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+                                label = "monthTextColor"
+                            )
+
                             TextButton(
                                 onClick = { selectedMonth = month },
-                                modifier = Modifier.weight(1f).padding(horizontal = 2.dp)
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 2.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.textButtonColors(
+                                    containerColor = backgroundColor,
+                                    contentColor = textColor
+                                )
                             ) {
                                 Text(
                                     text = label,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface
-                                    }
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                                 )
                             }
                         }
