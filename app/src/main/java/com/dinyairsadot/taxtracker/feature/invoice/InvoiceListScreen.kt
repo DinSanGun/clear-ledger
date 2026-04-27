@@ -39,12 +39,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -59,7 +61,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
@@ -128,6 +129,7 @@ fun InvoiceListScreen(
     var showSortMenu by remember { mutableStateOf(false) }
     val sortMenuVisibility = remember { MutableTransitionState(false) }
     var showFilterSheet by remember { mutableStateOf(false) }
+    val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val filtersActive = remember(
         uiState.servicePeriodStartFilter,
@@ -354,6 +356,7 @@ fun InvoiceListScreen(
     if (showFilterSheet) {
         ModalBottomSheet(
             onDismissRequest = { showFilterSheet = false },
+            sheetState = filterSheetState,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
             FilterSheetContent(
@@ -562,24 +565,9 @@ private fun FilterSheetContent(
         item { Spacer(modifier = Modifier.padding(top = 6.dp)) }
 
         item {
-            StatusOptionRow(
-                label = stringResource(R.string.all),
-                selected = statusFilter == null,
-                onSelect = { onStatusFilterChange(null) }
-            )
-        }
-        item {
-            StatusOptionRow(
-                label = stringResource(R.string.paid),
-                selected = statusFilter == PaymentStatus.PAID,
-                onSelect = { onStatusFilterChange(PaymentStatus.PAID) }
-            )
-        }
-        item {
-            StatusOptionRow(
-                label = stringResource(R.string.not_paid),
-                selected = statusFilter == PaymentStatus.NOT_PAID,
-                onSelect = { onStatusFilterChange(PaymentStatus.NOT_PAID) }
+            StatusFilterHorizontalRow(
+                statusFilter = statusFilter,
+                onStatusFilterChange = onStatusFilterChange
             )
         }
 
@@ -727,22 +715,59 @@ private fun DateFilterRow(
 }
 
 @Composable
-private fun StatusOptionRow(
-    label: String,
-    selected: Boolean,
-    onSelect: () -> Unit
+private fun StatusFilterHorizontalRow(
+    statusFilter: PaymentStatus?,
+    onStatusFilterChange: (PaymentStatus?) -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onSelect() }
-            .padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RadioButton(selected = selected, onClick = onSelect)
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium
+        FilterChip(
+            selected = statusFilter == null,
+            onClick = { onStatusFilterChange(null) },
+            label = {
+                Text(
+                    text = stringResource(R.string.all),
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+        FilterChip(
+            selected = statusFilter == PaymentStatus.PAID,
+            onClick = { onStatusFilterChange(PaymentStatus.PAID) },
+            label = {
+                Text(
+                    text = stringResource(R.string.paid),
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+        FilterChip(
+            selected = statusFilter == PaymentStatus.NOT_PAID,
+            onClick = { onStatusFilterChange(PaymentStatus.NOT_PAID) },
+            label = {
+                Text(
+                    text = stringResource(R.string.not_paid),
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center
+                )
+            },
+            modifier = Modifier.weight(1f)
         )
     }
 }
