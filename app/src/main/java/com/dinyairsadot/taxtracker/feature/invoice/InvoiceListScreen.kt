@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -29,7 +31,6 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -75,12 +76,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
@@ -100,6 +106,12 @@ private val LIST_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern
 
 /** Same width for From/To so the date strips start on one vertical line (LTR/RTL). */
 private val FilterSheetDateLabelColumnWidth = 88.dp
+
+/** Search-bar funnel: 80% of 28dp, then 90% of that (user-tuned). */
+private val SearchBarFilterIconSizeDp = (28f * 0.8f * 0.9f).dp
+
+/** # / ₪ next to search field: labelMedium × prior 1.3 × 1.2 (120% bump). */
+private const val SEARCH_BAR_MODE_SYMBOL_SCALE = 1.3f * 1.2f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -387,9 +399,26 @@ private fun SearchBar(
         SearchMode.AMOUNT -> R.string.search_by_amount_placeholder
     }
 
-    val modeIndicator = when (searchMode) {
-        SearchMode.INVOICE_NUMBER -> "# ▾"
-        SearchMode.AMOUNT -> "₪ ▾"
+    val labelMedium = MaterialTheme.typography.labelMedium
+    val modeIndicatorSymbolStyle = remember(
+        labelMedium.fontSize.value,
+        labelMedium.fontSize.type
+    ) {
+        val fs = labelMedium.fontSize
+        val scaled = when (fs.type) {
+            TextUnitType.Sp -> (fs.value * SEARCH_BAR_MODE_SYMBOL_SCALE).sp
+            TextUnitType.Em -> (fs.value * SEARCH_BAR_MODE_SYMBOL_SCALE).em
+            else -> (14f * SEARCH_BAR_MODE_SYMBOL_SCALE).sp
+        }
+        val line = when (scaled.type) {
+            TextUnitType.Sp -> (scaled.value * 1.35f).sp
+            TextUnitType.Em -> (scaled.value * 1.35f).em
+            else -> TextUnit.Unspecified
+        }
+        labelMedium.copy(
+            fontSize = scaled,
+            lineHeight = if (line != TextUnit.Unspecified) line else labelMedium.lineHeight
+        )
     }
 
     var showModeMenu by remember { mutableStateOf(false) }
@@ -430,20 +459,44 @@ private fun SearchBar(
                                 Row(
                                     modifier = Modifier
                                         .clickable { showModeMenu = true }
-                                        .padding(start = 4.dp),
+                                        .padding(start = 4.dp)
+                                        .heightIn(min = 32.dp)
+                                        .wrapContentHeight(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = modeIndicator,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    when (searchMode) {
+                                        SearchMode.INVOICE_NUMBER -> {
+                                            Text(
+                                                text = "#",
+                                                style = modeIndicatorSymbolStyle,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = " ▾",
+                                                style = labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                        SearchMode.AMOUNT -> {
+                                            Text(
+                                                text = "₪",
+                                                style = modeIndicatorSymbolStyle,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = " ▾",
+                                                style = labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
                                 }
 
                                 IconButton(onClick = onFilterClick) {
                                     Icon(
-                                        imageVector = Icons.Filled.FilterList,
+                                        painter = painterResource(R.drawable.ic_filter_svgrepo),
                                         contentDescription = stringResource(R.string.filter),
+                                        modifier = Modifier.size(SearchBarFilterIconSizeDp),
                                         tint = if (filtersActive) {
                                             MaterialTheme.colorScheme.primary
                                         } else {
