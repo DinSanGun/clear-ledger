@@ -17,6 +17,7 @@
     <string name="please_fix_highlighted_fields">Please fix the highlighted fields</string>
     <string name="from_date">From</string>
     <string name="to_date">To</string>
+    <string name="clear_filter_date_cd">Clear date filter</string>
     <string name="all">All</string>
     
     <!-- Category List Screen -->

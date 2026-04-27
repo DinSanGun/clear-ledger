@@ -16,13 +16,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.AlertDialog
@@ -67,6 +70,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
@@ -87,6 +91,9 @@ import java.time.format.DateTimeFormatter
 
 private const val SORT_MENU_ANIM_MS = 420
 private val LIST_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+/** Same width for From/To so the date strips start on one vertical line (LTR/RTL). */
+private val FilterSheetDateLabelColumnWidth = 88.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -576,32 +583,72 @@ private fun DateFilterRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(0.35f),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            modifier = Modifier.width(FilterSheetDateLabelColumnWidth),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
 
-        TextButton(
-            onClick = { showPicker = true },
-            modifier = Modifier.weight(0.45f)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 48.dp)
+                .clickable(
+                    onClickLabel = stringResource(R.string.pick_date),
+                    role = Role.Button,
+                    onClick = { showPicker = true }
+                )
+                .padding(horizontal = 4.dp, vertical = 4.dp)
         ) {
-            Text(
-                text = date?.format(LIST_DATE_FORMATTER) ?: "—",
-                maxLines = 1
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.CalendarToday,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = if (date != null) {
+                        date.format(LIST_DATE_FORMATTER)
+                    } else {
+                        stringResource(R.string.format_hint_dd_mm_yyyy)
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (date != null) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            HorizontalDivider(
+                modifier = Modifier.padding(top = 8.dp),
+                thickness = 2.dp,
+                color = MaterialTheme.colorScheme.outline
             )
         }
 
-        TextButton(
+        IconButton(
             onClick = { onDateChange(null) },
-            enabled = date != null,
-            modifier = Modifier.weight(0.2f)
+            enabled = date != null
         ) {
-            Text(stringResource(R.string.remove))
+            Icon(
+                imageVector = Icons.Filled.Delete,
+                contentDescription = stringResource(R.string.clear_filter_date_cd)
+            )
         }
     }
 

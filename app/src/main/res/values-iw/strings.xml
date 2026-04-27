@@ -76,6 +76,9 @@
     <string name="search_selector_invoice_dropdown">מספר חשבונית ▾</string>
     <string name="search_selector_amount_dropdown">סכום ▾</string>
     <string name="search_by_label">חיפוש לפי</string>
+    <string name="from_date">מ</string>
+    <string name="to_date">עד</string>
+    <string name="clear_filter_date_cd">נקה מסנן תאריך</string>
     
     <!-- Add/Edit Invoice Screen -->
     <string name="add_invoice_title">הוסף חשבונית</string>
