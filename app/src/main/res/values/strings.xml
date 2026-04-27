@@ -11,6 +11,12 @@
     <string name="add">Add</string>
     <string name="close">Close</string>
     <string name="sort">Sort</string>
+    <string name="sort_by">Sort by</string>
+    <string name="filter">Filter</string>
+    <string name="reset">Reset</string>
+    <string name="from_date">From</string>
+    <string name="to_date">To</string>
+    <string name="all">All</string>
     
     <!-- Category List Screen -->
     <string name="bills_and_taxes">Bills &amp; Taxes</string>

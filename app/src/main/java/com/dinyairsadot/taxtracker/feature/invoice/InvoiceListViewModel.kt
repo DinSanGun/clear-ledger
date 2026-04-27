@@ -47,6 +47,8 @@ data class InvoiceUi(
     val paymentDateText: String? = null,
     /** Fallback for sort when dueDate is null (service period end). Used for ordering only, not for display. */
     val servicePeriodEnd: LocalDate? = null,
+    /** Used for filtering by service period. */
+    val servicePeriodStart: LocalDate? = null,
     val servicePeriodStartText: String? = null,
     val servicePeriodEndText: String? = null,
     val notes: String?,
@@ -87,6 +89,7 @@ class InvoiceListViewModel(
 ) : ViewModel() {
 
     private var currentScope: InvoiceListScope? = null
+    private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     private val _uiState = MutableStateFlow(InvoiceListUiState(isLoading = true))
     val uiState: StateFlow<InvoiceListUiState> = _uiState.asStateFlow()
@@ -194,23 +197,71 @@ class InvoiceListViewModel(
         state: InvoiceListUiState
     ): List<InvoiceUi> {
         val rawQuery = state.searchQuery.trim()
-        if (rawQuery.isBlank()) {
-            return invoices
+
+        val afterSearch = if (rawQuery.isBlank()) {
+            invoices
+        } else {
+            when (state.searchMode) {
+                SearchMode.INVOICE_NUMBER -> {
+                    val normalizedQuery = rawQuery.lowercase()
+                    invoices.filter { invoice ->
+                        invoice.invoiceNumber.lowercase().contains(normalizedQuery)
+                    }
+                }
+                SearchMode.AMOUNT -> {
+                    val query = rawQuery
+                    invoices.filter { invoice ->
+                        invoice.amount.toString().contains(query)
+                    }
+                }
+            }
         }
 
-        return when (state.searchMode) {
-            SearchMode.INVOICE_NUMBER -> {
-                val normalizedQuery = rawQuery.lowercase()
-                invoices.filter { invoice ->
-                    invoice.invoiceNumber.lowercase().contains(normalizedQuery)
-                }
-            }
-            SearchMode.AMOUNT -> {
-                val query = rawQuery
-                invoices.filter { invoice ->
-                    invoice.amount.toString().contains(query)
-                }
-            }
+        val afterServicePeriod = applyServicePeriodFilters(
+            invoices = afterSearch,
+            startFilter = state.servicePeriodStartFilter,
+            endFilter = state.servicePeriodEndFilter
+        )
+
+        val afterStatus = applyStatusFilter(
+            invoices = afterServicePeriod,
+            statusFilter = state.statusFilter
+        )
+
+        return afterStatus
+    }
+
+    private fun applyServicePeriodFilters(
+        invoices: List<InvoiceUi>,
+        startFilter: LocalDate?,
+        endFilter: LocalDate?
+    ): List<InvoiceUi> {
+        if (startFilter == null && endFilter == null) return invoices
+
+        return invoices.filter { invoice ->
+            val start = invoice.servicePeriodStart ?: invoice.servicePeriodEnd
+            val end = invoice.servicePeriodEnd ?: invoice.servicePeriodStart
+
+            val startOk = startFilter?.let { filter ->
+                start != null && !start.isBefore(filter)
+            } ?: true
+
+            val endOk = endFilter?.let { filter ->
+                end != null && !end.isAfter(filter)
+            } ?: true
+
+            startOk && endOk
+        }
+    }
+
+    private fun applyStatusFilter(
+        invoices: List<InvoiceUi>,
+        statusFilter: PaymentStatus?
+    ): List<InvoiceUi> {
+        return when (statusFilter) {
+            null -> invoices // All
+            PaymentStatus.PAID -> invoices.filter { it.paymentStatus == PaymentStatus.PAID }
+            PaymentStatus.NOT_PAID -> invoices.filter { it.paymentStatus == PaymentStatus.NOT_PAID }
         }
     }
 
@@ -229,6 +280,37 @@ class InvoiceListViewModel(
     fun setSearchMode(mode: SearchMode) {
         updateStateAndRecompute { state ->
             state.copy(searchMode = mode)
+        }
+    }
+
+    fun setServicePeriodStartFilter(date: LocalDate?) {
+        updateStateAndRecompute { state ->
+            state.copy(servicePeriodStartFilter = date)
+        }
+    }
+
+    fun setServicePeriodEndFilter(date: LocalDate?) {
+        updateStateAndRecompute { state ->
+            state.copy(servicePeriodEndFilter = date)
+        }
+    }
+
+    /**
+     * null means "All" (no filtering by status).
+     */
+    fun setStatusFilter(status: PaymentStatus?) {
+        updateStateAndRecompute { state ->
+            state.copy(statusFilter = status)
+        }
+    }
+
+    fun clearFilters() {
+        updateStateAndRecompute { state ->
+            state.copy(
+                servicePeriodStartFilter = null,
+                servicePeriodEndFilter = null,
+                statusFilter = null
+            )
         }
     }
     
@@ -408,6 +490,7 @@ private fun Invoice.toUi(): InvoiceUi {
         dueDate = this.dueDate,
         paymentDateText = this.paymentDate?.format(dateFormatter),
         servicePeriodEnd = this.servicePeriodEnd,
+        servicePeriodStart = this.servicePeriodStart,
         servicePeriodStartText = this.servicePeriodStart?.format(dateFormatter),
         servicePeriodEndText = this.servicePeriodEnd?.format(dateFormatter),
         notes = this.notes,

@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.dinyairsadot.taxtracker.core.domain.Category
+import com.dinyairsadot.taxtracker.core.ui.requestAnchoredDropdownExpansion
 import com.dinyairsadot.taxtracker.R
 
 private const val DROPDOWN_ANIM_MS = 420
@@ -282,6 +283,9 @@ fun FieldCatalogPicker(
     onFieldSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val topicAnchorBringIntoViewRequester = remember { BringIntoViewRequester() }
+
     Column(modifier = modifier) {
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -316,12 +320,18 @@ fun FieldCatalogPicker(
         @OptIn(ExperimentalMaterial3Api::class)
         ExposedDropdownMenuBox(
             expanded = topicExpanded,
-            onExpandedChange = { expanded ->
-                if (expanded) {
-                    topicExpanded = true
-                    menuVisibility.targetState = true
-                } else {
-                    menuVisibility.targetState = false
+            onExpandedChange = { shouldExpand ->
+                requestAnchoredDropdownExpansion(
+                    shouldExpand = shouldExpand,
+                    scope = coroutineScope,
+                    bringIntoViewRequester = topicAnchorBringIntoViewRequester
+                ) { expanded ->
+                    if (expanded) {
+                        topicExpanded = true
+                        menuVisibility.targetState = true
+                    } else {
+                        menuVisibility.targetState = false
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -334,6 +344,7 @@ fun FieldCatalogPicker(
                 readOnly = true,
                 modifier = Modifier
                     .menuAnchor()
+                    .bringIntoViewRequester(topicAnchorBringIntoViewRequester)
                     .fillMaxWidth(),
                 label = { Text(stringResource(R.string.select_topic)) },
                 placeholder = { Text(stringResource(R.string.custom_field)) },

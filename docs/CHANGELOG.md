@@ -3,6 +3,82 @@
 This changelog documents incremental development steps of the Tax Tracker app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
 
+## 12/03/2026
+
+### Invoice List Search & Data Flow
+- Add invoice search with mode selector in invoice list
+- Introduce scope-aware invoice retrieval pipeline to support filtering and search behavior
+
+### Invoice Form & UI Improvements
+- Refine invoice card layouts, save actions, and status styling
+- Add invoice number labels in list and details screens
+- Improve month picker visuals with clearer selected state and smooth color animation
+- Match payment method dropdown menu width to its input field
+
+### Payment Method Enhancements
+- Expand payment method model with richer enum values and localized labels
+- Add "Not specified" default option for optional payment method selection
+- Support custom "Other" payment method with persisted free-text in add/edit flows
+
+### Category Form UX
+- Improve custom fields section with clearer header, divider, and spacing refinements
+
+## 10/03/2026
+
+### Invoice List Summary & Form Behavior
+- Reorder category invoice summary to show total before unpaid amount (including Hebrew translation updates)
+- Add automatic scroll-into-view behavior for focused form fields
+
+## 09/03/2026
+
+### Form & Invoice Details Fixes
+- Fix excessive padding above the soft keyboard in form screens
+- Fix invoice details screen to display all user-entered fields
+
+## 08/03/2026
+
+### Invoice Payment & Period Refactor
+- Add "Number of payments" field when payment method is Credit
+- Separate payment date and due date handling from service period
+- Simplify invoice form payment flow and layout
+- Improve document number validation and service period display behavior
+
+## 01/03/2026
+
+### Seeded Data Cleanup
+- Remove default custom fields from seeded categories
+
+## 26/02/2026
+
+### Category Edit & Dropdown UX
+- Add nested topic/field dropdown in Edit Category with full-field trigger and locale-aware predefined fields
+- Improve dropdown menu animation for smoother opening and transparent container rendering
+
+## 15/02/2026
+
+### Localization & Defaults
+- Add locale-aware seeded categories
+- Set Hebrew as default app language
+
+## 12/02/2026
+
+### Category List & First-Run Experience
+- Add dynamic invoice counts to category list
+- Implement first-run data seeding flow with loading screen
+
+## 11/02/2026
+
+### Invoice Model Foundation
+- Migrate to a minimal core invoice model with pinned defaults and optional field catalog
+
+## 10/02/2026
+
+### Screen Structure Refactor
+- Extract Edit Invoice screen into dedicated `EditInvoiceScreen.kt`
+- Update `PaymentStatusSelector` visibility for package-level usage
+
+---
+
 ## 29/01/2026
 
 ### Archive unused in-memory repositories

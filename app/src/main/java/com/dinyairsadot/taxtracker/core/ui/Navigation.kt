@@ -305,6 +305,18 @@ fun TaxTrackerNavHost(
                 },
                 onSearchModeChange = { mode ->
                     viewModel.setSearchMode(mode)
+                },
+                onServicePeriodStartFilterChange = { date ->
+                    viewModel.setServicePeriodStartFilter(date)
+                },
+                onServicePeriodEndFilterChange = { date ->
+                    viewModel.setServicePeriodEndFilter(date)
+                },
+                onStatusFilterChange = { status ->
+                    viewModel.setStatusFilter(status)
+                },
+                onClearFilters = {
+                    viewModel.clearFilters()
                 }
             )
         }

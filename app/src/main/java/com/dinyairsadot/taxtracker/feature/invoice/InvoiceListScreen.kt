@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -50,6 +52,10 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import androidx.compose.runtime.Composable
@@ -74,8 +80,13 @@ import com.dinyairsadot.taxtracker.feature.invoice.SortOption
 import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
 import com.dinyairsadot.taxtracker.R
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 private const val SORT_MENU_ANIM_MS = 420
+private val LIST_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,7 +101,11 @@ fun InvoiceListScreen(
     categoryColorHex: String?,
     onSortOptionChange: (SortOption) -> Unit,
     onSearchQueryChange: (String) -> Unit,
-    onSearchModeChange: (SearchMode) -> Unit
+    onSearchModeChange: (SearchMode) -> Unit,
+    onServicePeriodStartFilterChange: (LocalDate?) -> Unit,
+    onServicePeriodEndFilterChange: (LocalDate?) -> Unit,
+    onStatusFilterChange: (PaymentStatus?) -> Unit,
+    onClearFilters: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -100,6 +115,17 @@ fun InvoiceListScreen(
     var pendingDeleteInvoiceId by remember { mutableStateOf<Long?>(null) }
     var showSortMenu by remember { mutableStateOf(false) }
     val sortMenuVisibility = remember { MutableTransitionState(false) }
+    var showFilterSheet by remember { mutableStateOf(false) }
+
+    val filtersActive = remember(
+        uiState.servicePeriodStartFilter,
+        uiState.servicePeriodEndFilter,
+        uiState.statusFilter
+    ) {
+        uiState.servicePeriodStartFilter != null ||
+            uiState.servicePeriodEndFilter != null ||
+            uiState.statusFilter != null
+    }
 
     LaunchedEffect(sortMenuVisibility.isIdle, sortMenuVisibility.currentState, showSortMenu) {
         // Keep popup mounted while exiting; dismiss only after exit animation completes.
@@ -169,6 +195,16 @@ fun InvoiceListScreen(
                                     tonalElevation = 2.dp
                                 ) {
                                     Column {
+                                        Text(
+                                            text = stringResource(R.string.sort_by),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 6.dp)
+                                        )
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(horizontal = 8.dp),
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                        )
                                         DropdownMenuItem(
                                         text = { Text(stringResource(R.string.date_newest_first)) },
                                         onClick = {
@@ -253,7 +289,9 @@ fun InvoiceListScreen(
                             searchQuery = uiState.searchQuery,
                             onSearchQueryChange = onSearchQueryChange,
                             searchMode = uiState.searchMode,
-                            onSearchModeChange = onSearchModeChange
+                            onSearchModeChange = onSearchModeChange,
+                            filtersActive = filtersActive,
+                            onFilterClick = { showFilterSheet = true }
                         )
 
                         if (uiState.visibleInvoices.isEmpty()) {
@@ -300,6 +338,22 @@ fun InvoiceListScreen(
             }
         )
     }
+
+    if (showFilterSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilterSheet = false }
+        ) {
+            FilterSheetContent(
+                servicePeriodStart = uiState.servicePeriodStartFilter,
+                servicePeriodEnd = uiState.servicePeriodEndFilter,
+                statusFilter = uiState.statusFilter,
+                onServicePeriodStartChange = onServicePeriodStartFilterChange,
+                onServicePeriodEndChange = onServicePeriodEndFilterChange,
+                onStatusFilterChange = onStatusFilterChange,
+                onReset = onClearFilters
+            )
+        }
+    }
 }
 
 @Composable
@@ -307,7 +361,9 @@ private fun SearchBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     searchMode: SearchMode,
-    onSearchModeChange: (SearchMode) -> Unit
+    onSearchModeChange: (SearchMode) -> Unit,
+    filtersActive: Boolean,
+    onFilterClick: () -> Unit
 ) {
     val placeholderRes = when (searchMode) {
         SearchMode.INVOICE_NUMBER -> R.string.search_by_invoice_number_placeholder
@@ -352,16 +408,32 @@ private fun SearchBar(
                     trailingIcon = {
                         Box {
                             Row(
-                                modifier = Modifier
-                                    .clickable { showModeMenu = true }
-                                    .padding(start = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = modeIndicator,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .clickable { showModeMenu = true }
+                                        .padding(start = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = modeIndicator,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                IconButton(onClick = onFilterClick) {
+                                    Icon(
+                                        imageVector = Icons.Filled.FilterList,
+                                        contentDescription = stringResource(R.string.filter),
+                                        tint = if (filtersActive) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
+                                    )
+                                }
                             }
                             DropdownMenu(
                                 expanded = showModeMenu,
@@ -401,6 +473,182 @@ private fun SearchBar(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FilterSheetContent(
+    servicePeriodStart: LocalDate?,
+    servicePeriodEnd: LocalDate?,
+    statusFilter: PaymentStatus?,
+    onServicePeriodStartChange: (LocalDate?) -> Unit,
+    onServicePeriodEndChange: (LocalDate?) -> Unit,
+    onStatusFilterChange: (PaymentStatus?) -> Unit,
+    onReset: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.filter),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            TextButton(onClick = onReset) {
+                Text(stringResource(R.string.reset))
+            }
+        }
+
+        Spacer(modifier = Modifier.padding(top = 8.dp))
+
+        Text(
+            text = stringResource(R.string.service_period),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.padding(top = 6.dp))
+
+        DateFilterRow(
+            label = stringResource(R.string.from_date),
+            date = servicePeriodStart,
+            onDateChange = onServicePeriodStartChange
+        )
+        DateFilterRow(
+            label = stringResource(R.string.to_date),
+            date = servicePeriodEnd,
+            onDateChange = onServicePeriodEndChange
+        )
+
+        Spacer(modifier = Modifier.padding(top = 12.dp))
+
+        Text(
+            text = stringResource(R.string.status),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.padding(top = 6.dp))
+
+        StatusOptionRow(
+            label = stringResource(R.string.all),
+            selected = statusFilter == null,
+            onSelect = { onStatusFilterChange(null) }
+        )
+        StatusOptionRow(
+            label = stringResource(R.string.paid),
+            selected = statusFilter == PaymentStatus.PAID,
+            onSelect = { onStatusFilterChange(PaymentStatus.PAID) }
+        )
+        StatusOptionRow(
+            label = stringResource(R.string.not_paid),
+            selected = statusFilter == PaymentStatus.NOT_PAID,
+            onSelect = { onStatusFilterChange(PaymentStatus.NOT_PAID) }
+        )
+
+        Spacer(modifier = Modifier.padding(bottom = 24.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateFilterRow(
+    label: String,
+    date: LocalDate?,
+    onDateChange: (LocalDate?) -> Unit
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    val zoneId = remember { ZoneId.systemDefault() }
+
+    val initialMillis = remember(date) {
+        date?.atStartOfDay(zoneId)?.toInstant()?.toEpochMilli()
+    }
+    val pickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(0.35f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        TextButton(
+            onClick = { showPicker = true },
+            modifier = Modifier.weight(0.45f)
+        ) {
+            Text(
+                text = date?.format(LIST_DATE_FORMATTER) ?: "—",
+                maxLines = 1
+            )
+        }
+
+        TextButton(
+            onClick = { onDateChange(null) },
+            enabled = date != null,
+            modifier = Modifier.weight(0.2f)
+        ) {
+            Text(stringResource(R.string.remove))
+        }
+    }
+
+    if (showPicker) {
+        DatePickerDialog(
+            onDismissRequest = { showPicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val millis = pickerState.selectedDateMillis
+                        val picked = millis?.let {
+                            Instant.ofEpochMilli(it).atZone(zoneId).toLocalDate()
+                        }
+                        onDateChange(picked)
+                        showPicker = false
+                    }
+                ) { Text(stringResource(R.string.save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPicker = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+}
+
+@Composable
+private fun StatusOptionRow(
+    label: String,
+    selected: Boolean,
+    onSelect: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSelect() }
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = selected, onClick = onSelect)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 

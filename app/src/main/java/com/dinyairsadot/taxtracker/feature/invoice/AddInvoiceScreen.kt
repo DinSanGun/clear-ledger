@@ -24,7 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -48,9 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,6 +58,7 @@ import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
+import com.dinyairsadot.taxtracker.core.ui.requestAnchoredDropdownExpansion
 import androidx.compose.material3.LocalContentColor
 import java.time.LocalDate
 import java.time.YearMonth
@@ -661,8 +659,8 @@ fun PaymentMethodSelector(
     modifier: Modifier = Modifier
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val density = LocalDensity.current
-    var textFieldWidth by remember { mutableStateOf(0.dp) }
+    val anchorBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
     val displayText = when (selected) {
         PaymentMethodOption.NOT_SPECIFIED.value, "" -> stringResource(R.string.payment_method_not_specified)
         PaymentMethodOption.CREDIT.value -> stringResource(R.string.payment_method_credit)
@@ -675,7 +673,14 @@ fun PaymentMethodSelector(
     }
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = it },
+        onExpandedChange = { shouldExpand ->
+            requestAnchoredDropdownExpansion(
+                shouldExpand = shouldExpand,
+                scope = coroutineScope,
+                bringIntoViewRequester = anchorBringIntoViewRequester,
+                onExpandedChange = { expanded = it }
+            )
+        },
         modifier = modifier
     ) {
         OutlinedTextField(
@@ -685,16 +690,14 @@ fun PaymentMethodSelector(
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
-                .onGloballyPositioned { coordinates ->
-                    textFieldWidth = with(density) { coordinates.size.width.toDp() }
-                },
+                .bringIntoViewRequester(anchorBringIntoViewRequester),
             label = { Text(stringResource(R.string.payment_method)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
         )
-        DropdownMenu(
+        ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.width(textFieldWidth)
+            matchTextFieldWidth = true
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.payment_method_not_specified)) },
