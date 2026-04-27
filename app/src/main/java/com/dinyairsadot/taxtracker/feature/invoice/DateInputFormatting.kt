@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 
 private const val MAX_DATE_DIGITS = 8 // DDMMYYYY
 private const val DATE_TEMPLATE = "DD/MM/YYYY"
+private const val DATE_SLASH_MASK = "  /  /    "
 
 fun formatDateInput(previous: TextFieldValue, incoming: TextFieldValue): TextFieldValue {
     val digitsOnly = incoming.text.filter(Char::isDigit).take(MAX_DATE_DIGITS)
@@ -73,6 +74,34 @@ class DateTemplateVisualTransformation(
             append(raw)
             if (suffix.isNotEmpty()) {
                 pushStyle(SpanStyle(color = templateColor))
+                append(suffix)
+                pop()
+            }
+        }.toAnnotatedString()
+
+        val mapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int = offset
+
+            override fun transformedToOriginal(offset: Int): Int {
+                return offset.coerceAtMost(raw.length)
+            }
+        }
+
+        return TransformedText(transformed, mapping)
+    }
+}
+
+class DateSlashVisualTransformation(
+    private val slashColor: Color
+) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val raw = text.text.take(DATE_TEMPLATE.length)
+        val suffix = DATE_SLASH_MASK.drop(raw.length.coerceAtMost(DATE_SLASH_MASK.length))
+
+        val transformed = AnnotatedString.Builder().apply {
+            append(raw)
+            if (suffix.isNotEmpty()) {
+                pushStyle(SpanStyle(color = slashColor))
                 append(suffix)
                 pop()
             }

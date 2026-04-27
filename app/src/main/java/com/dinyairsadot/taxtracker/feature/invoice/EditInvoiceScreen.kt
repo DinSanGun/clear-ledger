@@ -175,8 +175,6 @@ fun EditInvoiceScreen(
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodStartError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodEndError by rememberSaveable { mutableStateOf<String?>(null) }
-    var paymentDateError by rememberSaveable { mutableStateOf<String?>(null) }
-    var dueDateError by rememberSaveable { mutableStateOf<String?>(null) }
     var startMonthError by rememberSaveable { mutableStateOf<String?>(null) }
     var endMonthError by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -184,21 +182,6 @@ fun EditInvoiceScreen(
     var amountTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodStartTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodEndTouched by rememberSaveable { mutableStateOf(false) }
-    var paymentDateTouched by rememberSaveable { mutableStateOf(false) }
-    var dueDateTouched by rememberSaveable { mutableStateOf(false) }
-
-    fun validateOptionalDateField(input: String): String? {
-        return when (validateDateInput(input)) {
-            DateValidationResult.Blank -> null
-            DateValidationResult.FormatError -> context.getString(R.string.enter_valid_date)
-            DateValidationResult.InvalidDate -> context.getString(R.string.enter_valid_date)
-            is DateValidationResult.Valid -> null
-        }
-    }
-
-    fun validateDateFormatIfNotBlank(input: String): String? {
-        return validateOptionalDateField(input)
-    }
 
     fun handleSave() {
         var hasError = false
@@ -256,23 +239,8 @@ fun EditInvoiceScreen(
                     hasError = true
                     null
                 } else {
-                    when (val result = validateDateInput(trimmedStart)) {
-                        DateValidationResult.Blank,
-                        DateValidationResult.FormatError -> {
-                            servicePeriodStartError = context.getString(R.string.enter_valid_date)
-                            hasError = true
-                            null
-                        }
-                        DateValidationResult.InvalidDate -> {
-                            servicePeriodStartError = context.getString(R.string.enter_valid_date)
-                            hasError = true
-                            null
-                        }
-                        is DateValidationResult.Valid -> {
-                            servicePeriodStartError = null
-                            result.value
-                        }
-                    }
+                    servicePeriodStartError = null
+                    parseStrictDateOrNull(trimmedStart)
                 }
 
                 val endDate = if (trimmedEnd.isBlank()) {
@@ -280,23 +248,8 @@ fun EditInvoiceScreen(
                     hasError = true
                     null
                 } else {
-                    when (val result = validateDateInput(trimmedEnd)) {
-                        DateValidationResult.Blank,
-                        DateValidationResult.FormatError -> {
-                            servicePeriodEndError = context.getString(R.string.enter_valid_date)
-                            hasError = true
-                            null
-                        }
-                        DateValidationResult.InvalidDate -> {
-                            servicePeriodEndError = context.getString(R.string.enter_valid_date)
-                            hasError = true
-                            null
-                        }
-                        is DateValidationResult.Valid -> {
-                            servicePeriodEndError = null
-                            result.value
-                        }
-                    }
+                    servicePeriodEndError = null
+                    parseStrictDateOrNull(trimmedEnd)
                 }
 
                 if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
@@ -314,51 +267,15 @@ fun EditInvoiceScreen(
         val dueDateInput = dueDateText.trim()
 
         val paymentDate = if (paymentDateInput.isBlank()) {
-            paymentDateError = null
             null
         } else {
-            when (val result = validateDateInput(paymentDateInput)) {
-                DateValidationResult.Blank -> null
-                DateValidationResult.FormatError -> {
-                    paymentDateError = context.getString(R.string.enter_valid_date)
-                    hasError = true
-                    null
-                }
-                DateValidationResult.InvalidDate -> {
-                    paymentDateError = context.getString(R.string.enter_valid_date)
-                    hasError = true
-                    null
-                }
-                is DateValidationResult.Valid -> {
-                    paymentDateError = null
-                    result.value
-                }
-            }
+            parseStrictDateOrNull(paymentDateInput)
         }
         val dueDate = if (dueDateInput.isBlank()) {
-            dueDateError = null
             null
         } else {
-            when (val result = validateDateInput(dueDateInput)) {
-                DateValidationResult.Blank -> null
-                DateValidationResult.FormatError -> {
-                    dueDateError = context.getString(R.string.enter_valid_date)
-                    hasError = true
-                    null
-                }
-                DateValidationResult.InvalidDate -> {
-                    dueDateError = context.getString(R.string.enter_valid_date)
-                    hasError = true
-                    null
-                }
-                is DateValidationResult.Valid -> {
-                    dueDateError = null
-                    result.value
-                }
-            }
+            parseStrictDateOrNull(dueDateInput)
         }
-
-        if (hasError) return
 
         val finalPaymentMethod = when (paymentMethod) {
             PaymentMethodOption.OTHER.value -> {
@@ -560,7 +477,6 @@ fun EditInvoiceScreen(
                 startDateError = servicePeriodStartError,
                 onStartDateTouched = {
                     servicePeriodStartTouched = true
-                    servicePeriodStartError = validateDateFormatIfNotBlank(servicePeriodStartText)
                 },
                 endDateText = servicePeriodEndText,
                 onEndDateTextChange = {
@@ -570,7 +486,6 @@ fun EditInvoiceScreen(
                 endDateError = servicePeriodEndError,
                 onEndDateTouched = {
                     servicePeriodEndTouched = true
-                    servicePeriodEndError = validateDateFormatIfNotBlank(servicePeriodEndText)
                 },
                 startYear = startYear,
                 startMonth = startMonth,
@@ -660,18 +575,9 @@ fun EditInvoiceScreen(
 
                 ExactDateField(
                     value = paymentDateText,
-                    onValueChange = {
-                        paymentDateText = it
-                        paymentDateTouched = true
-                        paymentDateError = null
-                    },
+                    onValueChange = { paymentDateText = it },
                     label = stringResource(R.string.payment_date_label_hint),
-                    error = paymentDateError,
-                    onFocusLost = {
-                        if (paymentDateTouched) {
-                            paymentDateError = validateOptionalDateField(paymentDateText)
-                        }
-                    },
+                    error = null,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.padding(top = 8.dp))
@@ -681,18 +587,9 @@ fun EditInvoiceScreen(
             if (showDueDateGroup) {
                 ExactDateField(
                     value = dueDateText,
-                    onValueChange = {
-                        dueDateText = it
-                        dueDateTouched = true
-                        dueDateError = null
-                    },
+                    onValueChange = { dueDateText = it },
                     label = stringResource(R.string.due_date_label_hint),
-                    error = dueDateError,
-                    onFocusLost = {
-                        if (dueDateTouched) {
-                            dueDateError = validateOptionalDateField(dueDateText)
-                        }
-                    },
+                    error = null,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.padding(top = 8.dp))
