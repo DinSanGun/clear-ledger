@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.dinyairsadot.taxtracker.R
+import com.dinyairsadot.taxtracker.core.domain.InvoiceCurrency
 import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
@@ -88,6 +89,7 @@ fun EditInvoiceScreen(
     initialVendorName: String?,
     initialNotes: String,
     initialCustomFieldValues: List<String>,
+    initialAmountCurrency: InvoiceCurrency = InvoiceCurrency.ILS,
     onNavigateBack: () -> Unit,
     onSaveInvoice: (
         documentNumber: String,
@@ -103,7 +105,8 @@ fun EditInvoiceScreen(
         confirmationNumber: String?,
         vendorName: String?,
         notes: String,
-        customFieldValues: List<String>
+        customFieldValues: List<String>,
+        amountCurrency: InvoiceCurrency
     ) -> Unit
 ) {
     val context = LocalContext.current
@@ -175,7 +178,7 @@ fun EditInvoiceScreen(
     var confirmationNumber by rememberSaveable { mutableStateOf(initialConfirmationNumber ?: "") }
     var vendorName by rememberSaveable { mutableStateOf(initialVendorName.orEmpty()) }
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
-    var currency by rememberSaveable { mutableStateOf(Currency.ILS) }
+    var amountCurrencyCode by rememberSaveable { mutableStateOf(initialAmountCurrency.name) }
     var customFieldValues by rememberSaveable {
         mutableStateOf(
             categoryCustomFieldTitles.mapIndexed { index, _ ->
@@ -338,7 +341,8 @@ fun EditInvoiceScreen(
             confirmationNumber.takeIf { it.isNotBlank() },
             vendorName.trim().takeIf { it.isNotBlank() },
             notes.trim(),
-            customFieldValues
+            customFieldValues,
+            runCatching { InvoiceCurrency.valueOf(amountCurrencyCode) }.getOrDefault(InvoiceCurrency.ILS)
         )
         onNavigateBack()
     }
@@ -455,7 +459,12 @@ fun EditInvoiceScreen(
                         )
                         TextButton(
                             onClick = {
-                                currency = if (currency == Currency.USD) Currency.ILS else Currency.USD
+                                amountCurrencyCode =
+                                    if (amountCurrencyCode == InvoiceCurrency.USD.name) {
+                                        InvoiceCurrency.ILS.name
+                                    } else {
+                                        InvoiceCurrency.USD.name
+                                    }
                             },
                             modifier = Modifier.fillMaxSize(),
                             shape = RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = 4.dp, bottomEnd = 4.dp),
@@ -469,8 +478,11 @@ fun EditInvoiceScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    if (currency == Currency.USD) stringResource(R.string.currency_usd)
-                                    else stringResource(R.string.currency_ils)
+                                    if (amountCurrencyCode == InvoiceCurrency.USD.name) {
+                                        stringResource(R.string.currency_usd)
+                                    } else {
+                                        stringResource(R.string.currency_ils)
+                                    }
                                 )
                             }
                         }

@@ -345,7 +345,7 @@ fun TaxTrackerNavHost(
                 categoryName = uiState.categoryName,
                 categoryColorHex = uiState.categoryColorHex,
                 categoryCustomFieldTitles = uiState.categoryCustomFieldTitles,
-                onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, numberOfPayments, confirmationNumber, vendorName, notes, customFieldValues ->
+                onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, numberOfPayments, confirmationNumber, vendorName, notes, customFieldValues, amountCurrency ->
                     viewModel.addInvoice(
                         categoryId = categoryId,
                         documentNumber = documentNumber,
@@ -361,7 +361,8 @@ fun TaxTrackerNavHost(
                         confirmationNumber = confirmationNumber,
                         vendorName = vendorName,
                         notes = notes,
-                        customFieldValues = customFieldValues
+                        customFieldValues = customFieldValues,
+                        amountCurrency = amountCurrency
                     )
                     // AddInvoiceScreen will also call onNavigateBack() after this
                 },
@@ -478,8 +479,9 @@ fun TaxTrackerNavHost(
                 initialVendorName = invoiceUi.vendorName,
                 initialNotes = invoiceUi.notes ?: "",
                 initialCustomFieldValues = invoiceUi.customFieldValues,
+                initialAmountCurrency = invoiceUi.amountCurrency,
                 onNavigateBack = { navController.popBackStack() },
-                onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, numberOfPayments, confirmationNumber, vendorName, notes, customFieldValues ->
+                onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, numberOfPayments, confirmationNumber, vendorName, notes, customFieldValues, amountCurrency ->
                     viewModel.updateInvoice(
                         invoiceId = invoiceUi.id,
                         documentNumber = documentNumber,
@@ -495,7 +497,8 @@ fun TaxTrackerNavHost(
                         confirmationNumber = confirmationNumber,
                         vendorName = vendorName,
                         notes = notes,
-                        customFieldValues = customFieldValues
+                        customFieldValues = customFieldValues,
+                        amountCurrency = amountCurrency
                     )
                     // EditInvoiceScreen itself calls onNavigateBack()
                 }

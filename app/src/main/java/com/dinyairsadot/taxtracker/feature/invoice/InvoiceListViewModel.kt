@@ -7,6 +7,7 @@ import com.dinyairsadot.taxtracker.R
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.Invoice
+import com.dinyairsadot.taxtracker.core.domain.InvoiceCurrency
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
@@ -63,7 +64,8 @@ data class InvoiceUi(
     // Pinned snapshot
     val pinnedSnapshot: Map<String, String> = emptyMap(),
     // Explicit mode; never infer this from dates.
-    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH
+    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH,
+    val amountCurrency: InvoiceCurrency = InvoiceCurrency.ILS
 )
 
 data class InvoiceListUiState(
@@ -350,7 +352,8 @@ class InvoiceListViewModel(
         confirmationNumber: String?,
         vendorName: String?,
         notes: String,
-        customFieldValues: List<String> = emptyList()
+        customFieldValues: List<String> = emptyList(),
+        amountCurrency: InvoiceCurrency = InvoiceCurrency.ILS
     ) {
         viewModelScope.launch {
             fun parseDate(dateText: String): LocalDate? {
@@ -394,7 +397,8 @@ class InvoiceListViewModel(
                 confirmationNumber = confirmationNumber,
                 // Pinned snapshot: capture category defaults at creation time
                 pinnedSnapshot = pinnedSnapshot,
-                servicePeriodMode = servicePeriodMode
+                servicePeriodMode = servicePeriodMode,
+                amountCurrency = amountCurrency
             )
 
             invoiceRepository.addInvoice(newInvoice)
@@ -421,7 +425,8 @@ class InvoiceListViewModel(
         confirmationNumber: String?,
         vendorName: String?,
         notes: String,
-        customFieldValues: List<String> = emptyList()
+        customFieldValues: List<String> = emptyList(),
+        amountCurrency: InvoiceCurrency = InvoiceCurrency.ILS
     ) {
         viewModelScope.launch {
             val existing = invoiceRepository.getInvoiceById(invoiceId) ?: return@launch
@@ -454,7 +459,8 @@ class InvoiceListViewModel(
                 paymentMethod = paymentMethod,
                 numberOfPayments = numberOfPayments,
                 confirmationNumber = confirmationNumber,
-                servicePeriodMode = servicePeriodMode
+                servicePeriodMode = servicePeriodMode,
+                amountCurrency = amountCurrency
             )
 
             invoiceRepository.updateInvoice(updated)
@@ -503,6 +509,7 @@ private fun Invoice.toUi(): InvoiceUi {
         numberOfPayments = this.numberOfPayments,
         confirmationNumber = this.confirmationNumber,
         pinnedSnapshot = this.pinnedSnapshot,
-        servicePeriodMode = this.servicePeriodMode
+        servicePeriodMode = this.servicePeriodMode,
+        amountCurrency = this.amountCurrency
     )
 }

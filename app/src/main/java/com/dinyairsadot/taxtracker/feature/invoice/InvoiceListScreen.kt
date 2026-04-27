@@ -800,7 +800,7 @@ private fun InvoiceItem(
                 Spacer(modifier = Modifier.padding(top = 2.dp))
 
                 Text(
-                    text = formatAmountILS(invoice.amount, context),
+                    text = formatAmountWithCurrency(context, invoice.amount, invoice.amountCurrency),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -838,10 +838,6 @@ private fun PaymentStatus.toDisplayColor(): Color {
         PaymentStatus.PAID -> Color(0xFF4CAF50)
         PaymentStatus.NOT_PAID -> MaterialTheme.colorScheme.error
     }
-}
-
-private fun formatAmountILS(amount: Double, context: android.content.Context): String {
-    return context.getString(R.string.amount_format_ils, amount)
 }
 
 /**

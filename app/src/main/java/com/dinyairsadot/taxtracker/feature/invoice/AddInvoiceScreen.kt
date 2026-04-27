@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.dinyairsadot.taxtracker.R
+import com.dinyairsadot.taxtracker.core.domain.InvoiceCurrency
 import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
@@ -65,11 +66,6 @@ import androidx.compose.material3.LocalContentColor
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-
-enum class Currency {
-    USD,
-    ILS
-}
 
 private enum class InvoiceFirstInvalidAnchor {
     DocumentNumber,
@@ -98,7 +94,8 @@ fun AddInvoiceScreen(
         confirmationNumber: String?,
         vendorName: String?,
         notes: String,
-        customFieldValues: List<String>
+        customFieldValues: List<String>,
+        amountCurrency: InvoiceCurrency
     ) -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -135,7 +132,7 @@ fun AddInvoiceScreen(
     // Conditional fields: Not paid group
     var dueDateText by rememberSaveable { mutableStateOf("") }
 
-    var currency by rememberSaveable { mutableStateOf(Currency.ILS) }
+    var amountCurrencyCode by rememberSaveable { mutableStateOf(InvoiceCurrency.ILS.name) }
     var vendorName by rememberSaveable { mutableStateOf("") }
     var notes by rememberSaveable { mutableStateOf("") }
     var customFieldValues by rememberSaveable {
@@ -300,7 +297,8 @@ fun AddInvoiceScreen(
             confirmationNumber.takeIf { it.isNotBlank() },
             vendorName.trim().takeIf { it.isNotBlank() },
             notes.trim(),
-            customFieldValues
+            customFieldValues,
+            runCatching { InvoiceCurrency.valueOf(amountCurrencyCode) }.getOrDefault(InvoiceCurrency.ILS)
         )
         onNavigateBack()
     }
@@ -421,7 +419,12 @@ fun AddInvoiceScreen(
                         )
                         TextButton(
                             onClick = {
-                                currency = if (currency == Currency.USD) Currency.ILS else Currency.USD
+                                amountCurrencyCode =
+                                    if (amountCurrencyCode == InvoiceCurrency.USD.name) {
+                                        InvoiceCurrency.ILS.name
+                                    } else {
+                                        InvoiceCurrency.USD.name
+                                    }
                             },
                             modifier = Modifier.fillMaxSize(),
                             shape = RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = 4.dp, bottomEnd = 4.dp),
@@ -435,8 +438,11 @@ fun AddInvoiceScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    if (currency == Currency.USD) stringResource(R.string.currency_usd)
-                                    else stringResource(R.string.currency_ils)
+                                    if (amountCurrencyCode == InvoiceCurrency.USD.name) {
+                                        stringResource(R.string.currency_usd)
+                                    } else {
+                                        stringResource(R.string.currency_ils)
+                                    }
                                 )
                             }
                         }

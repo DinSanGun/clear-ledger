@@ -249,7 +249,8 @@
     <string name="currency_usd">$</string>
     <string name="currency_ils">₪</string>
     <string name="amount_format_ils">₪%1$.2f</string>
-    
+    <string name="amount_format_usd">$%1$.2f</string>
+
     <!-- Language Settings -->
     <string name="language_settings">הגדרות שפה</string>
     <string name="select_language">בחר שפה</string>

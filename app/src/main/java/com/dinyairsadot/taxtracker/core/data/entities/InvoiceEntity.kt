@@ -11,6 +11,7 @@ import com.dinyairsadot.taxtracker.core.data.converters.ServicePeriodModeConvert
 import com.dinyairsadot.taxtracker.core.data.converters.StringListConverter
 import com.dinyairsadot.taxtracker.core.data.converters.StringMapConverter
 import com.dinyairsadot.taxtracker.core.domain.Invoice
+import com.dinyairsadot.taxtracker.core.domain.InvoiceCurrency
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 
 @Entity(
@@ -59,7 +60,9 @@ data class InvoiceEntity(
     // Pinned snapshot
     val pinnedSnapshotJson: String? = null,
     // Explicit service-period input mode. Non-null; migration sets DEFAULT 'MONTH'.
-    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH
+    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH,
+    /** [InvoiceCurrency.name]; migration defaults existing rows to ILS. */
+    val amountCurrencyCode: String = InvoiceCurrency.ILS.name
 ) {
     fun toDomain(): Invoice {
         val issueDate = issueDateEpochDay?.let { 
@@ -91,7 +94,10 @@ data class InvoiceEntity(
         } else {
             StringMapConverter().toStringMap(pinnedSnapshotJson)
         }
-        
+
+        val amountCurrency = runCatching { InvoiceCurrency.valueOf(amountCurrencyCode) }
+            .getOrDefault(InvoiceCurrency.ILS)
+
         return Invoice(
             id = id,
             categoryId = categoryId,
@@ -116,7 +122,8 @@ data class InvoiceEntity(
             numberOfPayments = numberOfPayments,
             confirmationNumber = confirmationNumber,
             pinnedSnapshot = pinnedSnapshot,
-            servicePeriodMode = servicePeriodMode
+            servicePeriodMode = servicePeriodMode,
+            amountCurrency = amountCurrency
         )
     }
     
@@ -176,7 +183,8 @@ data class InvoiceEntity(
                 numberOfPayments = invoice.numberOfPayments,
                 confirmationNumber = invoice.confirmationNumber,
                 pinnedSnapshotJson = pinnedSnapshotJson,
-                servicePeriodMode = invoice.servicePeriodMode
+                servicePeriodMode = invoice.servicePeriodMode,
+                amountCurrencyCode = invoice.amountCurrency.name
             )
         }
     }

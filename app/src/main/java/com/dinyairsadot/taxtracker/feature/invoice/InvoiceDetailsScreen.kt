@@ -139,7 +139,14 @@ fun InvoiceDetailsScreen(
                         Spacer(modifier = Modifier.padding(top = 8.dp))
 
                         Text(
-                            text = stringResource(R.string.amount_label, invoice.amount.toString()),
+                            text = stringResource(
+                                R.string.amount_label,
+                                formatAmountWithCurrency(
+                                    LocalContext.current,
+                                    invoice.amount,
+                                    invoice.amountCurrency
+                                )
+                            ),
                             style = MaterialTheme.typography.bodyMedium
                         )
 

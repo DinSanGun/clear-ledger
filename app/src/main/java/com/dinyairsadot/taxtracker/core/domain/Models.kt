@@ -45,6 +45,12 @@ enum class DocumentType {
     INVOICE_RECEIPT
 }
 
+/** Display / metadata only; amounts are not converted between currencies. */
+enum class InvoiceCurrency {
+    ILS,
+    USD
+}
+
 data class Category(
     val id: Long,
     val name: String,
@@ -120,7 +126,9 @@ data class Invoice(
     // Pinned snapshot: captures category.pinnedDefaults at invoice creation time
     val pinnedSnapshot: Map<String, String> = emptyMap(),
     // Explicit mode – source of truth; chosen per-invoice in the form.
-    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH
+    val servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH,
+    /** Stored display currency; existing DB rows default to ILS via migration. */
+    val amountCurrency: InvoiceCurrency = InvoiceCurrency.ILS
 ) {
     // Backward compatibility: getters for old field names
     val customFieldValue1: String? get() = customFieldValues.getOrNull(0)
