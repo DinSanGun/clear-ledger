@@ -34,7 +34,6 @@ import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.time.format.TextStyle
 import java.util.Locale
 import kotlinx.coroutines.delay
@@ -136,7 +135,7 @@ private fun DateModeContent(
         val cal = java.util.Calendar.getInstance()
         currentText.trim().takeIf { it.isNotBlank() }?.let {
             runCatching {
-                val d = LocalDate.parse(it, dateFormatter)
+                val d = parseStrictDateOrNull(it) ?: return@runCatching
                 cal.set(d.year, d.monthValue - 1, d.dayOfMonth)
             }
         }
@@ -343,6 +342,7 @@ fun ExactDateField(
     onValueChange: (String) -> Unit,
     label: String,
     error: String?,
+    onFocusLost: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -353,7 +353,7 @@ fun ExactDateField(
         val cal = java.util.Calendar.getInstance()
         currentText.trim().takeIf { it.isNotBlank() }?.let {
             runCatching {
-                val d = LocalDate.parse(it, dateFormatter)
+                val d = parseStrictDateOrNull(it) ?: return@runCatching
                 cal.set(d.year, d.monthValue - 1, d.dayOfMonth)
             }
         }
@@ -386,6 +386,8 @@ fun ExactDateField(
                             delay(250)
                             bringIntoViewRequester.bringIntoView()
                         }
+                    } else {
+                        onFocusLost()
                     }
                 },
             label = { Text(label) },

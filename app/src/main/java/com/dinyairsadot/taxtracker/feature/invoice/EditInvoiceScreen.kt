@@ -175,6 +175,8 @@ fun EditInvoiceScreen(
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodStartError by rememberSaveable { mutableStateOf<String?>(null) }
     var servicePeriodEndError by rememberSaveable { mutableStateOf<String?>(null) }
+    var paymentDateError by rememberSaveable { mutableStateOf<String?>(null) }
+    var dueDateError by rememberSaveable { mutableStateOf<String?>(null) }
     var startMonthError by rememberSaveable { mutableStateOf<String?>(null) }
     var endMonthError by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -182,6 +184,28 @@ fun EditInvoiceScreen(
     var amountTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodStartTouched by rememberSaveable { mutableStateOf(false) }
     var servicePeriodEndTouched by rememberSaveable { mutableStateOf(false) }
+    var paymentDateTouched by rememberSaveable { mutableStateOf(false) }
+    var dueDateTouched by rememberSaveable { mutableStateOf(false) }
+
+    fun validateOptionalDateField(input: String): String? {
+        val trimmed = input.trim()
+        if (trimmed.isBlank()) return null
+        return if (parseStrictDateOrNull(trimmed) == null) {
+            context.getString(R.string.use_format_dd_mm_yyyy)
+        } else {
+            null
+        }
+    }
+
+    fun validateDateFormatIfNotBlank(input: String): String? {
+        val trimmed = input.trim()
+        if (trimmed.isBlank()) return null
+        return if (parseStrictDateOrNull(trimmed) == null) {
+            context.getString(R.string.use_format_dd_mm_yyyy)
+        } else {
+            null
+        }
+    }
 
     fun handleSave() {
         var hasError = false
@@ -239,7 +263,7 @@ fun EditInvoiceScreen(
                     hasError = true
                     null
                 } else {
-                    val d = runCatching { LocalDate.parse(trimmedStart, fmt) }.getOrNull()
+                    val d = parseStrictDateOrNull(trimmedStart)
                     if (d == null) {
                         servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
                         hasError = true
@@ -254,7 +278,7 @@ fun EditInvoiceScreen(
                     hasError = true
                     null
                 } else {
-                    val d = runCatching { LocalDate.parse(trimmedEnd, fmt) }.getOrNull()
+                    val d = parseStrictDateOrNull(trimmedEnd)
                     if (d == null) {
                         servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
                         hasError = true
@@ -275,10 +299,39 @@ fun EditInvoiceScreen(
 
         if (hasError) return
 
-        val paymentDate = paymentDateText.trim().takeIf { it.isNotBlank() }
-            ?.let { runCatching { LocalDate.parse(it, fmt) }.getOrNull() }
-        val dueDate = dueDateText.trim().takeIf { it.isNotBlank() }
-            ?.let { runCatching { LocalDate.parse(it, fmt) }.getOrNull() }
+        val paymentDateInput = paymentDateText.trim()
+        val dueDateInput = dueDateText.trim()
+
+        val paymentDate = if (paymentDateInput.isBlank()) {
+            paymentDateError = null
+            null
+        } else {
+            val parsed = parseStrictDateOrNull(paymentDateInput)
+            if (parsed == null) {
+                paymentDateError = context.getString(R.string.use_format_dd_mm_yyyy)
+                hasError = true
+                null
+            } else {
+                paymentDateError = null
+                parsed
+            }
+        }
+        val dueDate = if (dueDateInput.isBlank()) {
+            dueDateError = null
+            null
+        } else {
+            val parsed = parseStrictDateOrNull(dueDateInput)
+            if (parsed == null) {
+                dueDateError = context.getString(R.string.use_format_dd_mm_yyyy)
+                hasError = true
+                null
+            } else {
+                dueDateError = null
+                parsed
+            }
+        }
+
+        if (hasError) return
 
         val finalPaymentMethod = when (paymentMethod) {
             PaymentMethodOption.OTHER.value -> {
@@ -478,14 +531,20 @@ fun EditInvoiceScreen(
                     servicePeriodStartError = null
                 },
                 startDateError = servicePeriodStartError,
-                onStartDateTouched = { servicePeriodStartTouched = true },
+                onStartDateTouched = {
+                    servicePeriodStartTouched = true
+                    servicePeriodStartError = validateDateFormatIfNotBlank(servicePeriodStartText)
+                },
                 endDateText = servicePeriodEndText,
                 onEndDateTextChange = {
                     servicePeriodEndText = it
                     servicePeriodEndError = null
                 },
                 endDateError = servicePeriodEndError,
-                onEndDateTouched = { servicePeriodEndTouched = true },
+                onEndDateTouched = {
+                    servicePeriodEndTouched = true
+                    servicePeriodEndError = validateDateFormatIfNotBlank(servicePeriodEndText)
+                },
                 startYear = startYear,
                 startMonth = startMonth,
                 onStartMonthSelected = { y, m -> startYear = y; startMonth = m; startMonthError = null },
@@ -574,9 +633,18 @@ fun EditInvoiceScreen(
 
                 ExactDateField(
                     value = paymentDateText,
-                    onValueChange = { paymentDateText = it },
+                    onValueChange = {
+                        paymentDateText = it
+                        paymentDateTouched = true
+                        paymentDateError = null
+                    },
                     label = stringResource(R.string.payment_date_label_hint),
-                    error = null,
+                    error = paymentDateError,
+                    onFocusLost = {
+                        if (paymentDateTouched) {
+                            paymentDateError = validateOptionalDateField(paymentDateText)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.padding(top = 8.dp))
@@ -586,9 +654,18 @@ fun EditInvoiceScreen(
             if (showDueDateGroup) {
                 ExactDateField(
                     value = dueDateText,
-                    onValueChange = { dueDateText = it },
+                    onValueChange = {
+                        dueDateText = it
+                        dueDateTouched = true
+                        dueDateError = null
+                    },
                     label = stringResource(R.string.due_date_label_hint),
-                    error = null,
+                    error = dueDateError,
+                    onFocusLost = {
+                        if (dueDateTouched) {
+                            dueDateError = validateOptionalDateField(dueDateText)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.padding(top = 8.dp))
