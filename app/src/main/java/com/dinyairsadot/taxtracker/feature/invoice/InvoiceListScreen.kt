@@ -180,11 +180,11 @@ fun InvoiceListScreen(
                             AnimatedVisibility(
                                 visibleState = sortMenuVisibility,
                                 enter = slideInVertically(
-                                    initialOffsetY = { it },
+                                    initialOffsetY = { -it },
                                     animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)
                                 ) + fadeIn(animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)),
                                 exit = slideOutVertically(
-                                    targetOffsetY = { it },
+                                    targetOffsetY = { -it },
                                     animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)
                                 ) + fadeOut(animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing))
                             ) {
