@@ -12,11 +12,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -26,6 +30,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,6 +59,10 @@ fun AddCategoryScreen(
     var selectedTopicId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val nameScrollAnchor = remember { BringIntoViewRequester() }
+    val colorSectionScrollAnchor = remember { BringIntoViewRequester() }
     var nameError by remember { mutableStateOf<String?>(null) }
     var colorError by remember { mutableStateOf<String?>(null) }
     var fieldExistsError by remember { mutableStateOf<String?>(null) }
@@ -98,6 +108,8 @@ fun AddCategoryScreen(
         } else if (existingNamesLower.contains(name.trim().lowercase())) {
             nameError = context.getString(R.string.name_must_be_unique)
             hasError = true
+        } else {
+            nameError = null
         }
 
         if (colorHex.isNotBlank()) {
@@ -105,21 +117,39 @@ fun AddCategoryScreen(
             if (!regex.matches(colorHex.trim())) {
                 colorError = context.getString(R.string.color_must_be_rrggbb_format)
                 hasError = true
+            } else {
+                colorError = null
             }
+        } else {
+            colorError = null
         }
 
-        if (!hasError) {
-            val trimmedTitles = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
-            onSaveCategory(
-                name.trim(),
-                colorHex.trim(),
-                description.trim(),
-                trimmedTitles
-            )
-
-            onCategorySaved()
-            onNavigateBack()
+        if (hasError) {
+            coroutineScope.launch {
+                delay(50)
+                if (nameError != null) {
+                    nameScrollAnchor.bringIntoView()
+                } else if (colorError != null) {
+                    colorSectionScrollAnchor.bringIntoView()
+                }
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.please_fix_highlighted_fields),
+                    withDismissAction = true
+                )
+            }
+            return
         }
+
+        val trimmedTitles = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
+        onSaveCategory(
+            name.trim(),
+            colorHex.trim(),
+            description.trim(),
+            trimmedTitles
+        )
+
+        onCategorySaved()
+        onNavigateBack()
     }
 
     val formState = CategoryFormState(
@@ -179,6 +209,7 @@ fun AddCategoryScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.add_category_title)) },
@@ -226,6 +257,8 @@ fun AddCategoryScreen(
             state = formState,
             callbacks = formCallbacks,
             saveButtonLabel = stringResource(R.string.add_category),
+            nameScrollAnchor = nameScrollAnchor,
+            colorSectionScrollAnchor = colorSectionScrollAnchor,
             modifier = Modifier
                 .padding(innerPadding)
                 .imePadding()

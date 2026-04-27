@@ -11,6 +11,7 @@
     <string name="add">הוספה</string>
     <string name="close">סגירה</string>
     <string name="sort">מיון</string>
+    <string name="please_fix_highlighted_fields">נא לתקן את השדות המסומנים</string>
     
     <!-- Category List Screen -->
     <string name="bills_and_taxes">חשבוניות ומסים</string>

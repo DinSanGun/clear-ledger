@@ -95,9 +95,15 @@ fun CategoryForm(
     state: CategoryFormState,
     callbacks: CategoryFormCallbacks,
     saveButtonLabel: String,
+    nameScrollAnchor: BringIntoViewRequester? = null,
+    colorSectionScrollAnchor: BringIntoViewRequester? = null,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val fallbackNameBiv = remember { BringIntoViewRequester() }
+    val fallbackColorBiv = remember { BringIntoViewRequester() }
+    val nameBringIntoViewRequester = nameScrollAnchor ?: fallbackNameBiv
+    val colorSectionBringIntoViewRequester = colorSectionScrollAnchor ?: fallbackColorBiv
 
     Column(
         modifier = modifier
@@ -108,7 +114,6 @@ fun CategoryForm(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Name
-        val nameBringIntoViewRequester = remember { BringIntoViewRequester() }
         OutlinedTextField(
             value = state.name,
             onValueChange = callbacks.onNameChange,
@@ -133,12 +138,27 @@ fun CategoryForm(
         )
 
         // Color selection
-        Text(text = stringResource(R.string.theme_color))
-
-        CategoryColorOptionsRow(
-            selectedColorHex = state.colorHex,
-            onColorSelected = callbacks.onColorHexChange
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .bringIntoViewRequester(colorSectionBringIntoViewRequester)
+        ) {
+            Column {
+                Text(text = stringResource(R.string.theme_color))
+                CategoryColorOptionsRow(
+                    selectedColorHex = state.colorHex,
+                    onColorSelected = callbacks.onColorHexChange
+                )
+                if (state.colorError != null) {
+                    Text(
+                        text = state.colorError,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                    )
+                }
+            }
+        }
 
         // Description
         val descriptionBringIntoViewRequester = remember { BringIntoViewRequester() }

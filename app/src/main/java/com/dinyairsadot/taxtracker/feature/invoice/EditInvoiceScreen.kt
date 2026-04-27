@@ -30,6 +30,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -59,6 +61,12 @@ import androidx.compose.material3.LocalContentColor
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+
+private enum class EditInvoiceFirstInvalidAnchor {
+    DocumentNumber,
+    Amount,
+    ServicePeriod
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,6 +108,11 @@ fun EditInvoiceScreen(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
+    val documentNumberBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val amountBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val servicePeriodBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var documentNumberText by rememberSaveable { mutableStateOf(initialDocumentNumber) }
     var amountText by rememberSaveable { mutableStateOf(initialAmount) }
@@ -185,11 +198,13 @@ fun EditInvoiceScreen(
 
     fun handleSave() {
         var hasError = false
+        var firstInvalid: EditInvoiceFirstInvalidAnchor? = null
         val fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
         if (documentNumberText.trim().isBlank()) {
             documentNumberError = context.getString(R.string.invoice_number_required)
             hasError = true
+            if (firstInvalid == null) firstInvalid = EditInvoiceFirstInvalidAnchor.DocumentNumber
         } else {
             documentNumberError = null
         }
@@ -198,6 +213,7 @@ fun EditInvoiceScreen(
         if (amount == null || amount <= 0.0) {
             amountError = context.getString(R.string.enter_valid_amount)
             hasError = true
+            if (firstInvalid == null) firstInvalid = EditInvoiceFirstInvalidAnchor.Amount
         } else {
             amountError = null
         }
@@ -214,6 +230,7 @@ fun EditInvoiceScreen(
                 if (endYM.isBefore(startYM)) {
                     endMonthError = context.getString(R.string.service_period_end_before_start)
                     hasError = true
+                    if (firstInvalid == null) firstInvalid = EditInvoiceFirstInvalidAnchor.ServicePeriod
                 } else {
                     endMonthError = null
                 }
@@ -237,6 +254,7 @@ fun EditInvoiceScreen(
                 val startDate = if (trimmedStart.isBlank()) {
                     servicePeriodStartError = context.getString(R.string.date_required)
                     hasError = true
+                    if (firstInvalid == null) firstInvalid = EditInvoiceFirstInvalidAnchor.ServicePeriod
                     null
                 } else {
                     servicePeriodStartError = null
@@ -246,6 +264,7 @@ fun EditInvoiceScreen(
                 val endDate = if (trimmedEnd.isBlank()) {
                     servicePeriodEndError = context.getString(R.string.date_required)
                     hasError = true
+                    if (firstInvalid == null) firstInvalid = EditInvoiceFirstInvalidAnchor.ServicePeriod
                     null
                 } else {
                     servicePeriodEndError = null
@@ -255,13 +274,32 @@ fun EditInvoiceScreen(
                 if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
                     servicePeriodEndError = context.getString(R.string.service_period_end_before_start)
                     hasError = true
+                    if (firstInvalid == null) firstInvalid = EditInvoiceFirstInvalidAnchor.ServicePeriod
                 }
                 finalStartText = trimmedStart
                 finalEndText = trimmedEnd
             }
         }
 
-        if (hasError) return
+        if (hasError) {
+            coroutineScope.launch {
+                delay(50)
+                when (firstInvalid) {
+                    EditInvoiceFirstInvalidAnchor.DocumentNumber ->
+                        documentNumberBringIntoViewRequester.bringIntoView()
+                    EditInvoiceFirstInvalidAnchor.Amount ->
+                        amountBringIntoViewRequester.bringIntoView()
+                    EditInvoiceFirstInvalidAnchor.ServicePeriod ->
+                        servicePeriodBringIntoViewRequester.bringIntoView()
+                    null -> { }
+                }
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.please_fix_highlighted_fields),
+                    withDismissAction = true
+                )
+            }
+            return
+        }
 
         val paymentDateInput = paymentDateText.trim()
         val dueDateInput = dueDateText.trim()
@@ -310,6 +348,7 @@ fun EditInvoiceScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.edit_invoice_title)) },
@@ -340,13 +379,12 @@ fun EditInvoiceScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .imePadding()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
             // Main section
-            val documentNumberBringIntoViewRequester = remember { BringIntoViewRequester() }
             OutlinedTextField(
                 value = documentNumberText,
                 onValueChange = {
@@ -376,7 +414,6 @@ fun EditInvoiceScreen(
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            val amountBringIntoViewRequester = remember { BringIntoViewRequester() }
             OutlinedTextField(
                 value = amountText,
                 onValueChange = {
@@ -467,45 +504,51 @@ fun EditInvoiceScreen(
                 }
             }
 
-            ServicePeriodInput(
-                mode = servicePeriodMode,
-                startDateText = servicePeriodStartText,
-                onStartDateTextChange = {
-                    servicePeriodStartText = it
-                    servicePeriodStartError = null
-                },
-                startDateError = servicePeriodStartError,
-                onStartDateTouched = {
-                    servicePeriodStartTouched = true
-                },
-                endDateText = servicePeriodEndText,
-                onEndDateTextChange = {
-                    servicePeriodEndText = it
-                    servicePeriodEndError = null
-                },
-                endDateError = servicePeriodEndError,
-                onEndDateTouched = {
-                    servicePeriodEndTouched = true
-                },
-                startYear = startYear,
-                startMonth = startMonth,
-                onStartMonthSelected = { y, m -> startYear = y; startMonth = m; startMonthError = null },
-                startMonthError = startMonthError,
-                showEndMonth = showEndMonth,
-                onToggleEndMonth = {
-                    showEndMonth = !showEndMonth
-                    if (!showEndMonth) {
-                        endYear = startYear
-                        endMonth = startMonth
-                        endMonthError = null
-                    }
-                },
-                endYear = endYear,
-                endMonth = endMonth,
-                onEndMonthSelected = { y, m -> endYear = y; endMonth = m; endMonthError = null },
-                endMonthError = endMonthError,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(servicePeriodBringIntoViewRequester)
+            ) {
+                ServicePeriodInput(
+                    mode = servicePeriodMode,
+                    startDateText = servicePeriodStartText,
+                    onStartDateTextChange = {
+                        servicePeriodStartText = it
+                        servicePeriodStartError = null
+                    },
+                    startDateError = servicePeriodStartError,
+                    onStartDateTouched = {
+                        servicePeriodStartTouched = true
+                    },
+                    endDateText = servicePeriodEndText,
+                    onEndDateTextChange = {
+                        servicePeriodEndText = it
+                        servicePeriodEndError = null
+                    },
+                    endDateError = servicePeriodEndError,
+                    onEndDateTouched = {
+                        servicePeriodEndTouched = true
+                    },
+                    startYear = startYear,
+                    startMonth = startMonth,
+                    onStartMonthSelected = { y, m -> startYear = y; startMonth = m; startMonthError = null },
+                    startMonthError = startMonthError,
+                    showEndMonth = showEndMonth,
+                    onToggleEndMonth = {
+                        showEndMonth = !showEndMonth
+                        if (!showEndMonth) {
+                            endYear = startYear
+                            endMonth = startMonth
+                            endMonthError = null
+                        }
+                    },
+                    endYear = endYear,
+                    endMonth = endMonth,
+                    onEndMonthSelected = { y, m -> endYear = y; endMonth = m; endMonthError = null },
+                    endMonthError = endMonthError,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
