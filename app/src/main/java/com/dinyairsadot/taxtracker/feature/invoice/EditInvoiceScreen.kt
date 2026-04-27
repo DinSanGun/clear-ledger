@@ -188,23 +188,16 @@ fun EditInvoiceScreen(
     var dueDateTouched by rememberSaveable { mutableStateOf(false) }
 
     fun validateOptionalDateField(input: String): String? {
-        val trimmed = input.trim()
-        if (trimmed.isBlank()) return null
-        return if (parseStrictDateOrNull(trimmed) == null) {
-            context.getString(R.string.use_format_dd_mm_yyyy)
-        } else {
-            null
+        return when (validateDateInput(input)) {
+            DateValidationResult.Blank -> null
+            DateValidationResult.FormatError -> context.getString(R.string.enter_valid_date)
+            DateValidationResult.InvalidDate -> context.getString(R.string.enter_valid_date)
+            is DateValidationResult.Valid -> null
         }
     }
 
     fun validateDateFormatIfNotBlank(input: String): String? {
-        val trimmed = input.trim()
-        if (trimmed.isBlank()) return null
-        return if (parseStrictDateOrNull(trimmed) == null) {
-            context.getString(R.string.use_format_dd_mm_yyyy)
-        } else {
-            null
-        }
+        return validateOptionalDateField(input)
     }
 
     fun handleSave() {
@@ -263,14 +256,23 @@ fun EditInvoiceScreen(
                     hasError = true
                     null
                 } else {
-                    val d = parseStrictDateOrNull(trimmedStart)
-                    if (d == null) {
-                        servicePeriodStartError = context.getString(R.string.use_format_dd_mm_yyyy)
-                        hasError = true
-                    } else {
-                        servicePeriodStartError = null
+                    when (val result = validateDateInput(trimmedStart)) {
+                        DateValidationResult.Blank,
+                        DateValidationResult.FormatError -> {
+                            servicePeriodStartError = context.getString(R.string.enter_valid_date)
+                            hasError = true
+                            null
+                        }
+                        DateValidationResult.InvalidDate -> {
+                            servicePeriodStartError = context.getString(R.string.enter_valid_date)
+                            hasError = true
+                            null
+                        }
+                        is DateValidationResult.Valid -> {
+                            servicePeriodStartError = null
+                            result.value
+                        }
                     }
-                    d
                 }
 
                 val endDate = if (trimmedEnd.isBlank()) {
@@ -278,14 +280,23 @@ fun EditInvoiceScreen(
                     hasError = true
                     null
                 } else {
-                    val d = parseStrictDateOrNull(trimmedEnd)
-                    if (d == null) {
-                        servicePeriodEndError = context.getString(R.string.use_format_dd_mm_yyyy)
-                        hasError = true
-                    } else {
-                        servicePeriodEndError = null
+                    when (val result = validateDateInput(trimmedEnd)) {
+                        DateValidationResult.Blank,
+                        DateValidationResult.FormatError -> {
+                            servicePeriodEndError = context.getString(R.string.enter_valid_date)
+                            hasError = true
+                            null
+                        }
+                        DateValidationResult.InvalidDate -> {
+                            servicePeriodEndError = context.getString(R.string.enter_valid_date)
+                            hasError = true
+                            null
+                        }
+                        is DateValidationResult.Valid -> {
+                            servicePeriodEndError = null
+                            result.value
+                        }
                     }
-                    d
                 }
 
                 if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
@@ -306,28 +317,44 @@ fun EditInvoiceScreen(
             paymentDateError = null
             null
         } else {
-            val parsed = parseStrictDateOrNull(paymentDateInput)
-            if (parsed == null) {
-                paymentDateError = context.getString(R.string.use_format_dd_mm_yyyy)
-                hasError = true
-                null
-            } else {
-                paymentDateError = null
-                parsed
+            when (val result = validateDateInput(paymentDateInput)) {
+                DateValidationResult.Blank -> null
+                DateValidationResult.FormatError -> {
+                    paymentDateError = context.getString(R.string.enter_valid_date)
+                    hasError = true
+                    null
+                }
+                DateValidationResult.InvalidDate -> {
+                    paymentDateError = context.getString(R.string.enter_valid_date)
+                    hasError = true
+                    null
+                }
+                is DateValidationResult.Valid -> {
+                    paymentDateError = null
+                    result.value
+                }
             }
         }
         val dueDate = if (dueDateInput.isBlank()) {
             dueDateError = null
             null
         } else {
-            val parsed = parseStrictDateOrNull(dueDateInput)
-            if (parsed == null) {
-                dueDateError = context.getString(R.string.use_format_dd_mm_yyyy)
-                hasError = true
-                null
-            } else {
-                dueDateError = null
-                parsed
+            when (val result = validateDateInput(dueDateInput)) {
+                DateValidationResult.Blank -> null
+                DateValidationResult.FormatError -> {
+                    dueDateError = context.getString(R.string.enter_valid_date)
+                    hasError = true
+                    null
+                }
+                DateValidationResult.InvalidDate -> {
+                    dueDateError = context.getString(R.string.enter_valid_date)
+                    hasError = true
+                    null
+                }
+                is DateValidationResult.Valid -> {
+                    dueDateError = null
+                    result.value
+                }
             }
         }
 

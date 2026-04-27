@@ -90,6 +90,7 @@
     <string name="due_date_dd_mm_yyyy">Due date (deadline)</string>
     <string name="date_required">Date is required</string>
     <string name="use_format_dd_mm_yyyy">Use format DD/MM/YYYY</string>
+    <string name="enter_valid_date">Enter a valid date</string>
     <string name="pick_date">Pick date</string>
     <string name="notes">Notes</string>
     <string name="save_invoice">Save invoice</string>
