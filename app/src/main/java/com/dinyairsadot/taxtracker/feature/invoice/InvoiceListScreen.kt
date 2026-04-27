@@ -12,11 +12,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +31,8 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -41,6 +45,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -348,7 +353,8 @@ fun InvoiceListScreen(
 
     if (showFilterSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showFilterSheet = false }
+            onDismissRequest = { showFilterSheet = false },
+            dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
             FilterSheetContent(
                 servicePeriodStart = uiState.servicePeriodStartFilter,
@@ -357,7 +363,8 @@ fun InvoiceListScreen(
                 onServicePeriodStartChange = onServicePeriodStartFilterChange,
                 onServicePeriodEndChange = onServicePeriodEndFilterChange,
                 onStatusFilterChange = onStatusFilterChange,
-                onReset = onClearFilters
+                onClearFilters = onClearFilters,
+                onApply = { showFilterSheet = false }
             )
         }
     }
@@ -492,76 +499,117 @@ private fun FilterSheetContent(
     onServicePeriodStartChange: (LocalDate?) -> Unit,
     onServicePeriodEndChange: (LocalDate?) -> Unit,
     onStatusFilterChange: (PaymentStatus?) -> Unit,
-    onReset: () -> Unit
+    onClearFilters: () -> Unit,
+    onApply: () -> Unit
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .navigationBarsPadding(),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 4.dp,
+            bottom = 16.dp
+        )
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        item {
             Text(
                 text = stringResource(R.string.filter),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
             )
-            TextButton(onClick = onReset) {
-                Text(stringResource(R.string.reset))
+        }
+
+        item {
+            Text(
+                text = stringResource(R.string.service_period),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        item { Spacer(modifier = Modifier.padding(top = 6.dp)) }
+
+        item {
+            DateFilterRow(
+                label = stringResource(R.string.from_date),
+                date = servicePeriodStart,
+                onDateChange = onServicePeriodStartChange
+            )
+        }
+        item {
+            DateFilterRow(
+                label = stringResource(R.string.to_date),
+                date = servicePeriodEnd,
+                onDateChange = onServicePeriodEndChange
+            )
+        }
+
+        item { Spacer(modifier = Modifier.padding(top = 12.dp)) }
+
+        item {
+            Text(
+                text = stringResource(R.string.status),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        item { Spacer(modifier = Modifier.padding(top = 6.dp)) }
+
+        item {
+            StatusOptionRow(
+                label = stringResource(R.string.all),
+                selected = statusFilter == null,
+                onSelect = { onStatusFilterChange(null) }
+            )
+        }
+        item {
+            StatusOptionRow(
+                label = stringResource(R.string.paid),
+                selected = statusFilter == PaymentStatus.PAID,
+                onSelect = { onStatusFilterChange(PaymentStatus.PAID) }
+            )
+        }
+        item {
+            StatusOptionRow(
+                label = stringResource(R.string.not_paid),
+                selected = statusFilter == PaymentStatus.NOT_PAID,
+                onSelect = { onStatusFilterChange(PaymentStatus.NOT_PAID) }
+            )
+        }
+
+        item { Spacer(modifier = Modifier.padding(top = 16.dp)) }
+
+        item {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        }
+
+        item { Spacer(modifier = Modifier.padding(top = 12.dp)) }
+
+        item {
+            OutlinedButton(
+                onClick = onClearFilters,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.clear_filters))
             }
         }
 
-        Spacer(modifier = Modifier.padding(top = 8.dp))
+        item { Spacer(modifier = Modifier.padding(top = 8.dp)) }
 
-        Text(
-            text = stringResource(R.string.service_period),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Spacer(modifier = Modifier.padding(top = 6.dp))
-
-        DateFilterRow(
-            label = stringResource(R.string.from_date),
-            date = servicePeriodStart,
-            onDateChange = onServicePeriodStartChange
-        )
-        DateFilterRow(
-            label = stringResource(R.string.to_date),
-            date = servicePeriodEnd,
-            onDateChange = onServicePeriodEndChange
-        )
-
-        Spacer(modifier = Modifier.padding(top = 12.dp))
-
-        Text(
-            text = stringResource(R.string.status),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Spacer(modifier = Modifier.padding(top = 6.dp))
-
-        StatusOptionRow(
-            label = stringResource(R.string.all),
-            selected = statusFilter == null,
-            onSelect = { onStatusFilterChange(null) }
-        )
-        StatusOptionRow(
-            label = stringResource(R.string.paid),
-            selected = statusFilter == PaymentStatus.PAID,
-            onSelect = { onStatusFilterChange(PaymentStatus.PAID) }
-        )
-        StatusOptionRow(
-            label = stringResource(R.string.not_paid),
-            selected = statusFilter == PaymentStatus.NOT_PAID,
-            onSelect = { onStatusFilterChange(PaymentStatus.NOT_PAID) }
-        )
-
-        Spacer(modifier = Modifier.padding(bottom = 24.dp))
+        item {
+            Button(
+                onClick = onApply,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.apply_filters))
+            }
+        }
     }
 }
 

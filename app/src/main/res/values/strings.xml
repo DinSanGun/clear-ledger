@@ -14,6 +14,8 @@
     <string name="sort_by">Sort by</string>
     <string name="filter">Filter</string>
     <string name="reset">Reset</string>
+    <string name="apply_filters">Apply Filters</string>
+    <string name="clear_filters">Clear Filters</string>
     <string name="please_fix_highlighted_fields">Please fix the highlighted fields</string>
     <string name="from_date">From</string>
     <string name="to_date">To</string>
