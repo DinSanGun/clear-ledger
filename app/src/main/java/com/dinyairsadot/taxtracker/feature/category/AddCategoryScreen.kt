@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -28,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import com.dinyairsadot.taxtracker.core.ui.SwipeDismissSnackbarHost
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.R
 import kotlinx.coroutines.delay
@@ -209,7 +209,7 @@ fun AddCategoryScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = { SwipeDismissSnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.add_category_title)) },

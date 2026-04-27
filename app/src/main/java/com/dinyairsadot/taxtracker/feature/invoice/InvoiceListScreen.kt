@@ -39,7 +39,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -75,6 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
+import com.dinyairsadot.taxtracker.core.ui.SwipeDismissSnackbarHost
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.invoice.SortOption
 import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
@@ -144,7 +144,7 @@ fun InvoiceListScreen(
     val onHeaderColor = contentColorFor(headerColor)
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = { SwipeDismissSnackbarHost(hostState = snackbarHostState) },
 
         topBar = {
             TopAppBar(

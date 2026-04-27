@@ -28,7 +28,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -53,6 +52,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.runtime.LaunchedEffect
 import com.dinyairsadot.taxtracker.core.ui.AppSnackbar
+import com.dinyairsadot.taxtracker.core.ui.SwipeDismissSnackbarHost
+import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.category.CategoryColorPreview
 import androidx.compose.foundation.BorderStroke
 import com.dinyairsadot.taxtracker.R
@@ -160,7 +161,7 @@ fun CategoryListScreen(
             }
         },
         snackbarHost = {
-            SnackbarHost(
+            SwipeDismissSnackbarHost(
                 hostState = snackbarHostState,
                 snackbar = { snackbarData ->
                     AppSnackbar(message = snackbarData.visuals.message)

@@ -33,7 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -59,6 +58,7 @@ import com.dinyairsadot.taxtracker.R
 import com.dinyairsadot.taxtracker.core.domain.PaymentMethodOption
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
+import com.dinyairsadot.taxtracker.core.ui.SwipeDismissSnackbarHost
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.core.ui.requestAnchoredDropdownExpansion
 import androidx.compose.material3.LocalContentColor
@@ -310,7 +310,7 @@ fun AddInvoiceScreen(
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = { SwipeDismissSnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.add_invoice_title)) },
