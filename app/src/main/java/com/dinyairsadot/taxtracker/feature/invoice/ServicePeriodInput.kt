@@ -17,6 +17,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +29,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.taxtracker.R
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
@@ -131,6 +134,10 @@ private fun DateModeContent(
     context: android.content.Context
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val templateColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+    val dateMaskTransformation = remember(templateColor) {
+        DateTemplateVisualTransformation(templateColor = templateColor)
+    }
     fun showPicker(currentText: String, onPicked: (String) -> Unit) {
         val cal = java.util.Calendar.getInstance()
         currentText.trim().takeIf { it.isNotBlank() }?.let {
@@ -152,15 +159,33 @@ private fun DateModeContent(
 
     // Start
     val startBringIntoViewRequester = remember { BringIntoViewRequester() }
+    var startFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = startDateText,
+                selection = TextRange(startDateText.length)
+            )
+        )
+    }
+    LaunchedEffect(startDateText) {
+        if (startDateText != startFieldValue.text) {
+            startFieldValue = TextFieldValue(
+                text = startDateText,
+                selection = TextRange(startDateText.length)
+            )
+        }
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            value = startDateText,
-            onValueChange = {
-                onStartDateTextChange(it)
+            value = startFieldValue,
+            onValueChange = { incoming ->
+                val formatted = formatDateInput(startFieldValue, incoming)
+                startFieldValue = formatted
+                onStartDateTextChange(formatted.text)
                 onStartDateTouched()
             },
             modifier = Modifier
@@ -178,6 +203,7 @@ private fun DateModeContent(
                     }
                 },
             label = { Text(stringResource(R.string.service_period_start_short)) },
+            visualTransformation = dateMaskTransformation,
             supportingText = {
                 if (startDateError != null) Text(startDateError)
                 else Text(stringResource(R.string.format_hint_dd_mm_yyyy))
@@ -191,15 +217,33 @@ private fun DateModeContent(
 
     // End
     val endBringIntoViewRequester = remember { BringIntoViewRequester() }
+    var endFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = endDateText,
+                selection = TextRange(endDateText.length)
+            )
+        )
+    }
+    LaunchedEffect(endDateText) {
+        if (endDateText != endFieldValue.text) {
+            endFieldValue = TextFieldValue(
+                text = endDateText,
+                selection = TextRange(endDateText.length)
+            )
+        }
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            value = endDateText,
-            onValueChange = {
-                onEndDateTextChange(it)
+            value = endFieldValue,
+            onValueChange = { incoming ->
+                val formatted = formatDateInput(endFieldValue, incoming)
+                endFieldValue = formatted
+                onEndDateTextChange(formatted.text)
                 onEndDateTouched()
             },
             modifier = Modifier
@@ -217,6 +261,7 @@ private fun DateModeContent(
                     }
                 },
             label = { Text(stringResource(R.string.service_period_end_short)) },
+            visualTransformation = dateMaskTransformation,
             supportingText = {
                 if (endDateError != null) Text(endDateError)
                 else Text(stringResource(R.string.format_hint_dd_mm_yyyy))
@@ -348,6 +393,10 @@ fun ExactDateField(
     val context = LocalContext.current
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val coroutineScope = rememberCoroutineScope()
+    val templateColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+    val dateMaskTransformation = remember(templateColor) {
+        DateTemplateVisualTransformation(templateColor = templateColor)
+    }
 
     fun showPicker(currentText: String, onPicked: (String) -> Unit) {
         val cal = java.util.Calendar.getInstance()
@@ -369,14 +418,34 @@ fun ExactDateField(
     }
 
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    var fieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = value,
+                selection = TextRange(value.length)
+            )
+        )
+    }
+    LaunchedEffect(value) {
+        if (value != fieldValue.text) {
+            fieldValue = TextFieldValue(
+                text = value,
+                selection = TextRange(value.length)
+            )
+        }
+    }
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = fieldValue,
+            onValueChange = { incoming ->
+                val formatted = formatDateInput(fieldValue, incoming)
+                fieldValue = formatted
+                onValueChange(formatted.text)
+            },
             modifier = Modifier
                 .weight(1f)
                 .bringIntoViewRequester(bringIntoViewRequester)
@@ -391,13 +460,14 @@ fun ExactDateField(
                     }
                 },
             label = { Text(label) },
+            visualTransformation = dateMaskTransformation,
             supportingText = {
                 if (error != null) Text(error)
                 else Text(stringResource(R.string.format_hint_dd_mm_yyyy))
             },
             isError = error != null
         )
-        IconButton(onClick = { showPicker(value, onValueChange) }) {
+        IconButton(onClick = { showPicker(fieldValue.text, onValueChange) }) {
             Icon(Icons.Filled.CalendarToday, contentDescription = stringResource(R.string.pick_date))
         }
     }
