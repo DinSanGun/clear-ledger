@@ -183,12 +183,6 @@ fun CategoryListScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.language_settings)) },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Settings,
-                                        contentDescription = null
-                                    )
-                                },
                                 onClick = {
                                     isOverflowMenuExpanded = false
                                     onLanguageSettingsClick()
