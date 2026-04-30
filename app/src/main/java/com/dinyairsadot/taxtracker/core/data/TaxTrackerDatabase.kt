@@ -20,7 +20,7 @@ import com.dinyairsadot.taxtracker.core.data.entities.InvoiceEntity
 
 @Database(
     entities = [CategoryEntity::class, InvoiceEntity::class],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(
@@ -155,6 +155,31 @@ abstract class TaxTrackerDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE categories ADD COLUMN orderIndex INTEGER NOT NULL DEFAULT 0"
+                )
+                database.execSQL(
+                    """
+                    UPDATE categories
+                    SET orderIndex = CASE
+                        WHEN seedKey = 'arnona' THEN 0
+                        WHEN seedKey = 'electricity' THEN 1
+                        WHEN seedKey = 'water' THEN 2
+                        WHEN seedKey = 'gas' THEN 3
+                        WHEN seedKey = 'phone_internet' THEN 4
+                        WHEN seedKey = 'national_insurance' THEN 5
+                        WHEN seedKey = 'health_fund' THEN 6
+                        WHEN seedKey = 'car_insurance' THEN 7
+                        WHEN seedKey IS NOT NULL THEN 900000 + id
+                        ELSE 1000000 + id
+                    END
+                    """.trimIndent()
+                )
+            }
+        }
+
         val MIGRATION_8_9 = object : Migration(8, 9) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // Remove defaultServicePeriodMode from categories (mode is now per-invoice).
@@ -189,7 +214,7 @@ abstract class TaxTrackerDatabase : RoomDatabase() {
                     TaxTrackerDatabase::class.java,
                     "tax_tracker_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
                     .build()
                 INSTANCE = instance
                 instance

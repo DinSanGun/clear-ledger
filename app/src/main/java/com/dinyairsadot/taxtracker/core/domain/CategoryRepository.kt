@@ -11,4 +11,6 @@ interface CategoryRepository {
     suspend fun updateLocalizedSeededCategories(context: Context)
     /** Clears custom fields for all seeded, unedited categories (one-time migration). */
     suspend fun clearCustomFieldsForSeededCategories(): Int
+    /** Persists full category ordering by list position. */
+    suspend fun updateCategoryOrder(orderedIds: List<Long>)
 }

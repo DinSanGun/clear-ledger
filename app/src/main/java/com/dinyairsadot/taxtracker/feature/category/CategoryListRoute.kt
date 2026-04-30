@@ -30,6 +30,11 @@ fun CategoryListRoute(
             viewModel.deleteCategory(id)
         },
         onLanguageSettingsClick = onLanguageSettingsClick,
+        isReorderMode = uiState.isReorderMode,
+        onEnterReorderMode = { viewModel.enterReorderMode() },
+        onExitReorderMode = { viewModel.exitReorderMode() },
+        onMoveCategoryUp = { id -> viewModel.moveCategoryUp(id) },
+        onMoveCategoryDown = { id -> viewModel.moveCategoryDown(id) },
         showCategoryAddedMessage = showCategoryAddedMessage,
         onCategoryAddedMessageShown = onCategoryAddedMessageShown,
         viewModel = viewModel

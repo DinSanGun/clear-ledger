@@ -17,21 +17,24 @@ object InMemoryCategoryRepository : CategoryRepository {
             name = "Electricity",
             colorHex = "#FF9800",
             description = "Electricity provider bills",
-            customFieldTitles = emptyList()
+            customFieldTitles = emptyList(),
+            orderIndex = 0
         ),
         Category(
             id = 2,
             name = "Water",
             colorHex = "#2196F3",
             description = "Water and sewage",
-            customFieldTitles = emptyList()
+            customFieldTitles = emptyList(),
+            orderIndex = 1
         ),
         Category(
             id = 3,
             name = "City Taxes",
             colorHex = "#4CAF50",
             description = "Arnona / city hall payments",
-            customFieldTitles = emptyList()
+            customFieldTitles = emptyList(),
+            orderIndex = 2
         )
     )
 
@@ -60,4 +63,15 @@ object InMemoryCategoryRepository : CategoryRepository {
     }
 
     override suspend fun clearCustomFieldsForSeededCategories(): Int = 0
+
+    override suspend fun updateCategoryOrder(orderedIds: List<Long>) {
+        val byId = categories.associateBy { it.id }
+        val reordered = orderedIds.mapIndexedNotNull { index, id ->
+            byId[id]?.copy(orderIndex = index)
+        }
+        if (reordered.size == categories.size) {
+            categories.clear()
+            categories.addAll(reordered)
+        }
+    }
 }

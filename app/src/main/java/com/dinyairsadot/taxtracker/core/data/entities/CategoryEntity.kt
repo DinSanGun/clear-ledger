@@ -17,7 +17,8 @@ data class CategoryEntity(
     val supplierName: String? = null, // Kept for backward compatibility
     val pinnedDefaultsJson: String? = null, // Stored as JSON Map<String, String>, converted via StringMapConverter
     val seedKey: String? = null,       // Stable key for seeded categories; null for user-created (no backfill)
-    val userEdited: Boolean = false    // True after user saves; prevents locale overwrite
+    val userEdited: Boolean = false,   // True after user saves; prevents locale overwrite
+    val orderIndex: Int = 0            // Stable persisted category ordering
 ) {
     fun toDomain(): Category {
         val customFieldTitles = if (customFieldTitlesJson.isNullOrBlank()) {
@@ -41,7 +42,8 @@ data class CategoryEntity(
             supplierName = supplierName,
             pinnedDefaults = pinnedDefaults,
             seedKey = seedKey,
-            userEdited = userEdited
+            userEdited = userEdited,
+            orderIndex = orderIndex
         )
     }
     
@@ -68,7 +70,8 @@ data class CategoryEntity(
                 supplierName = category.supplierName,
                 pinnedDefaultsJson = pinnedDefaultsJson,
                 seedKey = category.seedKey,
-                userEdited = category.userEdited
+                userEdited = category.userEdited,
+                orderIndex = category.orderIndex
             )
         }
     }

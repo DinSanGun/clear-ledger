@@ -23,13 +23,15 @@ data class CategoryUi(
     val customFieldTitle2: String? = null,
     val customFieldTitle3: String? = null,
     val unpaidInvoicesCount: Int = 0,
-    val totalInvoicesCount: Int = 0
+    val totalInvoicesCount: Int = 0,
+    val orderIndex: Int = 0
 )
 
 data class CategoryListUiState(
     val isLoading: Boolean = false,
     val categories: List<CategoryUi> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isReorderMode: Boolean = false
 )
 
 class CategoryListViewModel(
@@ -47,27 +49,24 @@ class CategoryListViewModel(
 
     private fun loadInitialCategories() {
         viewModelScope.launch {
-            _uiState.value = CategoryListUiState(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
                 val categories = categoryRepository.getCategories()
-                val uiCategories = categories.map { category ->
-                    val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                    val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
-                    val totalCount = invoices.size
-                    category.toUi(unpaidCount, totalCount)
-                }
+                val uiCategories = buildUiCategories(categories)
 
                 _uiState.value = CategoryListUiState(
                     isLoading = false,
                     categories = uiCategories,
-                    errorMessage = null
+                    errorMessage = null,
+                    isReorderMode = _uiState.value.isReorderMode
                 )
             } catch (e: Exception) {
                 _uiState.value = CategoryListUiState(
                     isLoading = false,
                     categories = emptyList(),
-                    errorMessage = context.getString(R.string.failed_to_load_categories)
+                    errorMessage = context.getString(R.string.failed_to_load_categories),
+                    isReorderMode = _uiState.value.isReorderMode
                 )
             }
         }
@@ -86,12 +85,7 @@ class CategoryListViewModel(
 
             try {
                 val categories = categoryRepository.getCategories()
-                val uiCategories = categories.map { category ->
-                    val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                    val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
-                    val totalCount = invoices.size
-                    category.toUi(unpaidCount, totalCount)
-                }
+                val uiCategories = buildUiCategories(categories)
 
                 // Update state without clearing existing data or showing loading
                 _uiState.value = CategoryListUiState(
@@ -135,21 +129,14 @@ class CategoryListViewModel(
                     colorHex = safeColorHex,
                     description = description.ifBlank { null },
                     customFieldTitles = customFieldTitles,
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    orderIndex = 0
                 )
 
                 categoryRepository.addCategory(newCategory)
 
                 val updated = categoryRepository.getCategories()
-                _uiState.value = _uiState.value.copy(
-                    categories = updated.map { category ->
-                        val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
-                        val totalCount = invoices.size
-                        category.toUi(unpaidCount, totalCount)
-                    },
-                    errorMessage = null
-                )
+                _uiState.value = _uiState.value.copy(categories = buildUiCategories(updated), errorMessage = null)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = context.getString(R.string.failed_to_add_category)
@@ -164,15 +151,7 @@ class CategoryListViewModel(
                 categoryRepository.deleteCategory(id)
 
                 val updated = categoryRepository.getCategories()
-                _uiState.value = _uiState.value.copy(
-                    categories = updated.map { category ->
-                        val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
-                        val totalCount = invoices.size
-                        category.toUi(unpaidCount, totalCount)
-                    },
-                    errorMessage = null
-                )
+                _uiState.value = _uiState.value.copy(categories = buildUiCategories(updated), errorMessage = null)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = context.getString(R.string.failed_to_delete_category)
@@ -199,21 +178,14 @@ class CategoryListViewModel(
                     colorHex = safeColorHex,
                     description = description.trim().ifBlank { null },
                     customFieldTitles = customFieldTitles,
-                    pinnedDefaults = emptyMap()
+                    pinnedDefaults = emptyMap(),
+                    orderIndex = _uiState.value.categories.firstOrNull { it.id == id }?.orderIndex ?: 0
                 )
 
                 categoryRepository.updateCategory(updatedCategory)
 
                 val updatedList = categoryRepository.getCategories()
-                _uiState.value = _uiState.value.copy(
-                    categories = updatedList.map { category ->
-                        val invoices = invoiceRepository.getInvoicesForCategory(category.id)
-                        val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
-                        val totalCount = invoices.size
-                        category.toUi(unpaidCount, totalCount)
-                    },
-                    errorMessage = null
-                )
+                _uiState.value = _uiState.value.copy(categories = buildUiCategories(updatedList), errorMessage = null)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     errorMessage = context.getString(R.string.failed_to_update_category)
@@ -239,6 +211,51 @@ class CategoryListViewModel(
     suspend fun getCategoryById(id: Long): Category? {
         return categoryRepository.getCategories().firstOrNull { it.id == id }
     }
+
+    fun enterReorderMode() {
+        _uiState.value = _uiState.value.copy(isReorderMode = true)
+    }
+
+    fun exitReorderMode() {
+        _uiState.value = _uiState.value.copy(isReorderMode = false)
+    }
+
+    fun moveCategoryUp(categoryId: Long) {
+        moveCategoryByOffset(categoryId = categoryId, offset = -1)
+    }
+
+    fun moveCategoryDown(categoryId: Long) {
+        moveCategoryByOffset(categoryId = categoryId, offset = 1)
+    }
+
+    private fun moveCategoryByOffset(categoryId: Long, offset: Int) {
+        viewModelScope.launch {
+            val current = _uiState.value.categories
+            val currentIndex = current.indexOfFirst { it.id == categoryId }
+            if (currentIndex == -1) return@launch
+            val targetIndex = currentIndex + offset
+            if (targetIndex !in current.indices) return@launch
+
+            val reordered = current.toMutableList().apply {
+                val item = removeAt(currentIndex)
+                add(targetIndex, item)
+            }
+            _uiState.value = _uiState.value.copy(
+                categories = reordered.mapIndexed { index, item -> item.copy(orderIndex = index) },
+                errorMessage = null
+            )
+            categoryRepository.updateCategoryOrder(_uiState.value.categories.map { it.id })
+        }
+    }
+
+    private suspend fun buildUiCategories(categories: List<Category>): List<CategoryUi> {
+        return categories.map { category ->
+            val invoices = invoiceRepository.getInvoicesForCategory(category.id)
+            val unpaidCount = invoices.count { it.paymentStatus != com.dinyairsadot.taxtracker.core.domain.PaymentStatus.PAID }
+            val totalCount = invoices.size
+            category.toUi(unpaidCount, totalCount)
+        }
+    }
 }
 
 // Mapping from domain model to UI model
@@ -252,6 +269,7 @@ private fun Category.toUi(unpaidCount: Int = 0, totalCount: Int = 0): CategoryUi
         customFieldTitle2 = this.customFieldTitles.getOrNull(1),
         customFieldTitle3 = this.customFieldTitles.getOrNull(2),
         unpaidInvoicesCount = unpaidCount,
-        totalInvoicesCount = totalCount
+        totalInvoicesCount = totalCount,
+        orderIndex = this.orderIndex
     )
 }

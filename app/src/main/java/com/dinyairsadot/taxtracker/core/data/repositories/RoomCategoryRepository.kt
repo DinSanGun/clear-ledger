@@ -39,21 +39,12 @@ class RoomCategoryRepository(
     override suspend fun getCategories(): List<Category> {
         return categoryDao.getAll()
             .map { it.toDomain() }
-            .sortedWith(
-                compareBy<Category>(
-                    // Seeded categories first, user-created afterwards.
-                    { if (it.seedKey != null) 0 else 1 },
-                    // Fixed predefined order for seeded categories.
-                    { SEEDED_CATEGORY_ORDER[it.seedKey] ?: Int.MAX_VALUE },
-                    // Stable fallback / user-created order by insertion id.
-                    { it.id }
-                )
-            )
     }
 
     override suspend fun addCategory(category: Category) {
         // Room will auto-generate ID if id=0 (due to @PrimaryKey(autoGenerate = true))
-        val entity = CategoryEntity.fromDomain(category)
+        val nextOrderIndex = categoryDao.getMaxOrderIndex() + 1
+        val entity = CategoryEntity.fromDomain(category).copy(orderIndex = nextOrderIndex)
         categoryDao.insert(entity)
     }
 
@@ -65,9 +56,16 @@ class RoomCategoryRepository(
         val existing = categoryDao.getById(category.id)
         val entity = CategoryEntity.fromDomain(category).copy(
             seedKey = existing?.seedKey,
-            userEdited = true
+            userEdited = true,
+            orderIndex = existing?.orderIndex ?: category.orderIndex
         )
         categoryDao.update(entity)
+    }
+
+    override suspend fun updateCategoryOrder(orderedIds: List<Long>) {
+        orderedIds.forEachIndexed { index, id ->
+            categoryDao.updateOrderIndex(id = id, orderIndex = index)
+        }
     }
 
     override suspend fun updateLocalizedSeededCategories(context: Context) {

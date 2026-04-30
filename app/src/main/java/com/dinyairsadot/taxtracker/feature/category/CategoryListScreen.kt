@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -27,6 +30,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Scaffold
@@ -75,11 +80,17 @@ fun CategoryListScreen(
     onCategoryClick: (Long) -> Unit,
     onDeleteCategory: (Long) -> Unit,
     onLanguageSettingsClick: () -> Unit,
+    isReorderMode: Boolean,
+    onEnterReorderMode: () -> Unit,
+    onExitReorderMode: () -> Unit,
+    onMoveCategoryUp: (Long) -> Unit,
+    onMoveCategoryDown: (Long) -> Unit,
     showCategoryAddedMessage: Boolean,
     onCategoryAddedMessageShown: () -> Unit,
     viewModel: CategoryListViewModel
 ) {
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
+    var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     
@@ -133,7 +144,11 @@ fun CategoryListScreen(
         topBar = {
             TopAppBar(
                 title = { 
-                    val titleText = stringResource(R.string.bills_and_taxes)
+                    val titleText = if (isReorderMode) {
+                        stringResource(R.string.reorder_categories)
+                    } else {
+                        stringResource(R.string.bills_and_taxes)
+                    }
                     val locale = LocalContext.current.resources.configuration.locales[0]
                     LaunchedEffect(titleText) {
                         Log.d("LanguageDebug", "[CATEGORY] TopAppBar title: text='$titleText', locale=$locale")
@@ -141,23 +156,56 @@ fun CategoryListScreen(
                     Text(titleText)
                 },
                 actions = {
-                    IconButton(onClick = onLanguageSettingsClick) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.language_settings)
-                        )
+                    if (isReorderMode) {
+                        TextButton(onClick = onExitReorderMode) {
+                            Text(text = stringResource(R.string.done))
+                        }
+                    } else {
+                        IconButton(onClick = { isOverflowMenuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.more_options)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = isOverflowMenuExpanded,
+                            onDismissRequest = { isOverflowMenuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.reorder_categories)) },
+                                onClick = {
+                                    isOverflowMenuExpanded = false
+                                    onEnterReorderMode()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.language_settings)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = {
+                                    isOverflowMenuExpanded = false
+                                    onLanguageSettingsClick()
+                                }
+                            )
+                        }
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddCategoryClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_category)
-                )
+            if (!isReorderMode) {
+                FloatingActionButton(
+                    onClick = onAddCategoryClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.add_category)
+                    )
+                }
             }
         },
         snackbarHost = {
@@ -203,6 +251,9 @@ fun CategoryListScreen(
                     onRequestDeleteCategory = { id ->
                         pendingDeleteId = id
                     },
+                    isReorderMode = isReorderMode,
+                    onMoveCategoryUp = onMoveCategoryUp,
+                    onMoveCategoryDown = onMoveCategoryDown,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -245,6 +296,9 @@ private fun CategoryListContent(
     categories: List<CategoryUi>,
     onCategoryClick: (Long) -> Unit,
     onRequestDeleteCategory: (Long) -> Unit,
+    isReorderMode: Boolean,
+    onMoveCategoryUp: (Long) -> Unit,
+    onMoveCategoryDown: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (categories.isEmpty()) {
@@ -267,10 +321,16 @@ private fun CategoryListContent(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(categories) { category ->
+                val index = categories.indexOf(category)
                 CategoryItem(
                     category = category,
-                    onClick = { onCategoryClick(category.id) },
-                    onDeleteClick = { onRequestDeleteCategory(category.id) }
+                    onClick = { if (!isReorderMode) onCategoryClick(category.id) },
+                    onDeleteClick = { if (!isReorderMode) onRequestDeleteCategory(category.id) },
+                    isReorderMode = isReorderMode,
+                    canMoveUp = index > 0,
+                    canMoveDown = index < categories.lastIndex,
+                    onMoveUp = { onMoveCategoryUp(category.id) },
+                    onMoveDown = { onMoveCategoryDown(category.id) }
                 )
             }
         }
@@ -281,7 +341,12 @@ private fun CategoryListContent(
 private fun CategoryItem(
     category: CategoryUi,
     onClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    isReorderMode: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit
 ) {
     val cardContainerColor = lerp(
         MaterialTheme.colorScheme.surface,
@@ -315,7 +380,7 @@ private fun CategoryItem(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { onClick() }
+                    .clickable(enabled = !isReorderMode) { onClick() }
                     .padding(16.dp)
             ) {
                 Text(
@@ -344,16 +409,37 @@ private fun CategoryItem(
                 )
             }
 
-            IconButton(
-                onClick = onDeleteClick,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .padding(end = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.delete_category)
-                )
+            if (isReorderMode) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 8.dp)
+                ) {
+                    IconButton(onClick = onMoveUp, enabled = canMoveUp) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowUpward,
+                            contentDescription = stringResource(R.string.move_up)
+                        )
+                    }
+                    IconButton(onClick = onMoveDown, enabled = canMoveDown) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDownward,
+                            contentDescription = stringResource(R.string.move_down)
+                        )
+                    }
+                }
+            } else {
+                IconButton(
+                    onClick = onDeleteClick,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.delete_category)
+                    )
+                }
             }
         }
     }

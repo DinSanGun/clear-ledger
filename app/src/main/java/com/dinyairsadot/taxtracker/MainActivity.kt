@@ -217,7 +217,8 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "arnona",
-                    userEdited = false
+                    userEdited = false,
+                    orderIndex = 0
                 ),
                 // Electricity
                 Category(
@@ -228,7 +229,8 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "electricity",
-                    userEdited = false
+                    userEdited = false,
+                    orderIndex = 1
                 ),
                 // Water
                 Category(
@@ -239,7 +241,8 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "water",
-                    userEdited = false
+                    userEdited = false,
+                    orderIndex = 2
                 ),
                 // Gas
                 Category(
@@ -250,7 +253,8 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "gas",
-                    userEdited = false
+                    userEdited = false,
+                    orderIndex = 3
                 ),
                 // Phone/Internet
                 Category(
@@ -261,7 +265,8 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "phone_internet",
-                    userEdited = false
+                    userEdited = false,
+                    orderIndex = 4
                 ),
                 // National Insurance
                 Category(
@@ -272,7 +277,8 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "national_insurance",
-                    userEdited = false
+                    userEdited = false,
+                    orderIndex = 5
                 ),
                 // Health Fund
                 Category(
@@ -283,7 +289,8 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "health_fund",
-                    userEdited = false
+                    userEdited = false,
+                    orderIndex = 6
                 ),
                 // Car Insurance
                 Category(
@@ -294,7 +301,8 @@ class MainActivity : ComponentActivity() {
                     customFieldTitles = emptyList(),
                     pinnedDefaults = emptyMap(),
                     seedKey = "car_insurance",
-                    userEdited = false
+                    userEdited = false,
+                    orderIndex = 7
                 )
             )
             
