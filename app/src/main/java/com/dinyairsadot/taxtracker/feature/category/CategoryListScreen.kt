@@ -320,10 +320,14 @@ private fun CategoryListContent(
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(categories) { category ->
+            items(
+                items = categories,
+                key = { category -> category.id }
+            ) { category ->
                 val index = categories.indexOf(category)
                 CategoryItem(
                     category = category,
+                    modifier = Modifier.animateItem(),
                     onClick = { if (!isReorderMode) onCategoryClick(category.id) },
                     onDeleteClick = { if (!isReorderMode) onRequestDeleteCategory(category.id) },
                     isReorderMode = isReorderMode,
@@ -340,6 +344,7 @@ private fun CategoryListContent(
 @Composable
 private fun CategoryItem(
     category: CategoryUi,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit,
     isReorderMode: Boolean,
@@ -355,7 +360,7 @@ private fun CategoryItem(
     )
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth(),
         border = BorderStroke(
             width = 1.5.dp,
