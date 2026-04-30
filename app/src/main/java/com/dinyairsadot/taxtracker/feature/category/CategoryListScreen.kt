@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.core.graphics.toColorInt
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.runtime.LaunchedEffect
@@ -68,7 +70,8 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 
-
+/** Delay before top-edge scroll correction so `animateItem` placement can show first. */
+private const val TOP_EDGE_SCROLL_AFTER_PLACEMENT_MS = 64L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -314,7 +317,26 @@ private fun CategoryListContent(
             )
         }
     } else {
+        val listState = rememberLazyListState()
+        var pendingScrollToTopAfterSwap by remember { mutableStateOf(false) }
+        val categoryOrderKey = remember(categories) {
+            categories.joinToString(separator = ",") { it.id.toString() }
+        }
+
+        LaunchedEffect(categoryOrderKey) {
+            if (!pendingScrollToTopAfterSwap) return@LaunchedEffect
+            try {
+                // Let LazyColumn item placement run briefly before correcting scroll;
+                // immediate scrollToItem(0) can squash the top-edge swap animation.
+                delay(TOP_EDGE_SCROLL_AFTER_PLACEMENT_MS)
+                listState.animateScrollToItem(index = 0)
+            } finally {
+                pendingScrollToTopAfterSwap = false
+            }
+        }
+
         LazyColumn(
+            state = listState,
             modifier = modifier
                 .fillMaxSize()
                 .padding(8.dp),
@@ -333,8 +355,14 @@ private fun CategoryListContent(
                     isReorderMode = isReorderMode,
                     canMoveUp = index > 0,
                     canMoveDown = index < categories.lastIndex,
-                    onMoveUp = { onMoveCategoryUp(category.id) },
-                    onMoveDown = { onMoveCategoryDown(category.id) }
+                    onMoveUp = {
+                        if (index == 1) pendingScrollToTopAfterSwap = true
+                        onMoveCategoryUp(category.id)
+                    },
+                    onMoveDown = {
+                        if (index == 0) pendingScrollToTopAfterSwap = true
+                        onMoveCategoryDown(category.id)
+                    }
                 )
             }
         }
