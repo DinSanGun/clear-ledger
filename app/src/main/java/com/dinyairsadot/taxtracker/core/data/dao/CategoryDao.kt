@@ -9,7 +9,7 @@ import com.dinyairsadot.taxtracker.core.data.entities.CategoryEntity
 
 @Dao
 interface CategoryDao {
-    @Query("SELECT * FROM categories ORDER BY name ASC")
+    @Query("SELECT * FROM categories ORDER BY id ASC")
     suspend fun getAll(): List<CategoryEntity>
     
     @Query("SELECT * FROM categories WHERE id = :id")

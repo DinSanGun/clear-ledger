@@ -3,6 +3,18 @@
 This changelog documents incremental development steps of the Tax Tracker app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
 
+## 27/04/2026
+
+### Invoice Form and Filter UX Polish
+- Position category and invoice dropdown menus so they no longer overlap their anchor fields
+- On save with validation errors, scroll to the first invalid field and show clear feedback to fix highlighted inputs
+- Use picker-first invoice dates with formatted display; tap anywhere on the date row to open the picker (month/year rows behave like full-date rows)
+- Persist and display invoice currency (ILS and USD) consistently on the invoice list and detail screens
+- Improve the invoice filter sheet: drag handle, opens expanded by default, explicit Apply and Clear actions, and compact horizontal payment status options
+- Refine filter date range controls with clearer empty states, aligned labels, per-field clear actions, and stronger tap targets
+- Add swipe-to-dismiss behavior for snackbars
+- Align the invoice list sort menu animation with the top app bar
+
 ## 12/03/2026
 
 ### Invoice List Search & Data Flow

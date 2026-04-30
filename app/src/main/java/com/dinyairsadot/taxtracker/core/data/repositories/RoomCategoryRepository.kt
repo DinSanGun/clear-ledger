@@ -20,12 +20,35 @@ private val SEED_KEY_TO_RES_IDS: Map<String, Pair<Int, Int>> = mapOf(
     "car_insurance" to (R.string.default_category_car_insurance to R.string.default_category_car_insurance_description),
 )
 
+/** Fixed display order for built-in categories, independent of localized names. */
+private val SEEDED_CATEGORY_ORDER: Map<String, Int> = listOf(
+    "arnona",
+    "electricity",
+    "water",
+    "gas",
+    "phone_internet",
+    "national_insurance",
+    "health_fund",
+    "car_insurance"
+).withIndex().associate { (index, key) -> key to index }
+
 class RoomCategoryRepository(
     private val categoryDao: CategoryDao
 ) : CategoryRepository {
 
     override suspend fun getCategories(): List<Category> {
-        return categoryDao.getAll().map { it.toDomain() }
+        return categoryDao.getAll()
+            .map { it.toDomain() }
+            .sortedWith(
+                compareBy<Category>(
+                    // Seeded categories first, user-created afterwards.
+                    { if (it.seedKey != null) 0 else 1 },
+                    // Fixed predefined order for seeded categories.
+                    { SEEDED_CATEGORY_ORDER[it.seedKey] ?: Int.MAX_VALUE },
+                    // Stable fallback / user-created order by insertion id.
+                    { it.id }
+                )
+            )
     }
 
     override suspend fun addCategory(category: Category) {
