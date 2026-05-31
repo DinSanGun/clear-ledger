@@ -36,6 +36,7 @@
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
     <string name="more_options">More options</string>
+    <string name="category_options">Category options</string>
     
     <!-- Add/Edit Category Screen -->
     <string name="add_category_title">Add category</string>

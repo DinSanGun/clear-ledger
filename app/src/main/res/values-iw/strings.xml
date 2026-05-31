@@ -27,6 +27,7 @@
     <string name="move_up">העבר למעלה</string>
     <string name="move_down">העבר למטה</string>
     <string name="more_options">אפשרויות נוספות</string>
+    <string name="category_options">אפשרויות קטגוריה</string>
     
     <!-- Add/Edit Category Screen -->
     <string name="add_category_title">הוסף קטגוריה</string>

@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.MoreVert
@@ -81,6 +80,7 @@ fun CategoryListScreen(
     errorMessage: String?,
     onAddCategoryClick: () -> Unit,
     onCategoryClick: (Long) -> Unit,
+    onEditCategoryClick: (Long) -> Unit,
     onDeleteCategory: (Long) -> Unit,
     onLanguageSettingsClick: () -> Unit,
     isReorderMode: Boolean,
@@ -245,6 +245,7 @@ fun CategoryListScreen(
                 CategoryListContent(
                     categories = categories,
                     onCategoryClick = onCategoryClick,
+                    onEditCategoryClick = onEditCategoryClick,
                     onRequestDeleteCategory = { id ->
                         pendingDeleteId = id
                     },
@@ -292,6 +293,7 @@ fun CategoryListScreen(
 private fun CategoryListContent(
     categories: List<CategoryUi>,
     onCategoryClick: (Long) -> Unit,
+    onEditCategoryClick: (Long) -> Unit,
     onRequestDeleteCategory: (Long) -> Unit,
     isReorderMode: Boolean,
     onMoveCategoryUp: (Long) -> Unit,
@@ -345,6 +347,7 @@ private fun CategoryListContent(
                     category = category,
                     modifier = Modifier.animateItem(),
                     onClick = { if (!isReorderMode) onCategoryClick(category.id) },
+                    onEditClick = { if (!isReorderMode) onEditCategoryClick(category.id) },
                     onDeleteClick = { if (!isReorderMode) onRequestDeleteCategory(category.id) },
                     isReorderMode = isReorderMode,
                     canMoveUp = index > 0,
@@ -368,6 +371,7 @@ private fun CategoryItem(
     category: CategoryUi,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     isReorderMode: Boolean,
     canMoveUp: Boolean,
@@ -456,16 +460,37 @@ private fun CategoryItem(
                     }
                 }
             } else {
-                IconButton(
-                    onClick = onDeleteClick,
+                var isMenuExpanded by remember { mutableStateOf(false) }
+                Box(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(end = 8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.delete_category)
-                    )
+                    IconButton(onClick = { isMenuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.category_options)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = isMenuExpanded,
+                        onDismissRequest = { isMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.edit)) },
+                            onClick = {
+                                isMenuExpanded = false
+                                onEditClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.delete)) },
+                            onClick = {
+                                isMenuExpanded = false
+                                onDeleteClick()
+                            }
+                        )
+                    }
                 }
             }
         }

@@ -7,6 +7,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun CategoryListRoute(
     onAddCategoryClick: () -> Unit,
     onCategoryClick: (Long) -> Unit,
+    onEditCategoryClick: (Long) -> Unit,
     onLanguageSettingsClick: () -> Unit,
     viewModel: CategoryListViewModel,
     showCategoryAddedMessage: Boolean = false,
@@ -26,6 +27,7 @@ fun CategoryListRoute(
             viewModel.onCategoryClicked(id)
             onCategoryClick(id)
         },
+        onEditCategoryClick = onEditCategoryClick,
         onDeleteCategory = { id ->
             viewModel.deleteCategory(id)
         },

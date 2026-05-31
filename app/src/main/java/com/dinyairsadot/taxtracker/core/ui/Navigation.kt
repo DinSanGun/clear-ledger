@@ -132,6 +132,9 @@ fun TaxTrackerNavHost(
                 onCategoryClick = { id ->
                     navController.navigate(Screen.InvoiceList.routeWithCategoryId(id))
                 },
+                onEditCategoryClick = { id ->
+                    navController.navigate(Screen.EditCategory.routeWithId(id))
+                },
                 onLanguageSettingsClick = {
                     navController.navigate(Screen.LanguageSettings.route)
                 },
