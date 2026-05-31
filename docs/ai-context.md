@@ -1,165 +1,157 @@
-> ⚠️ OUTDATED (needs refresh)
-> This file was created earlier for AI/Cursor context and may no longer reflect the current codebase
-> (models, storage, and architecture changed).  
-> Use `docs/LAUNCH_PLAN.md` for the current execution plan.
-> This file will be updated during S1 (Ownership & Architecture Clarity).
-
 # Tax Tracker (Android) — AI Context (Cursor)
 
-Last updated: 2026-01-28
+_Last updated: 2026-05-31_
+
+Concise working context for AI-assisted development. For the full overview see `docs/PROJECT_OVERVIEW.md`; for release planning see `docs/LAUNCH_PLAN.md`.
+
+---
 
 ## 1) What this app is
-Tax Tracker is an Android app for tracking household **bills / taxes** by **category** (e.g., Electricity, Water, City Taxes). Users can:
-- Create/edit/delete **Categories** (each has a color)
-- For a selected category: view a list of **Invoices**, add new invoices, open invoice details, edit invoices, delete invoices
-- The UI uses the **category color** to theme top app bars and some accents with contrast-aware text/icons.
 
-## 2) Tech stack & patterns
-- Kotlin
-- Jetpack Compose (Material 3)
-- Navigation Compose
-- ViewModel + StateFlow (lifecycle-aware collection)
-- Repository interfaces in `core/domain`
-- Current storage: **Room database** (RoomCategoryRepository, RoomInvoiceRepository in `core/data/repositories/`)
+Local-first Android app for tracking **bills / taxes by category**. Users manage categories (color, custom field titles, order), then add/edit/view/delete invoices per category with search, filter, and sort.
 
-Gradle: `build.gradle.kts` uses version catalog aliases (`libs.*`). Navigation deps are explicitly included.
+Supports **Hebrew and English** with manual language switching and RTL/LTR layout.
 
-## 3) Project structure (key packages)
-Base package: `com.dinyairsadot.taxtracker`
+---
 
-- `MainActivity.kt`
-  - App entry point, sets Compose content.
+## 2) Tech stack
 
-- `core/domain/*`
-  - Domain models + repository interfaces.
-  - Source of truth for types like `Category`, `Invoice`, `PaymentStatus`.
+- Kotlin, Jetpack Compose (Material 3), Navigation Compose
+- MVVM: ViewModels + `StateFlow`, lifecycle-aware collection
+- Room (SQLite) v13 — `RoomCategoryRepository`, `RoomInvoiceRepository`
+- No DI framework; repos wired in `MainActivity` → `TaxTrackerNavHost`
+- Gradle KTS with version catalog (`libs.*`)
 
-- `core/ui/*`
-  - App-level navigation graph in `Navigation.kt`.
-  - Shared UI helpers:
-    - `AppSnackbar.kt`
-    - `CategoryColorUtils.kt` (contrast-aware colors)
+---
 
-- `feature/category/*`
-  - Category list + add/edit flows
+## 3) Key files (read these first)
 
-- `feature/invoice/*`
-  - Invoice list + add/details/edit flows
+| File | Why |
+|------|-----|
+| `MainActivity.kt` | DB init, seeding, locale, repository wiring |
+| `core/ui/Navigation.kt` | All routes, ViewModel scoping, nav args |
+| `core/domain/Models.kt` | Domain contracts and invariants |
+| `core/data/TaxTrackerDatabase.kt` | Migrations — **do not change casually** |
+| `feature/invoice/InvoiceListViewModel.kt` | Search/filter/sort pipeline |
+| `feature/invoice/InvoiceListScreen.kt` | List UI, filter sheet, sort menu |
+| `feature/category/CategoryListViewModel.kt` | Category CRUD + reorder |
+| `feature/category/CategoryForm.kt` | Shared add/edit category form |
+| `core/data/repositories/RoomCategoryRepository.kt` | Category persistence + locale sync |
+| `core/data/repositories/RoomInvoiceRepository.kt` | Invoice entity ↔ domain mapping |
 
-- `ui/theme/*`
-  - Compose theme and colors
+---
 
-## 4) Navigation map (routes)
-Defined in `src/main/java/com/dinyairsadot/taxtracker/core/ui/Navigation.kt`.
+## 4) Architecture in one paragraph
 
-Routes:
-- `category_list` (start)
-- `add_category`
-- `edit_category/{categoryId}`
-- `invoice_list/{categoryId}`
-- `add_invoice/{categoryId}`
-- `invoice_details/{invoiceId}`
-- `edit_invoice/{invoiceId}`
+Compose screens render immutable UI state and forward intents. ViewModels own state, call repositories in `viewModelScope`, and expose `StateFlow`. Repositories map Room entities to domain models. Navigation Compose defines routes; related screens share a ViewModel via parent `NavBackStackEntry`.
 
-ViewModel sharing approach:
-- Category screens share `CategoryListViewModel` using back stack entry for `category_list`.
-- Invoice screens share `InvoiceListViewModel` using back stack entry for `invoice_list/...`.
+---
 
-## 5) Domain models (current)
-File: `core/domain/Models.kt`
+## 5) Domain invariants — preserve these
 
-### Category
+### Custom fields
+- Categories store `customFieldTitles: List<String>` (max 10, JSON in DB)
+- Invoices store `customFieldValues: List<String>` aligned **by index**
+- **Do not** filter blank values in ways that shift indices; **do not** reorder values independently of titles
+
+### Service period
+- `ServicePeriodMode` (`MONTH` | `DATE`) is the **explicit source of truth**
+- **Never** infer mode from stored dates alone
+- MONTH mode snaps to first/last day of selected months
+
+### Category ordering
+- Sort categories by `orderIndex`, not name
+- Reorder persisted via `CategoryRepository.updateCategoryOrder(orderedIds)`
+
+### Currency
+- `InvoiceCurrency` (ILS / USD) is **display metadata only**
+- Amounts are **not converted** between currencies
+
+### Seeded categories
+- `seedKey` identifies built-in categories; `userEdited` blocks locale overwrite
+
+### Localization / RTL
+- Language preference persisted; locale applied in `attachBaseContext`
+- Hebrew resources in `values-iw/`; test RTL layout after UI changes
+
+---
+
+## 6) Invoice list pipeline
+
+In `InvoiceListViewModel`:
 ```
-Category(
-  id: Long,
-  name: String,
-  colorHex: String,
-  description: String? = null,
-  customFieldTitle1: String? = null,
-  customFieldTitle2: String? = null,
-  customFieldTitle3: String? = null
-)
+sourceInvoices → search → service-period filter → status filter → sort → visibleInvoices
 ```
+All filter/search/sort controls must funnel through the centralized recompute path — do not duplicate filtering in composables.
 
-### Invoice
-```
-Invoice(
-  id: Long,
-  categoryId: Long,
-  invoiceNumber: String,
-  amount: Double,
-  paymentStatus: PaymentStatus,
-  dueDate: LocalDate? = null,
-  paymentDate: LocalDate? = null,
-  consumptionValue: Double? = null,
-  consumptionUnit: String? = null,
-  notes: String? = null,
-  customFieldValue1: String? = null,
-  customFieldValue2: String? = null,
-  customFieldValue3: String? = null
-)
-```
+---
 
-### Planned / not fully wired yet (important)
-`Models.kt` also contains more scalable types:
-- `CustomFieldDefinition` and `InvoiceCustomFieldValue`
-- `InvoiceImage`
+## 7) Current UX decisions
 
-These indicate future direction (e.g., moving from 3 fixed custom fields to a flexible schema), but the active UI currently uses the `customFieldTitle1..3` and `customFieldValue1..3` shape.
+- **Picker-first dates** — tap date row to open picker; avoid free-text date entry
+- **Validation on save** — scroll to first invalid field + snackbar message
+- **Swipe-to-dismiss snackbars** — `SwipeDismissSnackbarHost`
+- **Dropdown positioning** — use `DropdownPositioning` helper so menus don't cover anchors
+- **Category delete/edit** — card overflow menu (not standalone delete icon)
+- **Category reorder** — dedicated reorder mode with animated list moves
+- **Confirmation dialogs** — required before delete actions
+- **Portrait lock** — app is portrait-optimized
 
-## 6) Repositories (current)
-Interfaces:
-- `core/domain/CategoryRepository.kt`
-- `core/domain/InvoiceRepository.kt`
+---
 
-Implementations:
-- `core/data/repositories/RoomCategoryRepository.kt`
-- `core/data/repositories/RoomInvoiceRepository.kt`
+## 8) What NOT to change casually
 
-(Former in-memory implementations are archived in `archive/InMemoryCategoryRepository.kt` and `archive/InMemoryInvoiceRepository.kt`.)
+| Area | Guidance |
+|------|----------|
+| **Room schema / migrations** | Avoid unless explicitly requested; test thoroughly |
+| **Entity ↔ domain mapping** | Preserve backward-compat fields and converters |
+| **Custom field index alignment** | High risk of silent data misalignment |
+| **ServicePeriodMode semantics** | Explicit mode is a core invariant |
+| **Category orderIndex sorting** | Name-based sort breaks user order across locales |
+| **Architecture** | No DI framework, no use-case layer, no broad rewrites |
+| **Localization** | Don't hardcode strings; update both `values/` and `values-iw/` |
 
-Notes:
-- IDs are generated by Room. Repositories are created in MainActivity and passed into the NavHost/ViewModels.
+---
 
-## 7) Category color system (UI conventions)
-- `Category.colorHex` is a hex string like `"#FF9800"`.
-- Top app bars in invoice and edit flows use category color.
-- Contrast-aware text/icons are handled via `core/ui/CategoryColorUtils.kt`.
-- Category color palette:
-  - `feature/category/CategoryColorPalette.kt`
-  - Default is **pastel** colors + “More colors” grid.
+## 9) How to work in this repo
 
-## 8) Current UX decisions & constraints
-- Prefer **small, targeted diffs**; avoid refactors unless explicitly requested.
-- Keep existing architecture (Compose + ViewModel + repository).
-- When adding “destructive” actions (delete), always use a **confirmation dialog**.
-- Keep validation consistent with existing patterns (inline errors, case-insensitive unique names for categories, etc.).
+1. List exact files to modify and why before editing
+2. Prefer the **smallest diff** that satisfies the requirement
+3. Match existing naming, patterns, and validation style
+4. Search for existing patterns (dialogs, snackbars, form validation) before inventing new ones
+5. After UI changes, consider RTL and both locales
+6. Ensure code compiles; update imports as needed
 
-## 9) Known roadmap / next steps (high priority)
-Based on current direction:
-1) **Custom fields UX**
-   - Optional custom fields
-   - Allow removing a custom field definition (per-field) with a warning dialog
-   - Ensure removal handles “field #2 removed but #1 and #3 kept” safely (reindex / shift values)
-   - Place the “Save changes” button **below** the custom fields section
+Ask before:
+- Adding DB migrations or changing persisted schema
+- Refactoring across many files / changing architecture
+- Changing user-visible behavior on core invariants above
 
-2) **Category color picker polish**
-   - Polish extended palette dialog UX
-   - Ensure pastel default for new categories
-   - Consider live preview for Category Edit/Add top bars
-   - Finish color coherence before moving further
+---
 
-3) **Project docs**
-   - Add/expand a public-facing `README.md` once the app starts getting attention
+## 10) Project status (May 2026)
 
-## 10) How Cursor should work with this repo (instructions for the AI)
-When making changes:
-- **Always start by listing the exact files** that will be modified and why.
-- Prefer the **smallest change** that satisfies the requirement.
-- Do **not** introduce new frameworks/patterns (no DI framework, no new architecture layers) without asking permission first.
-- Keep naming and style consistent with the existing code.
-- Ensure code compiles (and update imports where needed).
+**Done:** Room persistence, bilingual UI, custom fields, search/filter/sort, category reorder, service period mode, currency metadata, picker-first dates, major UI polish pass.
 
-When uncertain:
-- Search the codebase for existing patterns first (dialogs, validation, snackbar flow).
-- Ask for confirmation only if a decision would affect persisted data schema (future Room migrations) or user-facing behavior significantly.
+**Next (see LAUNCH_PLAN):**
+1. Documentation refresh (this file)
+2. Controlled selective refactor (behavior-preserving)
+3. Responsive/design verification
+4. CSV export → backup → tests → CI → Play release
+
+**Not implemented:** export, backup, automated tests, CI, Play Store assets.
+
+---
+
+## 11) Cleanup reminders (pre-release)
+
+- Remove temporary debug logs (e.g. locale tracing in `Navigation.kt`)
+- Review large Compose files for selective extraction
+- Review duplicate add/edit form logic
+- Verify responsive layout on small/large screens
+
+---
+
+## 12) Historical note
+
+`docs/ARCHITECTURE_SUMMARY.pdf` may be outdated. Treat `PROJECT_OVERVIEW.md` and this file as current until the PDF is regenerated.

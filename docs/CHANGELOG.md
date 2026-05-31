@@ -3,6 +3,22 @@
 This changelog documents incremental development steps of the Tax Tracker app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
 
+## 31/05/2026
+
+### Category List & Reorder Polish
+- Add manual category reorder mode with up/down controls and animated list transitions
+- Persist category order via `orderIndex`; sort by index instead of name so order stays stable across locale changes
+- Replace per-card delete icon with a card overflow action menu (edit, delete)
+- Remove redundant settings entry from the category overflow menu; language settings remain accessible from the top bar
+- Fix top-edge reorder animation clipping so items stay visible during moves
+
+### Invoice Details & Wording Polish
+- Refine invoice details header layout and edit-icon positioning on the details card
+- Standardize invoice number label wording (`Invoice # …` / Hebrew equivalent) in list and details
+- Final Hebrew/English string refinements from the UI polish pass
+
+---
+
 ## 27/04/2026
 
 ### Invoice Form and Filter UX Polish

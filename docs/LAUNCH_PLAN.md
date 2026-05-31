@@ -1,182 +1,175 @@
 # Tax Tracker – LAUNCH_PLAN.md
-_Last updated: 2026-02-10_
+_Last updated: 2026-05-31_
 
-This document is the **single source of truth** for the launch plan.
-It’s written to be clear for **me (the developer)** and **ChatGPT** so we can keep context even after long deep-dives.
+This document is the **single source of truth** for the pre-release execution plan.
+It is written for the developer and for AI assistants so context survives long deep-dives.
 
-## How we will use this plan (important)
-- We work in order, one step at a time.
-- In chat, I will refer to steps by ID, like: **“Next: S3”** or **“Working on S6.B”**.
-- If a step changes, we update this file (don’t rely on chat memory).
+## How we use this plan
+- Work in order, one step at a time.
+- Refer to steps by ID in chat (e.g. **“Next: S2”**).
+- When reality changes, update this file — do not rely on chat memory.
 
 ### Definition of “Done”
-A step is “Done” when:
-- feature is implemented,
-- manually sanity-tested,
-- and committed with a clear commit message.
+A step is **Done** when:
+- the deliverable is implemented (or the doc task is written),
+- manually sanity-tested where applicable,
+- and committed with a clear message.
 
 ---
 
-## High-level execution order (internal truth)
-S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9 → S10
+## Completed work (through May 2026)
+
+The following major areas are **implemented and polished** — not pending:
+
+| Area | Status |
+|------|--------|
+| Room persistence (v13, incremental migrations) | Done |
+| Hebrew / English localization + manual language switch | Done |
+| Dynamic custom fields (category titles + invoice values) | Done |
+| Seeded categories with locale-aware refresh | Done |
+| Invoice search / filter / sort pipeline | Done |
+| Service period explicit mode (`MONTH` / `DATE`) | Done |
+| Currency display metadata (ILS / USD, no conversion) | Done |
+| Picker-first dates, form validation, snackbar/dropdown polish | Done |
+| Category manual reorder (`orderIndex`) | Done |
+| **UI polish & debugging pass** (Apr–May 2026) | **Done** |
 
 ---
 
-# S1 – Ownership & Architecture Clarity
-**Goal:** regain full understanding of the codebase and reduce “AI fog” before adding risky features.
+## High-level execution order (what remains)
+
+```
+S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9
+```
+
+| Step | Focus |
+|------|--------|
+| **S1** | Documentation refresh |
+| **S2** | Controlled deep code review + selective refactor |
+| **S3** | Responsive / design safety verification |
+| **S4** | Data export foundation (CSV) |
+| **S5** | Backup / export portability (ZIP) |
+| **S6** | Tests for export / backup / custom-field invariants |
+| **S7** | CI (GitHub Actions) |
+| **S8** | App icon, store assets, privacy, Play release readiness |
+| **S9** | Import (optional; post-export stability) |
+
+---
+
+# S1 – Documentation Refresh
+**Status:** In progress (May 2026)  
+**Goal:** Public docs and AI context match the current codebase.
 
 ## Deliverables
-- A short “Architecture Notes” section (can live in this file) that explains:
-    - App entry → navigation → screens → viewmodels → repositories → Room
-    - Where business logic lives
-    - How Category ↔ Invoice ↔ Custom Fields are connected
+- [x] Update `README.md`, `CHANGELOG.md`, `LAUNCH_PLAN.md`, `PROJECT_OVERVIEW.md`, `ai-context.md`
+- [x] Update `.private_notes/` operational files
+- [ ] Note that `docs/ARCHITECTURE_SUMMARY.pdf` is a historical snapshot — regenerate later from refreshed markdown if a PDF is still needed
 
 ## Checklist
-- [ ] Identify main packages/modules and their responsibilities
-- [ ] Trace 2 key flows end-to-end:
-    - [ ] Category creation/edit flow
-    - [ ] Invoice create/edit flow (including custom fields)
-- [ ] List any “risky areas” (fragile logic, unclear ownership, duplication)
-
-## Notes (to fill while doing S1)
-- Entry / navigation:
-- State management approach:
-- Data layer boundaries:
-- Known risks:
+- [x] Reconcile feature list with git history
+- [x] Remove outdated warnings from overview / ai-context
+- [ ] Optional: add a short “regenerate PDF” note when a source workflow exists
 
 ---
 
-# S2 – Deep Code Review (Claude or equivalent) + Selective Refactor
-**Goal:** architecture/clean-code review + apply only **low-risk, high-value** changes.
+# S2 – Controlled Deep Code Review + Selective Refactor
+**Status:** Next recommended phase  
+**Goal:** Architecture / clean-code review with **only low-risk, behavior-preserving** changes.
+
+This is **not** a full rewrite. Accept refactors that improve clarity without changing user-visible behavior.
 
 ## Decision rule
-- Accept refactors that **improve clarity** without changing behavior.
-- Avoid major rewrites pre-launch.
+- ✅ Improve naming, reduce duplication, extract obvious helpers, remove dead code
+- ✅ Consolidate duplicate form logic where safe
+- ❌ No schema migrations unless explicitly planned
+- ❌ No architecture layer rewrites (no DI framework, no use-case explosion)
 
 ## Deliverables
-- A “review summary” (bullet list) stored here:
-    - Top 5 improvement opportunities
-    - Top 5 risk warnings
-    - Suggested small refactors
+- Review summary (bullets) stored in private notes or appended here:
+  - Top improvement opportunities
+  - Top risk warnings
+  - Chosen refactors (max 3–6)
 
 ## Checklist
 - [ ] Prepare review prompt + attach relevant folders/files
-- [ ] Run deep review (Claude / alternative)
+- [ ] Run deep review (Claude Sonnet or equivalent)
 - [ ] Pick max 3–6 safe refactors
-- [ ] Implement + re-test critical flows
+- [ ] Implement + re-test critical flows (category CRUD, invoice CRUD, search/filter, reorder, locale switch)
 
-## Review summary (to fill)
-- Opportunities:
-- Risks:
-- Chosen refactors:
-
----
-
-# S3 – Product Decision: Default vs Optional Fields (Final)
-**Goal:** lock the product decision so UI/export/backup stay consistent.
-
-## Constraints
-- MVP should avoid DB migrations and fragile index shifting.
-- Current model supports per-category custom field titles and per-invoice values.
-
-## Decisions to finalize
-- Core default fields (always available across categories)
-- Optional presets list (common tax/billing fields)
-- Field removal behavior:
-    - Recommended for MVP: **soft-delete/archiving** (no shifting invoice values)
-
-## Deliverables
-- A stable list of:
-    - [ ] Default fields
-    - [ ] Optional presets (names + brief meaning)
-
-## Checklist
-- [ ] Finalize default fields list
-- [ ] Finalize optional preset list
-- [ ] Decide removal strategy (soft-delete vs migrate)
-- [ ] Update UI flows for Add/Edit Category accordingly
+## Known cleanup candidates (from UI polish pass)
+- Remove temporary debug logs (e.g. locale tracing in `Navigation.kt`) before release
+- Review large Compose files (`InvoiceListScreen.kt`, add/edit invoice screens)
+- Review duplicate validation / form logic between add and edit flows
+- Review responsive safety on small/large screens and RTL
 
 ---
 
-# S4 – Responsive Elegant Design Pass
-**Goal:** UI looks good and usable on different screen sizes; reduce hardcoded sizing risks.
+# S3 – Responsive / Design Safety Verification
+**Goal:** UI remains usable and visually correct across screen sizes and locales.
 
 ## Focus
-- Remove “harmful” hardcoded sizes that break on small/large screens
-- Prefer adaptive Compose patterns (weights, flexible paddings, scalable typography)
-- Ensure key screens are clean:
-    - Category list
-    - Invoice list
-    - Invoice details
-    - Add/Edit flows
+- Replace harmful hardcoded sizes where they break layout
+- Verify long text (vendor, notes, custom fields) on narrow screens
+- Verify RTL mirroring and Hebrew strings on key flows
+- Touch targets and contrast on category/invoice cards
 
 ## Checklist
-- [ ] Identify hardcoded sizes that break layout
-- [ ] Fix spacing & alignment across devices/emulators
-- [ ] Verify long text cases (vendor name, notes, custom fields)
-- [ ] Verify accessibility basics (touch targets, contrast)
+- [ ] Test category list, invoice list, details, add/edit on small + large emulators
+- [ ] Test Hebrew RTL on primary flows
+- [ ] Fix any layout regressions found
 
 ---
 
-# S5 – Data Portability: CSV Export (MVP)
-**Goal:** export data to a PC-readable format (Excel/Sheets compatible).
+# S4 – Data Portability: CSV Export (MVP)
+**Goal:** Export data to a PC-readable format (Excel / Google Sheets compatible).
 
 ## Format decisions
-- Export scope:
-    - [ ] All data (recommended): categories + invoices
-- File structure:
-    - [ ] One ZIP with multiple CSVs OR one CSV per type (decide)
-- Column definitions:
-    - Must match the final decisions from S3
+- Export scope: all categories + invoices (recommended)
+- File structure: one ZIP with multiple CSVs **or** one CSV per type (decide at implementation)
+- Custom field columns must align with current indexed title/value model
 
 ## Checklist
 - [ ] Define CSV schema (headers)
 - [ ] Implement export via Storage Access Framework (file picker)
-- [ ] Test export with:
-    - [ ] commas/quotes/newlines in text
-    - [ ] multiple categories
-    - [ ] custom fields
+- [ ] Test commas/quotes/newlines, multiple categories, custom fields
 - [ ] Validate open in Excel / Google Sheets
 
 ---
 
-# S6 – Backup: Portable Local Backup (built on export)
-**Goal:** user-controlled local backup that can be stored anywhere (Drive, PC, etc.).
+# S5 – Backup: Portable Local Backup
+**Goal:** User-controlled local backup storable anywhere (Drive, PC, etc.).
 
 ## MVP definition
-- Backup output: **ZIP of CSV exports**
-- Restore can be a later step if needed; export-only still provides value.
+- Backup output: **ZIP of CSV exports** (+ optional `backup_metadata.json`)
+- Restore can be deferred; export-only still delivers value
 
 ## Checklist
 - [ ] Generate backup ZIP from export outputs
-- [ ] Naming/versioning inside ZIP (e.g., backup_metadata.json optional)
+- [ ] Naming / versioning inside ZIP
 - [ ] Test backup creation + file sharing
-- [ ] Decide whether MVP includes restore:
-    - [ ] Not in MVP (default)
-    - [ ] Include restore (only if stable & low-risk)
+- [ ] Decide restore scope for MVP (default: export-only)
 
 ---
 
-# S7 – Automated Testing: Wave A (Critical Invariants)
-**Goal:** small, high-value safety net before launch.
+# S6 – Automated Testing: Critical Invariants
+**Goal:** Small, high-value safety net before launch.
 
-## What to test first (ROI)
-- Custom-field invariants (especially if soft-delete/archiving exists)
+## What to test first
+- Custom-field index alignment invariants
 - CSV formatting and escaping
-- Backup ZIP contains expected files and non-empty outputs
+- Backup ZIP structure
+- Room migration smoke tests (optional stretch)
 
 ## Checklist
-- [ ] Add unit test module setup (if missing)
-- [ ] Add tests for:
-    - [ ] CSV export schema + escaping
-    - [ ] backup ZIP structure
-    - [ ] custom-field mapping invariants
-- [ ] Ensure tests run locally fast
+- [ ] Unit test module setup (if missing)
+- [ ] CSV export schema + escaping tests
+- [ ] Backup ZIP structure tests
+- [ ] Custom-field mapping invariant tests
 
 ---
 
-# S8 – CI Workflow (GitHub Actions)
-**Goal:** every push/PR runs the minimal quality gate.
+# S7 – CI Workflow (GitHub Actions)
+**Goal:** Every push/PR runs a minimal quality gate.
 
 ## MVP CI
 - `./gradlew test`
@@ -184,53 +177,48 @@ S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9 → S10
 
 ## Checklist
 - [ ] Add GitHub Actions workflow
-- [ ] Ensure it runs on PR + main
-- [ ] Fix any failing lint/tests
-- [ ] Keep CI fast and stable (avoid emulator tests for MVP)
+- [ ] Run on PR + main
+- [ ] Fix failing lint/tests
+- [ ] Keep CI fast (no emulator tests for MVP)
 
 ---
 
-# S9 – Import (Optional; post-export stability)
-**Goal:** import data from a known template (no AI required if template is controlled).
-
-## MVP recommendation
-- Only implement if export/backup are stable and there’s time.
-- Start with template-based import matching our schema.
+# S8 – Deployment & Release Readiness
+**Goal:** Publish to Google Play with minimal rejection risk.
 
 ## Checklist
-- [ ] Publish import template format (document columns)
-- [ ] Add import flow with validation & error reporting
-- [ ] Test with partial/malformed files
-
----
-
-# S10 – Deployment & Release Readiness
-**Goal:** publish to Google Play with minimal rejection risk + solid user trust.
-
-## Checklist
+- [ ] App icon and feature graphic
+- [ ] Store listing (screenshots, description)
 - [ ] Privacy policy + Data Safety disclosures
-- [ ] targetSdk decision (stability vs newest behavior changes)
-- [ ] Versioning (versionCode/versionName)
-- [ ] App signing / Play App Signing
-- [ ] Store listing (screenshots, description, keywords)
-- [ ] Final QA pass (manual checklist)
+- [ ] Versioning (`versionCode` / `versionName`)
+- [ ] Play App Signing
+- [ ] Final manual QA pass
 
 ---
 
-## Public-facing mapping (for README Roadmap)
-These internal steps map to recruiter-friendly wording:
+# S9 – Import (Optional)
+**Goal:** Template-based import matching export schema — only after export/backup are stable.
 
-- S1–S2 → “Improved internal structure and maintainability”
-- S3 → “Curated common tax & billing fields”
-- S4 → “Responsive and adaptive layout”
-- S5 → “Export to CSV”
-- S6 → “Local backup (portable format)”
-- S7–S8 → “Automated tests for critical flows”
-- S10 → “Google Play release + privacy/compliance”
+## Checklist
+- [ ] Document import template format
+- [ ] Add import flow with validation
+- [ ] Test partial/malformed files
+
+---
+
+## Public-facing mapping (README roadmap)
+- S1 → Documentation refresh
+- S2 → Controlled code review / refactor
+- S3 → Responsive and adaptive layout verification
+- S4 → Export to CSV
+- S5 → Local backup (portable format)
+- S6–S7 → Automated tests + CI
+- S8 → Google Play release + privacy/compliance
+- S9 → Import (optional)
 
 ---
 
 ## Running notes / decisions log
-(We add short entries here as we decide things.)
 
-- 2026-02-10: Plan structure created. Next intended step: S1.
+- **2026-02-10:** Plan structure created.
+- **2026-05-31:** UI polish phase marked complete. Documentation refresh (S1) underway. Next recommended: S2 controlled refactor review.
