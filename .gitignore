@@ -53,3 +53,4 @@ Thumbs.db
 # Cursor
 tatus
 .private_notes/
+.cursor/

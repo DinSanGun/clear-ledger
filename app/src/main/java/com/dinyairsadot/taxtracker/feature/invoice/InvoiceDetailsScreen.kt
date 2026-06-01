@@ -23,8 +23,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.Edit
@@ -49,6 +50,7 @@ fun InvoiceDetailsScreen(
     onEditClick: () -> Unit,
     categoryColorHex: String?
 ) {
+    val currentLocale = LocalConfiguration.current.locales[0]
     Scaffold(
         topBar = {
             TopAppBar(
@@ -237,7 +239,7 @@ fun InvoiceDetailsScreen(
                             invoice.servicePeriodStartText,
                             invoice.servicePeriodEndText,
                             invoice.servicePeriodMode,
-                            LocalContext.current.resources.configuration.locales[0]
+                            currentLocale
                         )?.let { formattedPeriod ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
                             Text(

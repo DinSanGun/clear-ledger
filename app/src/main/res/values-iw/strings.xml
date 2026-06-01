@@ -11,6 +11,8 @@
     <string name="add">הוספה</string>
     <string name="close">סגירה</string>
     <string name="sort">מיון</string>
+    <string name="sort_by">מיון לפי</string>
+    <string name="all">הכל</string>
     <string name="please_fix_highlighted_fields">נא לתקן את השדות המסומנים</string>
     
     <!-- Category List Screen -->
@@ -74,6 +76,8 @@
     <string name="paid_with_credit">שולם באשראי</string>
     <string name="due">תשלום: %1$s</string>
     <string name="failed_to_load_invoices">נכשל בטעינת חשבוניות</string>
+    <string name="failed_to_save_invoice">שמירת החשבונית נכשלה</string>
+    <string name="failed_to_delete_invoice">מחיקת החשבונית נכשלה</string>
     <string name="search_invoices_placeholder">חיפוש חשבוניות…</string>
     <string name="search_by_invoice_number_placeholder">חיפוש לפי מספר חשבונית…</string>
     <string name="search_by_amount_placeholder">חיפוש לפי סכום…</string>

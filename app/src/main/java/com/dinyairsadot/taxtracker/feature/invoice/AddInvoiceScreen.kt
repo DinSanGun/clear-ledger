@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.dinyairsadot.taxtracker.feature.invoice
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -799,17 +802,25 @@ fun PaymentStatusSelector(
             fontWeight = FontWeight.Normal,
             modifier = Modifier.padding(end = 8.dp)
         )
-        TextButton(onClick = { onSelectedChange(PaymentStatus.NOT_PAID) }) {
-            Text(
-                text = stringResource(R.string.not_paid),
-                fontWeight = if (selected == PaymentStatus.NOT_PAID) FontWeight.Bold else FontWeight.Normal
-            )
-        }
-        TextButton(onClick = { onSelectedChange(PaymentStatus.PAID) }) {
-            Text(
-                text = stringResource(R.string.paid),
-                fontWeight = if (selected == PaymentStatus.PAID) FontWeight.Bold else FontWeight.Normal
-            )
+        Row(modifier = Modifier.weight(1f)) {
+            TextButton(
+                onClick = { onSelectedChange(PaymentStatus.NOT_PAID) },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = stringResource(R.string.not_paid),
+                    fontWeight = if (selected == PaymentStatus.NOT_PAID) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+            TextButton(
+                onClick = { onSelectedChange(PaymentStatus.PAID) },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = stringResource(R.string.paid),
+                    fontWeight = if (selected == PaymentStatus.PAID) FontWeight.Bold else FontWeight.Normal
+                )
+            }
         }
     }
 }

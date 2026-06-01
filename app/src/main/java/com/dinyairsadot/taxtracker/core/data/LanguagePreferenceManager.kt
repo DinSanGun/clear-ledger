@@ -2,7 +2,6 @@ package com.dinyairsadot.taxtracker.core.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import java.util.Locale
 
 class LanguagePreferenceManager(context: Context) {
@@ -15,8 +14,7 @@ class LanguagePreferenceManager(context: Context) {
         private const val PREFS_NAME = "language_prefs"
         private const val KEY_LANGUAGE = "selected_language"
         private const val KEY_LAST_APPLIED_LANGUAGE = "last_applied_language_for_seeded_data"
-        private const val TAG = "LanguageDebug"
-        
+
         /**
          * Normalize language code: Android's Locale converts "he" to "iw" for backward compatibility.
          * We normalize "iw" back to "he" to match our UI language codes.
@@ -30,32 +28,16 @@ class LanguagePreferenceManager(context: Context) {
      * Get the current saved language code ("en" or "he"). Default is Hebrew when no preference is set.
      */
     fun getCurrentLanguage(): String {
-        // #region agent log
-        val defaultValue = sharedPrefs.getString(KEY_LANGUAGE, "he")
-        val rawResult = defaultValue ?: "he"
-        val result = normalizeLanguageCode(rawResult)
-        Log.d(TAG, "[A] getCurrentLanguage: rawResult='$rawResult', normalizedResult='$result' (length=${result.length}), key='$KEY_LANGUAGE', allKeys=${sharedPrefs.all.keys.toList()}")
-        // #endregion
-        return result
+        val rawResult = sharedPrefs.getString(KEY_LANGUAGE, "he") ?: "he"
+        return normalizeLanguageCode(rawResult)
     }
 
     /**
      * Save the selected language preference
      */
     fun setLanguage(locale: Locale) {
-        // #region agent log
-        val rawLangCode = locale.language
-        val normalizedLangCode = normalizeLanguageCode(rawLangCode)
-        val beforeValue = sharedPrefs.getString(KEY_LANGUAGE, null)
-        Log.d(TAG, "[A] setLanguage BEFORE write: rawLangCode='$rawLangCode', normalizedLangCode='$normalizedLangCode' (length=${normalizedLangCode.length}), key='$KEY_LANGUAGE', beforeValue='$beforeValue'")
-        // #endregion
-        val editor = sharedPrefs.edit()
-        editor.putString(KEY_LANGUAGE, normalizedLangCode)
-        val success = editor.commit() // Changed from apply() to commit() for synchronous write
-        // #region agent log
-        val readBack = sharedPrefs.getString(KEY_LANGUAGE, null)
-        Log.d(TAG, "[A] setLanguage AFTER write: normalizedLangCode='$normalizedLangCode', writeSuccess=$success, readBack='$readBack' (length=${readBack?.length}), match=${readBack == normalizedLangCode}, allKeys=${sharedPrefs.all.keys.toList()}")
-        // #endregion
+        val normalizedLangCode = normalizeLanguageCode(locale.language)
+        sharedPrefs.edit().putString(KEY_LANGUAGE, normalizedLangCode).commit()
     }
 
     /**

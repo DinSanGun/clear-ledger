@@ -5,8 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
-import com.dinyairsadot.taxtracker.core.data.repositories.RoomCategoryRepository
-import com.dinyairsadot.taxtracker.core.data.repositories.RoomInvoiceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -91,7 +89,8 @@ class CategoryListViewModel(
                 _uiState.value = CategoryListUiState(
                     isLoading = false,
                     categories = uiCategories,
-                    errorMessage = null
+                    errorMessage = null,
+                    isReorderMode = currentState.isReorderMode
                 )
             } catch (e: Exception) {
                 // On error, only update error message, keep existing categories visible

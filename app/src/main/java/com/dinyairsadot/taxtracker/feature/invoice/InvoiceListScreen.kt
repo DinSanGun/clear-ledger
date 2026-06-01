@@ -882,7 +882,7 @@ private fun InvoiceListContent(
         modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-            items(invoices) { invoice ->
+            items(invoices, key = { invoice -> invoice.id }) { invoice ->
                 InvoiceItem(
                     invoice = invoice,
                     onClick = { onInvoiceClick(invoice.id) },

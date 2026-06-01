@@ -1,7 +1,6 @@
 package com.dinyairsadot.taxtracker.core.data.repositories
 
 import android.content.Context
-import android.util.Log
 import com.dinyairsadot.taxtracker.R
 import com.dinyairsadot.taxtracker.core.data.dao.CategoryDao
 import com.dinyairsadot.taxtracker.core.data.entities.CategoryEntity
@@ -19,18 +18,6 @@ private val SEED_KEY_TO_RES_IDS: Map<String, Pair<Int, Int>> = mapOf(
     "health_fund" to (R.string.default_category_health_fund to R.string.default_category_health_fund_description),
     "car_insurance" to (R.string.default_category_car_insurance to R.string.default_category_car_insurance_description),
 )
-
-/** Fixed display order for built-in categories, independent of localized names. */
-private val SEEDED_CATEGORY_ORDER: Map<String, Int> = listOf(
-    "arnona",
-    "electricity",
-    "water",
-    "gas",
-    "phone_internet",
-    "national_insurance",
-    "health_fund",
-    "car_insurance"
-).withIndex().associate { (index, key) -> key to index }
 
 class RoomCategoryRepository(
     private val categoryDao: CategoryDao
@@ -57,7 +44,10 @@ class RoomCategoryRepository(
         val entity = CategoryEntity.fromDomain(category).copy(
             seedKey = existing?.seedKey,
             userEdited = true,
-            orderIndex = existing?.orderIndex ?: category.orderIndex
+            orderIndex = existing?.orderIndex ?: category.orderIndex,
+            // Preserve fields the edit form does not expose
+            supplierName = existing?.supplierName,
+            pinnedDefaultsJson = existing?.pinnedDefaultsJson
         )
         categoryDao.update(entity)
     }
@@ -77,22 +67,10 @@ class RoomCategoryRepository(
             val name = context.getString(resIds.first)
             val description = context.getString(resIds.second)
             categoryDao.updateNameDescriptionAndCustomFields(entity.id, name, description)
-            updated++
-        }
-        if (updated > 0) {
-            Log.d(TAG, "updateLocalizedSeededCategories: updated $updated seeded categories for current locale")
         }
     }
 
     override suspend fun clearCustomFieldsForSeededCategories(): Int {
-        val count = categoryDao.clearCustomFieldsForSeededUnedited()
-        if (count > 0) {
-            Log.d(TAG, "clearCustomFieldsForSeededCategories: cleared custom fields from $count seeded categories")
-        }
-        return count
-    }
-
-    companion object {
-        private const val TAG = "RoomCategoryRepo"
+        return categoryDao.clearCustomFieldsForSeededUnedited()
     }
 }

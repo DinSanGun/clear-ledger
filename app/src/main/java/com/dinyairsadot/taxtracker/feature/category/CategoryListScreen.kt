@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.core.graphics.toColorInt
@@ -63,8 +64,6 @@ import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.category.CategoryColorPreview
 import androidx.compose.foundation.BorderStroke
 import com.dinyairsadot.taxtracker.R
-import android.util.Log
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -97,23 +96,8 @@ fun CategoryListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     
-    // #region agent log - Track string resource access
-    val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        val composeLocale = context.resources.configuration.locales[0]
-        val composeLanguage = composeLocale.language
-        Log.d("LanguageDebug", "[CATEGORY] CategoryListScreen composed: contextLocale=$composeLocale, language='$composeLanguage'")
-    }
-    // #endregion
-    
-    val categoryAddedMessage = stringResource(R.string.category_added).also {
-        val locale = LocalContext.current.resources.configuration.locales[0]
-        Log.d("LanguageDebug", "[CATEGORY] stringResource(category_added): result='$it', locale=$locale")
-    }
-    val categoryDeletedMessage = stringResource(R.string.category_deleted).also {
-        val locale = LocalContext.current.resources.configuration.locales[0]
-        Log.d("LanguageDebug", "[CATEGORY] stringResource(category_deleted): result='$it', locale=$locale")
-    }
+    val categoryAddedMessage = stringResource(R.string.category_added)
+    val categoryDeletedMessage = stringResource(R.string.category_deleted)
 
     LaunchedEffect(showCategoryAddedMessage) {
         if (showCategoryAddedMessage) {
@@ -146,15 +130,11 @@ fun CategoryListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     val titleText = if (isReorderMode) {
                         stringResource(R.string.reorder_categories)
                     } else {
                         stringResource(R.string.bills_and_taxes)
-                    }
-                    val locale = LocalContext.current.resources.configuration.locales[0]
-                    LaunchedEffect(titleText) {
-                        Log.d("LanguageDebug", "[CATEGORY] TopAppBar title: text='$titleText', locale=$locale")
                     }
                     Text(titleText)
                 },
@@ -418,13 +398,17 @@ private fun CategoryItem(
                     text = category.name,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
-                    )
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (category.description.isNotBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = category.description,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 

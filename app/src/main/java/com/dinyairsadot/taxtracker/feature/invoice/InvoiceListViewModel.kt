@@ -96,38 +96,6 @@ class InvoiceListViewModel(
     private val _uiState = MutableStateFlow(InvoiceListUiState(isLoading = true))
     val uiState: StateFlow<InvoiceListUiState> = _uiState.asStateFlow()
 
-    /**
-     * Determines the default document type based on category name.
-     * Returns null if no default should be set (user must select).
-     */
-    fun getDefaultDocumentType(categoryName: String?): DocumentType? {
-        if (categoryName == null) return null
-        
-        val nameLower = categoryName.lowercase()
-        
-        // Utility bills -> BILL_DEMAND
-        if (nameLower.contains("arnona") || 
-            nameLower.contains("water") || 
-            nameLower.contains("electricity") || 
-            nameLower.contains("gas") || 
-            nameLower.contains("phone") || 
-            nameLower.contains("internet") ||
-            nameLower.contains("national insurance") ||
-            nameLower.contains("ביטוח לאומי")) {
-            return DocumentType.BILL_DEMAND
-        }
-        
-        // Business expenses -> TAX_INVOICE
-        if (nameLower.contains("business") || 
-            nameLower.contains("expense") ||
-            nameLower.contains("הוצאות עסקיות") ||
-            nameLower.contains("עסקי")) {
-            return DocumentType.TAX_INVOICE
-        }
-        
-        return null
-    }
-
     fun loadCategoryHeader(categoryId: Long) {
         viewModelScope.launch {
             try {
@@ -356,53 +324,59 @@ class InvoiceListViewModel(
         amountCurrency: InvoiceCurrency = InvoiceCurrency.ILS
     ) {
         viewModelScope.launch {
-            fun parseDate(dateText: String): LocalDate? {
-                val trimmed = dateText.trim()
-                return runCatching {
-                    LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                }.getOrNull()
+            try {
+                fun parseDate(dateText: String): LocalDate? {
+                    val trimmed = dateText.trim()
+                    return runCatching {
+                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    }.getOrNull()
+                }
+
+                val servicePeriodStart = parseDate(servicePeriodStartText)
+                val servicePeriodEnd = parseDate(servicePeriodEndText)
+
+                // Snapshot category's pinned defaults at invoice creation time
+                val category = categoryRepository.getCategories().firstOrNull { it.id == categoryId }
+                val pinnedSnapshot = category?.pinnedDefaults ?: emptyMap()
+
+                // Use id=0 to let Room auto-generate the ID
+                val newInvoice = Invoice(
+                    id = 0,
+                    categoryId = categoryId,
+                    // Old fields (backward compatibility)
+                    invoiceNumber = documentNumber,  // Map new to old
+                    amount = amountDue,             // Map new to old
+                    paymentStatus = paymentStatus,
+                    vendorName = vendorName,
+                    issueDate = null,
+                    dueDate = dueDate,
+                    paymentDate = paymentDate,
+                    servicePeriodStart = servicePeriodStart,
+                    servicePeriodEnd = servicePeriodEnd,
+                    consumptionValue = null,
+                    consumptionUnit = null,
+                    notes = notes.ifBlank { null },
+                    customFieldValues = customFieldValues.map { it.trim() },
+                    documentType = null,
+                    // New fields
+                    amountDue = amountDue,
+                    documentNumber = documentNumber,
+                    paymentMethod = paymentMethod,
+                    numberOfPayments = numberOfPayments,
+                    confirmationNumber = confirmationNumber,
+                    // Pinned snapshot: capture category defaults at creation time
+                    pinnedSnapshot = pinnedSnapshot,
+                    servicePeriodMode = servicePeriodMode,
+                    amountCurrency = amountCurrency
+                )
+
+                invoiceRepository.addInvoice(newInvoice)
+                loadInvoices(categoryId)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = context.getString(R.string.failed_to_save_invoice)
+                )
             }
-
-            val servicePeriodStart = parseDate(servicePeriodStartText)
-            val servicePeriodEnd = parseDate(servicePeriodEndText)
-
-            // Snapshot category's pinned defaults at invoice creation time
-            val category = categoryRepository.getCategories().firstOrNull { it.id == categoryId }
-            val pinnedSnapshot = category?.pinnedDefaults ?: emptyMap()
-
-            // Use id=0 to let Room auto-generate the ID
-            val newInvoice = Invoice(
-                id = 0,
-                categoryId = categoryId,
-                // Old fields (backward compatibility)
-                invoiceNumber = documentNumber,  // Map new to old
-                amount = amountDue,             // Map new to old
-                paymentStatus = paymentStatus,
-                vendorName = vendorName,
-                issueDate = null,
-                dueDate = dueDate,
-                paymentDate = paymentDate,
-                servicePeriodStart = servicePeriodStart,
-                servicePeriodEnd = servicePeriodEnd,
-                consumptionValue = null,
-                consumptionUnit = null,
-                notes = notes.ifBlank { null },
-                customFieldValues = customFieldValues.map { it.trim() },
-                documentType = null,
-                // New fields
-                amountDue = amountDue,
-                documentNumber = documentNumber,
-                paymentMethod = paymentMethod,
-                numberOfPayments = numberOfPayments,
-                confirmationNumber = confirmationNumber,
-                // Pinned snapshot: capture category defaults at creation time
-                pinnedSnapshot = pinnedSnapshot,
-                servicePeriodMode = servicePeriodMode,
-                amountCurrency = amountCurrency
-            )
-
-            invoiceRepository.addInvoice(newInvoice)
-            loadInvoices(categoryId)
         }
     }
 
@@ -429,44 +403,50 @@ class InvoiceListViewModel(
         amountCurrency: InvoiceCurrency = InvoiceCurrency.ILS
     ) {
         viewModelScope.launch {
-            val existing = invoiceRepository.getInvoiceById(invoiceId) ?: return@launch
+            try {
+                val existing = invoiceRepository.getInvoiceById(invoiceId) ?: return@launch
 
-            fun parseDate(dateText: String): LocalDate? {
-                val trimmed = dateText.trim()
-                return runCatching {
-                    LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                }.getOrNull()
+                fun parseDate(dateText: String): LocalDate? {
+                    val trimmed = dateText.trim()
+                    return runCatching {
+                        LocalDate.parse(trimmed, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    }.getOrNull()
+                }
+
+                val servicePeriodStart = parseDate(servicePeriodStartText)
+                val servicePeriodEnd = parseDate(servicePeriodEndText)
+
+                val updated = existing.copy(
+                    // Old fields (backward compatibility)
+                    invoiceNumber = documentNumber,
+                    amount = amountDue,
+                    paymentStatus = paymentStatus,
+                    vendorName = vendorName,
+                    dueDate = dueDate,
+                    paymentDate = paymentDate,
+                    servicePeriodStart = servicePeriodStart,
+                    servicePeriodEnd = servicePeriodEnd,
+                    notes = notes.ifBlank { null },
+                    customFieldValues = customFieldValues.map { it.trim() },
+                    // New fields
+                    amountDue = amountDue,
+                    documentNumber = documentNumber,
+                    paymentMethod = paymentMethod,
+                    numberOfPayments = numberOfPayments,
+                    confirmationNumber = confirmationNumber,
+                    servicePeriodMode = servicePeriodMode,
+                    amountCurrency = amountCurrency
+                )
+
+                invoiceRepository.updateInvoice(updated)
+
+                // Refresh list so InvoiceListScreen sees updated data
+                loadInvoices(existing.categoryId)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = context.getString(R.string.failed_to_save_invoice)
+                )
             }
-
-            val servicePeriodStart = parseDate(servicePeriodStartText)
-            val servicePeriodEnd = parseDate(servicePeriodEndText)
-
-            val updated = existing.copy(
-                // Old fields (backward compatibility)
-                invoiceNumber = documentNumber,
-                amount = amountDue,
-                paymentStatus = paymentStatus,
-                vendorName = vendorName,
-                dueDate = dueDate,
-                paymentDate = paymentDate,
-                servicePeriodStart = servicePeriodStart,
-                servicePeriodEnd = servicePeriodEnd,
-                notes = notes.ifBlank { null },
-                customFieldValues = customFieldValues.map { it.trim() },
-                // New fields
-                amountDue = amountDue,
-                documentNumber = documentNumber,
-                paymentMethod = paymentMethod,
-                numberOfPayments = numberOfPayments,
-                confirmationNumber = confirmationNumber,
-                servicePeriodMode = servicePeriodMode,
-                amountCurrency = amountCurrency
-            )
-
-            invoiceRepository.updateInvoice(updated)
-
-            // Refresh list so InvoiceListScreen sees updated data
-            loadInvoices(existing.categoryId)
         }
     }
 
@@ -475,9 +455,15 @@ class InvoiceListViewModel(
         categoryId: Long
     ) {
         viewModelScope.launch {
-            invoiceRepository.deleteInvoice(invoiceId)
-            // Refresh list so InvoiceListScreen sees updated data
-            loadInvoices(categoryId)
+            try {
+                invoiceRepository.deleteInvoice(invoiceId)
+                // Refresh list so InvoiceListScreen sees updated data
+                loadInvoices(categoryId)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = context.getString(R.string.failed_to_delete_invoice)
+                )
+            }
         }
     }
 }

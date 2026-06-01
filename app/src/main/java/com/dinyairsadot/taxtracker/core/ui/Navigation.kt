@@ -43,7 +43,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import android.util.Log
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -108,14 +107,6 @@ fun TaxTrackerNavHost(
         // -------------------------
         composable(Screen.CategoryList.route) { backStackEntry ->
             val context = LocalContext.current
-            // #region agent log - Track locale in Navigation
-            androidx.compose.runtime.LaunchedEffect(Unit) {
-                val composeLocale = context.resources.configuration.locales[0]
-                val composeLanguage = composeLocale.language
-                val testString = context.getString(R.string.app_name)
-                Log.d("LanguageDebug", "[NAV] CategoryList composable: contextLocale=$composeLocale, language='$composeLanguage', testString='$testString'")
-            }
-            // #endregion
             val viewModel: CategoryListViewModel = viewModel(
                 backStackEntry,
                 factory = CategoryListViewModelFactory(categoryRepository, invoiceRepository, context)

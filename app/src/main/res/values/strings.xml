@@ -83,6 +83,8 @@
     <string name="paid_with_credit">Paid with credit</string>
     <string name="due">Due: %1$s</string>
     <string name="failed_to_load_invoices">Failed to load invoices</string>
+    <string name="failed_to_save_invoice">Failed to save invoice</string>
+    <string name="failed_to_delete_invoice">Failed to delete invoice</string>
     <string name="search_invoices_placeholder">Search invoices…</string>
     <string name="search_by_invoice_number_placeholder">Search by invoice number…</string>
     <string name="search_by_amount_placeholder">Search by amount…</string>
@@ -100,7 +102,6 @@
     <string name="due_date_dd_mm_yyyy">Due date (deadline)</string>
     <string name="date_required">Date is required</string>
     <string name="use_format_dd_mm_yyyy">Use format DD/MM/YYYY</string>
-    <string name="enter_valid_date">Enter a valid date</string>
     <string name="pick_date">Pick date</string>
     <string name="notes">Notes</string>
     <string name="save_invoice">Save invoice</string>
