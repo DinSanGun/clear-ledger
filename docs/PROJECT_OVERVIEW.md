@@ -239,26 +239,30 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 ## L. Current Status and Evolving Areas
 
 **Stable / complete for MVP:**
+- Room persistence (v13), incremental migrations
 - Category and invoice CRUD
-- Dynamic custom fields (indexed lists)
-- Search, filter, sort
-- Bilingual UI with RTL
-- Category reorder
+- Dynamic custom fields (indexed title/value lists)
+- Invoice search, filter, sort (`sourceInvoices` → `visibleInvoices`)
+- Explicit service period mode (`MONTH` / `DATE`)
+- Bilingual UI with RTL and manual language switching
+- Category manual reorder (`orderIndex`)
 - UI polish pass (Apr–May 2026)
+- **Pre-launch safety refactor** (Jun 2026): data-preservation fixes, error surfacing, targeted responsive/list fixes, debug log removal, build/lint/test validation
 
 **Not yet implemented:**
-- CSV export / backup / restore
-- Automated tests and CI
+- CSV export / JSON backup / restore
+- CI pipeline
 - Play Store release assets
 
-**Known improvement areas (pre-release):**
+**Known improvement areas (non-blocking follow-ups):**
 - In-memory filter/sort may need DAO queries at scale
 - Startup/seeding logic concentrated in `MainActivity`
-- Some debug logging remains (remove before release)
+- Deprecation warnings (`menuAnchor`, `Locale(String)`, `LocalLifecycleOwner`)
 - Large Compose files could benefit from selective extraction
+- ViewModel `Context` usage could be narrowed over time
 
 ---
 
 ## Summary
 
-Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. Pre-release work shifts to documentation, selective refactor, export/backup, tests, CI, and Play Store readiness.
+Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. UI polish and a conservative pre-launch refactor are complete; **next focus is export foundation** (CSV of visible/filtered invoices, then JSON backup/restore), tests, CI, and Play Store readiness.

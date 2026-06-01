@@ -80,18 +80,20 @@ Domain models and business concepts are separated from persistence and UI logic.
 ## Roadmap
 
 ### Next (pre-release)
-1. **Documentation refresh** — keep public docs aligned with the codebase
-2. **Controlled code review / refactor** — selective, behavior-preserving improvements (not a rewrite)
-3. **Responsive / design safety verification** — layout checks across screen sizes and RTL
-4. **Data export foundation** — CSV export (Excel / Google Sheets compatible)
-5. **Backup / portability** — local ZIP backup built on export
-6. **Tests** — export, backup, and custom-field invariant coverage
-7. **CI** — GitHub Actions for unit tests and lint
-8. **Release readiness** — app icon, store assets, privacy policy, Play Store submission
+1. **CSV export** — export currently visible/filtered invoice results (Excel / Google Sheets compatible)
+2. **Full JSON backup export** — portable backup built on export foundation
+3. **JSON restore** — replace-existing-data restore flow
+4. **Tests** — export/import and data-integrity coverage
+5. **CI** — GitHub Actions for unit tests and lint
+6. **Release readiness** — app icon, store assets, privacy policy, Play Store internal testing
+
+### Recently completed
+- UI polish pass (Apr–May 2026)
+- Documentation refresh and conservative pre-launch refactor / safety pass (Jun 2026)
 
 ### Not yet implemented
 - CSV export / backup / restore
-- Automated test suite and CI
+- CI pipeline
 - Google Play release
 
 See `docs/LAUNCH_PLAN.md` for the detailed execution plan.
@@ -102,7 +104,9 @@ See `docs/LAUNCH_PLAN.md` for the detailed execution plan.
 
 The app is under active development and nearing its first public release.
 
-Core functionality is implemented, including Room persistence, bilingual UI, invoice search/filter/sort, category reordering, and a major UI polish pass (through May 2026). Current focus shifts to documentation, selective refactor, data portability, tests, and release readiness.
+Core functionality is implemented: Room persistence, bilingual UI (Hebrew / English), invoice search/filter/sort, category reordering, service-period handling, and dynamic custom fields. A major UI polish pass completed in May 2026, followed by a **conservative pre-launch refactor and safety pass** (June 2026) focused on data preservation, error surfacing, responsive list/form fixes, and build validation — without architecture rewrites or database schema changes.
+
+**Validated:** manual QA, `./gradlew assembleDebug`, `./gradlew lintDebug`, and `./gradlew test`.
 
 ---
 

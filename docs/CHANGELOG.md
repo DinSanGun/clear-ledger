@@ -3,6 +3,38 @@
 This changelog documents incremental development steps of the Tax Tracker app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
 
+## 01/06/2026
+
+### Pre-Launch Refactor & Safety Pass
+Conservative, behavior-preserving cleanup after a Claude/Sonnet pre-launch review. No architecture rewrite, no Room schema change, and no broad UI redesign.
+
+#### Stability / data safety
+- Remove temporary language debug logging from production paths
+- Preserve hidden category fields on update (`supplierName`, `pinnedDefaults` / `pinnedDefaultsJson`) via repository round-trip
+- Surface invoice add/update/delete failures through existing snackbar / `errorMessage` state
+- Preserve category reorder mode across refresh and navigation return
+
+#### UI responsiveness
+- Add `maxLines` / ellipsis on category list card name and description (list cards only; details screens still wrap full text)
+- Improve payment status selector layout resilience on narrow screens (equal button weights; same visual style)
+- Add stable `LazyColumn` keys for invoice list items
+- Cap snackbar message length for long error text
+
+#### Localization
+- Add missing Hebrew strings for `all` and `sort_by`
+- Add Hebrew/English error strings for failed invoice save and delete
+
+#### Cleanup
+- Remove verified dead code (`getDefaultDocumentType`), unused constant (`SEEDED_CATEGORY_ORDER`), unused string (`enter_valid_date`), and unused imports
+- Delete stray untracked root file (`tatus`)
+
+#### Build / lint validation
+- Fix `InvoiceDetailsScreen` locale read: use `LocalConfiguration` instead of `LocalContext` configuration access
+- Add `@file:OptIn(ExperimentalFoundationApi::class)` where `BringIntoViewRequester` APIs are used
+- Validated: `./gradlew assembleDebug`, `./gradlew lintDebug`, `./gradlew test`
+
+---
+
 ## 31/05/2026
 
 ### Category List & Reorder Polish
