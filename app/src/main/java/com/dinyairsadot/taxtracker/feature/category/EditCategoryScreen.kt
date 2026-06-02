@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,26 @@ import com.dinyairsadot.taxtracker.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+private data class EditableCategorySnapshot(
+    val name: String,
+    val colorHex: String,
+    val description: String,
+    val customFieldTitles: List<String>
+)
+
+private fun editableSnapshot(
+    name: String,
+    colorHex: String,
+    description: String,
+    customFieldTitles: List<String>
+): EditableCategorySnapshot {
+    return EditableCategorySnapshot(
+        name = name.trim(),
+        colorHex = colorHex.trim(),
+        description = description.trim(),
+        customFieldTitles = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,6 +91,7 @@ fun EditCategoryScreen(
     // New field input state
     var newFieldName by rememberSaveable { mutableStateOf("") }
     var selectedTopicId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showDiscardChangesDialog by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -170,6 +192,38 @@ fun EditCategoryScreen(
         onNavigateBack()
     }
 
+    val originalSnapshot = remember(
+        initialName,
+        initialColorHex,
+        initialDescription,
+        initialCustomFieldTitles
+    ) {
+        editableSnapshot(
+            name = initialName,
+            colorHex = initialColorHex,
+            description = initialDescription.orEmpty(),
+            customFieldTitles = initialCustomFieldTitles
+        )
+    }
+    val hasUnsavedChanges = editableSnapshot(
+        name = name,
+        colorHex = colorHex,
+        description = description,
+        customFieldTitles = customFieldTitles
+    ) != originalSnapshot
+
+    fun onBackRequested() {
+        if (hasUnsavedChanges) {
+            showDiscardChangesDialog = true
+        } else {
+            onNavigateBack()
+        }
+    }
+
+    BackHandler {
+        onBackRequested()
+    }
+
     val formState = CategoryFormState(
         name = name,
         nameError = nameError,
@@ -233,16 +287,43 @@ fun EditCategoryScreen(
                 title = { Text(stringResource(R.string.edit_category_title)) },
                 colors = categoryTopAppBarColors(colorHex.takeIf { it.isNotBlank() }),
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = ::onBackRequested) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
                         )
                     }
+                },
+                actions = {
+                    TextButton(onClick = ::onSaveClicked) {
+                        Text(text = stringResource(R.string.save))
+                    }
                 }
             )
         }
     ) { innerPadding ->
+        if (showDiscardChangesDialog) {
+            AlertDialog(
+                onDismissRequest = { showDiscardChangesDialog = false },
+                title = { Text(stringResource(R.string.discard_changes_title)) },
+                text = { Text(stringResource(R.string.discard_changes_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDiscardChangesDialog = false
+                            onNavigateBack()
+                        }
+                    ) {
+                        Text(stringResource(R.string.discard))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDiscardChangesDialog = false }) {
+                        Text(stringResource(R.string.keep_editing))
+                    }
+                }
+            )
+        }
         if (pendingRemoveFieldIndex != null) {
             val fieldIndex = pendingRemoveFieldIndex!!
             val fieldTitle = customFieldTitles.getOrNull(fieldIndex)?.takeIf { it.isNotBlank() }

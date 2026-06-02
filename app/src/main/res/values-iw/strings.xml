@@ -48,6 +48,10 @@
     <string name="remove_custom_field">הסר שדה מותאם אישית?</string>
     <string name="remove_custom_field_confirmation">הסרת \"%1$s\" תמחק כל מידע שנשמר בחשבוניות עבור שדה זה. האם אתה בטוח שברצונך להסיר אותו?</string>
     <string name="save_changes">שמור שינויים</string>
+    <string name="discard_changes_title">לבטל שינויים?</string>
+    <string name="discard_changes_message">יש לך שינויים שלא נשמרו. יציאה ממסך זה תבטל אותם.</string>
+    <string name="keep_editing">המשך עריכה</string>
+    <string name="discard">בטל</string>
     
     <!-- Category ViewModel Errors -->
     <string name="failed_to_load_categories">נכשל בטעינת קטגוריות</string>

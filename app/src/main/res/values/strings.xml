@@ -55,6 +55,10 @@
     <string name="remove_custom_field">Remove custom field?</string>
     <string name="remove_custom_field_confirmation">Removing \"%1$s\" will delete any information stored in invoices for this field. Are you sure you want to remove it?</string>
     <string name="save_changes">Save changes</string>
+    <string name="discard_changes_title">Discard changes?</string>
+    <string name="discard_changes_message">You have unsaved changes. Leaving this screen will discard them.</string>
+    <string name="keep_editing">Keep editing</string>
+    <string name="discard">Discard</string>
     
     <!-- Category ViewModel Errors -->
     <string name="failed_to_load_categories">Failed to load categories</string>
