@@ -121,6 +121,8 @@
     <string name="reset">איפוס</string>
     <string name="apply_filters">החל מסננים</string>
     <string name="clear_filters">נקה מסננים</string>
+    <string name="filtered_results">תוצאות מסוננות</string>
+    <string name="clear_active_filters">ניקוי סינון</string>
     <string name="from_date">מ</string>
     <string name="to_date">עד</string>
     <string name="clear_filter_date_cd">נקה מסנן תאריך</string>

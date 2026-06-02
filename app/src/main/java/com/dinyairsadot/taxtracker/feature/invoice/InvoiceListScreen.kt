@@ -8,7 +8,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +81,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -115,6 +118,12 @@ private val FilterSheetDateLabelColumnWidth = 88.dp
 
 /** Search-bar funnel: 80% of 28dp, then 90% of that (user-tuned). */
 private val SearchBarFilterIconSizeDp = (28f * 0.8f * 0.9f).dp
+
+/** Circular active background behind the filter icon when filters are applied. */
+private val SearchBarFilterButtonBackgroundSizeDp = 40.dp
+
+/** Minimum touch target for the filter control. */
+private val SearchBarFilterButtonTouchTargetDp = 48.dp
 
 /** # / ₪ next to search field: labelMedium × prior 1.3 × 1.2 (120% bump). */
 private const val SEARCH_BAR_MODE_SYMBOL_SCALE = 1.3f * 1.2f
@@ -369,6 +378,10 @@ fun InvoiceListScreen(
                             onFilterClick = { showFilterSheet = true }
                         )
 
+                        if (filtersActive) {
+                            ActiveFiltersIndicator(onClearFilters = onClearFilters)
+                        }
+
                         if (uiState.visibleInvoices.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -429,6 +442,35 @@ fun InvoiceListScreen(
                 onStatusFilterChange = onStatusFilterChange,
                 onClearFilters = onClearFilters,
                 onApply = { showFilterSheet = false }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActiveFiltersIndicator(
+    onClearFilters: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.filtered_results),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+        TextButton(
+            onClick = onClearFilters,
+            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.clear_active_filters),
+                style = MaterialTheme.typography.labelMedium
             )
         }
     }
@@ -503,55 +545,38 @@ private fun SearchBar(
                     trailingIcon = {
                         Box {
                             Row(
+                                modifier = Modifier
+                                    .clickable { showModeMenu = true }
+                                    .padding(start = 4.dp)
+                                    .heightIn(min = 32.dp)
+                                    .wrapContentHeight(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .clickable { showModeMenu = true }
-                                        .padding(start = 4.dp)
-                                        .heightIn(min = 32.dp)
-                                        .wrapContentHeight(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    when (searchMode) {
-                                        SearchMode.INVOICE_NUMBER -> {
-                                            Text(
-                                                text = "#",
-                                                style = modeIndicatorSymbolStyle,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            Text(
-                                                text = " ▾",
-                                                style = labelMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                        SearchMode.AMOUNT -> {
-                                            Text(
-                                                text = "₪",
-                                                style = modeIndicatorSymbolStyle,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            Text(
-                                                text = " ▾",
-                                                style = labelMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
+                                when (searchMode) {
+                                    SearchMode.INVOICE_NUMBER -> {
+                                        Text(
+                                            text = "#",
+                                            style = modeIndicatorSymbolStyle,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = " ▾",
+                                            style = labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     }
-                                }
-
-                                IconButton(onClick = onFilterClick) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_filter_svgrepo),
-                                        contentDescription = stringResource(R.string.filter),
-                                        modifier = Modifier.size(SearchBarFilterIconSizeDp),
-                                        tint = if (filtersActive) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                        }
-                                    )
+                                    SearchMode.AMOUNT -> {
+                                        Text(
+                                            text = "₪",
+                                            style = modeIndicatorSymbolStyle,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = " ▾",
+                                            style = labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
                             }
                             DropdownMenu(
@@ -586,6 +611,35 @@ private fun SearchBar(
                         }
                     }
                 )
+                IconButton(
+                    onClick = onFilterClick,
+                    modifier = Modifier.size(SearchBarFilterButtonTouchTargetDp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(SearchBarFilterButtonBackgroundSizeDp)
+                            .clip(CircleShape)
+                            .background(
+                                if (filtersActive) {
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                                } else {
+                                    Color.Transparent
+                                }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_filter_svgrepo),
+                            contentDescription = stringResource(R.string.filter),
+                            modifier = Modifier.size(SearchBarFilterIconSizeDp),
+                            tint = if (filtersActive) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
+                }
             }
             HorizontalDivider(
                 thickness = 1.dp,
