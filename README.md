@@ -40,7 +40,16 @@ The app helps users keep financial documents consistent, searchable, and ready f
 - Form validation with scroll-to-first-invalid on save
 - Swipe-to-dismiss snackbars and improved dropdown positioning
 - Consistent invoice and category card layouts
+- Edit Category top-bar Save action with discard warning for unsaved changes
+- Invoice list active filter indication and clear-filters action
 - Portrait-optimized layout
+
+### Data Export (user-facing)
+- **Invoice list:** export currently visible invoices (after search, filter, and sort) to localized CSV via Storage Access Framework
+- **Category list:** export all data to a ZIP (`categories.csv` + one invoice CSV per category that has invoices)
+- Localized English/Hebrew headers and display values; custom fields as CSV columns
+- UTF-8 with conditional BOM for spreadsheet compatibility (LibreOffice, desktop Google Sheets)
+- **Not** backup/restore — restore-safe JSON backup is planned separately
 
 ### Local Persistence
 - Offline-first design with Room (SQLite), currently at schema version 13
@@ -80,19 +89,19 @@ Domain models and business concepts are separated from persistence and UI logic.
 ## Roadmap
 
 ### Next (pre-release)
-1. **CSV export** — export currently visible/filtered invoice results (Excel / Google Sheets compatible)
-2. **Full JSON backup export** — portable backup built on export foundation
-3. **JSON restore** — replace-existing-data restore flow
-4. **Tests** — export/import and data-integrity coverage
-5. **CI** — GitHub Actions for unit tests and lint
-6. **Release readiness** — app icon, store assets, privacy policy, Play Store internal testing
+1. **Backup export** — restore-safe JSON/ZIP (separate from user-facing CSV export)
+2. **Restore** — replace-existing-data import with safety design
+3. **Tests** — backup/restore and export integrity coverage
+4. **CI** — GitHub Actions for unit tests and lint
+5. **Release readiness** — app icon, store assets, privacy policy, Play Store internal testing
 
 ### Recently completed
-- UI polish pass (Apr–May 2026)
-- Documentation refresh and conservative pre-launch refactor / safety pass (Jun 2026)
+- UI polish pass (May–Jun 2026): category list FAB fix, edit-category save/discard, invoice list simplification, filter UX
+- Pre-launch refactor / safety pass (Jun 2026)
+- Invoice-list CSV export and category-list all-data ZIP export (Jun 2026)
 
 ### Not yet implemented
-- CSV export / backup / restore
+- Backup / restore (JSON)
 - CI pipeline
 - Google Play release
 
@@ -104,7 +113,7 @@ See `docs/LAUNCH_PLAN.md` for the detailed execution plan.
 
 The app is under active development and nearing its first public release.
 
-Core functionality is implemented: Room persistence, bilingual UI (Hebrew / English), invoice search/filter/sort, category reordering, service-period handling, and dynamic custom fields. A major UI polish pass completed in May 2026, followed by a **conservative pre-launch refactor and safety pass** (June 2026) focused on data preservation, error surfacing, responsive list/form fixes, and build validation — without architecture rewrites or database schema changes.
+Core functionality is implemented: Room persistence, bilingual UI (Hebrew / English), invoice search/filter/sort, category reordering, service-period handling, dynamic custom fields, and **user-facing export** (localized CSV from the invoice list; ZIP with `categories.csv` and per-category invoice CSVs from the category list). A UI polish pass and conservative pre-launch refactor completed in June 2026 without architecture rewrites or database schema changes.
 
 **Validated:** manual QA, `./gradlew assembleDebug`, `./gradlew lintDebug`, and `./gradlew test`.
 

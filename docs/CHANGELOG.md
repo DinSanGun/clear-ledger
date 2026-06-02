@@ -3,6 +3,31 @@
 This changelog documents incremental development steps of the Tax Tracker app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
 
+## 02/06/2026
+
+### UI Polish
+- Fix category list FAB overlapping the last category card
+- Add top-bar Save action on Edit Category; warn before discarding unsaved changes
+- Simplify invoice list top bar by removing Edit Category entry
+- Remove duplicate pencil edit icon from invoice details
+- Clarify custom field creation UX in category add/edit forms
+- Show active filter indication on invoice list and add clear-filters action
+
+### Export
+- **Invoice list:** “Export” in overflow menu exports currently visible invoices (category scope + search + filters + sort) to localized CSV via Storage Access Framework
+- **Category list:** “Export all data” exports a ZIP via SAF containing `categories.csv` (name, description, order, custom field titles) and one invoice CSV per category that has invoices (empty categories omitted from `invoices/`)
+- Reuse shared CSV pipeline: `InvoiceCsvExporter`, `InvoiceCsvExportLabels`, `Utf8CsvWriter` (conditional UTF-8 BOM per file)
+- Invoice CSV filenames use readable category names, including Hebrew; unsafe path characters sanitized; `_<categoryId>` suffix for uniqueness
+
+### Refactor / Build Validation
+- Pre-launch conservative refactor (see 01/06/2026 entry) validated with `./gradlew assembleDebug`, `./gradlew lintDebug`, `./gradlew test`
+
+### Known Limitations
+- **Export vs backup:** current export is user-readable CSV/ZIP for spreadsheets and records — not restore-safe backup
+- **Google Sheets Android:** may misread valid UTF-8 CSV when headers are English and data contains Hebrew; LibreOffice and desktop Google Sheets open exports correctly; future XLSX export may address this
+
+---
+
 ## 01/06/2026
 
 ### Pre-Launch Refactor & Safety Pass

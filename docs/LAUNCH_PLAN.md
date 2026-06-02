@@ -1,12 +1,12 @@
 # Tax Tracker – LAUNCH_PLAN.md
-_Last updated: 2026-06-01_
+_Last updated: 2026-06-02_
 
 This document is the **single source of truth** for the pre-release execution plan.
 It is written for the developer and for AI assistants so context survives long deep-dives.
 
 ## How we use this plan
 - Work in order, one step at a time.
-- Refer to steps by ID in chat (e.g. **“Next: S2”**).
+- Refer to steps by ID in chat (e.g. **“Next: S5”**).
 - When reality changes, update this file — do not rely on chat memory.
 
 ### Definition of “Done”
@@ -15,11 +15,18 @@ A step is **Done** when:
 - manually sanity-tested where applicable,
 - and committed with a clear message.
 
+### Export vs backup (product distinction)
+| | **Export** (done) | **Backup** (planned) |
+|---|-------------------|------------------------|
+| Purpose | User-readable spreadsheets / records | Restore-safe app data |
+| Format | Localized CSV; ZIP with `categories.csv` + invoice CSVs | JSON/ZIP (TBD) |
+| Restore | Not supported | Replace-existing-data restore (S9) |
+
 ---
 
-## Completed work (through May 2026)
+## Completed work (through Jun 2026)
 
-The following major areas are **implemented and polished** — not pending:
+The following major areas are **implemented** — not pending:
 
 | Area | Status |
 |------|--------|
@@ -32,191 +39,191 @@ The following major areas are **implemented and polished** — not pending:
 | Currency display metadata (ILS / USD, no conversion) | Done |
 | Picker-first dates, form validation, snackbar/dropdown polish | Done |
 | Category manual reorder (`orderIndex`) | Done |
-| **UI polish & debugging pass** (Apr–May 2026) | **Done** |
+| **UI polish pass** (May–Jun 2026) | **Done** |
 | **Documentation refresh (S1)** | **Done** |
 | **Pre-launch refactor / safety pass (S2)** | **Done** |
-| **Responsive fixes from refactor (S3, targeted)** | **Done** (narrow scope; not full device matrix QA) |
+| **Responsive fixes from refactor (S3)** | **Done** (targeted) |
+| **Invoice-list CSV export (S4)** | **Done** (`0819b53`) |
+| **Category-list all-data ZIP export (S4b)** | **Done** (`36ddae4`) |
 
 ---
 
 ## High-level execution order (what remains)
 
 ```
-S4 → S5 → S6 → S7 → S8 → S9
+S5 → S6 → S7 → S8 → S9 → S10
 ```
 
 | Step | Focus | Status |
 |------|--------|--------|
 | **S1** | Documentation refresh | **Done** |
 | **S2** | Controlled deep code review + selective refactor | **Done** |
-| **S3** | Responsive / design safety verification | **Done** (targeted items from refactor; optional broader QA later) |
-| **S4** | Data export foundation (CSV) | **Next** |
-| **S5** | Backup / export portability (ZIP / JSON) | Pending |
-| **S6** | Tests for export / backup / custom-field invariants | Pending |
-| **S7** | CI (GitHub Actions) | Pending |
-| **S8** | App icon, store assets, privacy, Play release readiness | Pending |
-| **S9** | Import / JSON restore (optional; post-export stability) | Pending |
+| **S3** | Responsive / design safety verification | **Done** (targeted) |
+| **S4** | User-facing CSV export (invoice list) | **Done** |
+| **S4b** | User-facing all-data ZIP export (category list) | **Done** |
+| **S5** | Backup export planning | **Next** |
+| **S6** | Backup export implementation (JSON/ZIP) | Pending |
+| **S7** | Restore planning and safety design | Pending |
+| **S8** | Restore implementation (replace existing data) | Pending |
+| **S9** | Tests for backup / restore / export integrity | Pending |
+| **S10** | CI (GitHub Actions) | Pending |
+| **S11** | App icon and release identity | Pending |
+| **S12** | Privacy policy / Play Store data safety / store assets | Pending |
+| **S13** | Internal testing release | Pending |
 
 ---
 
 # S1 – Documentation Refresh
-**Status:** Done (Jun 2026)  
-**Goal:** Public docs and AI context match the current codebase.
-
-## Deliverables
-- [x] Update `README.md`, `CHANGELOG.md`, `LAUNCH_PLAN.md`, `PROJECT_OVERVIEW.md`, `ai-context.md`
-- [x] Update `.private_notes/` operational files
-- [x] Note that `docs/ARCHITECTURE_SUMMARY.pdf` is a historical snapshot — regenerate later from refreshed markdown if a PDF is still needed
+**Status:** Done (Jun 2026)
 
 ---
 
 # S2 – Controlled Deep Code Review + Selective Refactor
 **Status:** Done (Jun 2026)  
-**Goal:** Architecture / clean-code review with **only low-risk, behavior-preserving** changes.
+**Commit:** `cc6e8f5`
 
-**Commit:** `cc6e8f5` — *chore: apply pre-launch refactor and safety fixes*
-
-Implemented (conservative scope):
-- Removed temporary language debug logging
-- Category update preserves `supplierName` and `pinnedDefaultsJson` (repository round-trip)
-- Invoice mutations surface errors via existing snackbar state
-- Reorder mode preserved across category refresh
-- Category list card ellipsis; payment status row layout resilience; invoice list `LazyColumn` keys
-- Missing Hebrew `all` / `sort_by`; verified dead code removal
-- Compose lint fixes (`LocalConfiguration`, `ExperimentalFoundationApi` opt-ins)
-
-**Validated:** manual QA; `./gradlew assembleDebug`, `./gradlew lintDebug`, `./gradlew test`.
-
-**Explicitly not done (intentional — avoid pre-launch risk):**
-- No Room schema migration
-- No architecture rewrite or DI introduction
-- No broad UI redesign
-- No fix for all deprecation / dependency warnings (see follow-ups below)
+**Validated:** `./gradlew assembleDebug`, `./gradlew lintDebug`, `./gradlew test`.
 
 ---
 
 # S3 – Responsive / Design Safety Verification
-**Status:** Done for targeted refactor scope (Jun 2026)  
-**Goal:** UI remains usable on narrow screens without changing visual identity.
-
-Addressed in S2 refactor:
-- Category list card long name/description handling
-- Payment status selector on narrow widths
-- Invoice list scroll stability (`key` on items)
-
-Optional later: broader device-matrix QA (tablets, landscape) if needed before Play release.
-
-## Checklist
-- [x] Targeted narrow-screen fixes in category list and invoice forms
-- [x] Manual QA on primary flows after refactor
-- [ ] Optional: full small + large emulator matrix before store submission
+**Status:** Done for targeted refactor scope (Jun 2026)
 
 ---
 
-# S4 – Data Portability: CSV Export (MVP)
+# S4 – User-Facing Export: Invoice-List CSV
+**Status:** Done (Jun 2026)  
+**Commit:** `0819b53`
+
+## Delivered
+- “Export” in invoice list overflow menu
+- Exports **currently visible** invoices after category scope, search, filters, and sort
+- Localized CSV via Storage Access Framework (`text/csv`)
+- English/Hebrew headers and display values; category custom field titles as column headers
+- `InvoiceCsvExporter`, `InvoiceCsvExportLabels`, `Utf8CsvWriter` (conditional UTF-8 BOM)
+- Pure Kotlin export utilities; file I/O in composable layer (not `AndroidViewModel`)
+
+## Known limitation
+- Google Sheets **Android** may misread valid UTF-8 when headers are English and row data is Hebrew. LibreOffice and desktop Google Sheets open files correctly. Do not add CSV encoding hacks; consider XLSX later.
+
+---
+
+# S4b – User-Facing Export: Category-List All-Data ZIP
+**Status:** Done (Jun 2026)  
+**Commit:** `36ddae4` (+ follow-up refinements)
+
+## Delivered
+- “Export all data” / “ייצוא כל הנתונים” in category list overflow menu
+- ZIP via SAF (`application/zip`), suggested name `tax_tracker_all_data_export_YYYY-MM-DD.zip`
+- `categories.csv`: name, description, order, custom field title columns (no color column)
+- `invoices/<categoryName>_<id>.csv` — **only** for categories with at least one invoice
+- Readable filenames preserve Hebrew/English; sanitize unsafe path characters only
+- Reuses invoice CSV export labels, escaping, and UTF-8 writer
+
+## Explicitly not in scope
+- Backup / restore
+- Room schema changes
+- Changing invoice-list export behavior
+
+---
+
+# S5 – Backup Export Planning
 **Status:** Next recommended phase  
-**Goal:** Export data to a PC-readable format (Excel / Google Sheets compatible).
-
-**Recommended first slice:** CSV export of the **currently visible/filtered** invoice list in the active category (aligns with existing `visibleInvoices` pipeline).
-
-## Format decisions
-- Export scope: all categories + invoices (recommended)
-- File structure: one ZIP with multiple CSVs **or** one CSV per type (decide at implementation)
-- Custom field columns must align with current indexed title/value model
+**Goal:** Design restore-safe export separate from user-facing CSV/ZIP.
 
 ## Checklist
-- [ ] Define CSV schema (headers)
-- [ ] Implement export via Storage Access Framework (file picker)
-- [ ] Test commas/quotes/newlines, multiple categories, custom fields
-- [ ] Validate open in Excel / Google Sheets
+- [ ] Define JSON schema (categories, invoices, metadata, version)
+- [ ] Document replace vs merge restore semantics for S7–S8
+- [ ] Keep raw enum/storage values (not localized display strings)
+- [ ] Decide ZIP packaging and file naming
 
 ---
 
-# S5 – Backup: Portable Local Backup
+# S6 – Backup Export Implementation
 **Goal:** User-controlled local backup storable anywhere (Drive, PC, etc.).
 
-## MVP definition
-- Backup output: **full JSON export** (categories + invoices + metadata), optionally packaged in ZIP alongside CSV
-- **JSON restore** with replace-existing-data behavior (coordinate with S9)
-- CSV-only export can ship first (S4); full backup builds on the same export foundation
-
 ## Checklist
-- [ ] Generate backup ZIP from export outputs
-- [ ] Naming / versioning inside ZIP
-- [ ] Test backup creation + file sharing
-- [ ] Decide restore scope for MVP (default: export-only)
+- [ ] Implement JSON export via SAF
+- [ ] Version field inside backup payload
+- [ ] Test backup creation and file sharing
+- [ ] Do not conflate with S4/S4b user-facing CSV export
 
 ---
 
-# S6 – Automated Testing: Critical Invariants
+# S7 – Restore Planning and Safety Design
+**Goal:** Safe replace-existing-data restore UX before implementation.
+
+## Checklist
+- [ ] Confirm replace-all vs selective restore for MVP
+- [ ] Warning dialogs and confirmation copy (EN + HE)
+- [ ] Validation rules for malformed/partial files
+
+---
+
+# S8 – Restore Implementation
+**Goal:** Import backup with replace-existing-data behavior.
+
+## Checklist
+- [ ] Parse and validate backup JSON
+- [ ] Transactional replace of categories + invoices
+- [ ] Error handling and user feedback
+
+---
+
+# S9 – Automated Testing: Export / Backup / Restore Integrity
 **Goal:** Small, high-value safety net before launch.
 
-## What to test first
-- Custom-field index alignment invariants
-- CSV formatting and escaping
-- Backup ZIP structure
-- Room migration smoke tests (optional stretch)
-
 ## Checklist
-- [ ] Unit test module setup (if missing)
-- [ ] CSV export schema + escaping tests
-- [ ] Backup ZIP structure tests
-- [ ] Custom-field mapping invariant tests
+- [ ] CSV escaping and ZIP structure tests (partially started: `AllDataZipExporterTest`, `InvoiceCsvExporterTest`)
+- [ ] Backup JSON round-trip tests
+- [ ] Custom-field index alignment invariant tests
+- [ ] Room migration smoke tests (optional stretch)
 
 ---
 
-# S7 – CI Workflow (GitHub Actions)
+# S10 – CI Workflow (GitHub Actions)
 **Goal:** Every push/PR runs a minimal quality gate.
-
-## MVP CI
-- `./gradlew test`
-- `./gradlew lint` (recommended)
 
 ## Checklist
 - [ ] Add GitHub Actions workflow
-- [ ] Run on PR + main
-- [ ] Fix failing lint/tests
-- [ ] Keep CI fast (no emulator tests for MVP)
+- [ ] Run `./gradlew test` and `./gradlew lint` on PR + main
 
 ---
 
-# S8 – Deployment & Release Readiness
-**Goal:** Publish to Google Play with minimal rejection risk.
-
+# S11 – App Icon and Release Identity
 ## Checklist
-- [ ] App icon and feature graphic
-- [ ] Store listing (screenshots, description)
-- [ ] Privacy policy + Data Safety disclosures
+- [ ] App icon and adaptive icon
 - [ ] Versioning (`versionCode` / `versionName`)
+
+---
+
+# S12 – Privacy Policy / Play Store Data Safety / Store Assets
+## Checklist
+- [ ] Privacy policy URL
+- [ ] Data Safety form
+- [ ] Store listing screenshots and description
+
+---
+
+# S13 – Internal Testing Release
+## Checklist
 - [ ] Play App Signing
+- [ ] Internal testing track upload
 - [ ] Final manual QA pass
 
 ---
 
-# S9 – Import (Optional)
-**Goal:** Template-based import matching export schema — only after export/backup are stable.
-
-## Checklist
-- [ ] Document import template format
-- [ ] Add import flow with validation
-- [ ] Test partial/malformed files
-
----
-
 ## Public-facing mapping (README roadmap)
-- S1–S3 → Done (docs, refactor, targeted responsive fixes)
-- S4 → CSV export (visible/filtered invoices first)
-- S5 → Full JSON backup export
-- S6 → Export/import tests + data integrity
-- S7 → CI
-- S8 → Play release assets + internal testing
-- S9 → JSON restore (replace existing data)
+- S1–S4b → Done (docs, refactor, UI polish, user-facing export)
+- S5–S6 → Backup export (JSON/ZIP)
+- S7–S8 → Restore
+- S9 → Tests
+- S10 → CI
+- S11–S13 → Play release
 
 ---
 
 ## Follow-up cleanup (non-blocking for launch)
-
-These were observed during refactor validation but **not** fixed to limit risk:
 
 | Item | Notes |
 |------|--------|
@@ -227,11 +234,19 @@ These were observed during refactor validation but **not** fixed to limit risk:
 | Portrait-only orientation lint | Intentional for MVP |
 | Unused resource warnings | Lint cleanup pass later |
 | ViewModel holding `Context` | Possible future refactor; works today |
+| Google Sheets Android CSV limitation | Known; do not add CSV hacks — XLSX later if needed |
 
 ---
 
 ## Running notes / decisions log
 
 - **2026-02-10:** Plan structure created.
-- **2026-05-31:** UI polish phase marked complete. Documentation refresh (S1) underway.
-- **2026-06-01:** S1–S3 complete. Pre-launch refactor landed (`cc6e8f5`). Build/lint/test green. **Next: S4 CSV export** (visible/filtered invoices first), then JSON backup/restore.
+- **2026-05-31:** UI polish phase marked complete.
+- **2026-06-01:** S1–S3 complete. Pre-launch refactor (`cc6e8f5`). **Next: export.**
+- **2026-06-02:** S4 + S4b complete (invoice CSV + all-data ZIP). UI polish items landed (`9189ace`–`df3d14e`). **Next: S5 backup export planning.**
+
+---
+
+## Historical note
+
+`docs/ARCHITECTURE_SUMMARY.pdf` is a snapshot and may be outdated. Regenerate from `PROJECT_OVERVIEW.md` / `ai-context.md` when a PDF is needed — do not edit the PDF directly.

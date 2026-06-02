@@ -17,10 +17,12 @@ For the pre-release execution plan, see `docs/LAUNCH_PLAN.md`. For AI-assisted w
    - Category list → add / edit / delete category
    - Manual reorder mode (persisted `orderIndex`)
    - Language settings (Hebrew / English)
+   - **Export all data** → ZIP via Storage Access Framework (`categories.csv` + invoice CSVs per category with invoices)
 
 2. **Invoice management**
    - Select category → invoice list (search, filter, sort)
    - Add / view details / edit / delete invoice
+   - **Export** → localized CSV of currently visible invoices via SAF
 
 3. **Navigation pattern**
    - Category list is the start destination
@@ -76,6 +78,10 @@ com.dinyairsadot.taxtracker/
 │       ├── DropdownPositioning.kt
 │       ├── SwipeDismissSnackbarHost.kt
 │       └── AppSnackbar.kt
+│   └── util/
+│       ├── InvoiceCsvExporter.kt, InvoiceCsvExportLabels.kt
+│       ├── Utf8CsvWriter.kt, AllDataZipExporter.kt
+│       └── CategoriesCsvLabels.kt, AllExportData.kt
 ├── feature/
 │   ├── category/                # List, add, edit, reorder, CategoryForm
 │   ├── invoice/                 # List, add, edit, details, search/filter/sort
@@ -186,9 +192,10 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 ## H. UI Conventions
 
 ### Top app bars
-- Category list: default theme, title “Bills & Taxes”, language settings action
+- Category list: default theme, title “Bills & Taxes”, overflow menu (reorder, language, export all data)
 - Invoice flows: category-colored bar via `categoryTopAppBarColors()` with contrast-aware text/icons
-- Edit actions: text button in top bar (details) or icon on card overlay
+- Edit Category: top-bar Save action; discard warning for unsaved changes
+- Invoice list: overflow Export; active filter indication and clear-filters action
 
 ### Category colors
 - Hex `#RRGGBB`; parsed with fallback
@@ -233,10 +240,29 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 5. **Seeded categories:** `userEdited` blocks automatic locale overwrite of name/description.
 6. **ViewModel scope:** Invoice/category mutations must go through the shared parent ViewModel so list state stays consistent.
 7. **Migrations:** Avoid new DB migrations unless explicitly requested and tested.
+8. **Export vs backup:** User-facing export (CSV/ZIP) is localized and spreadsheet-oriented. Restore-safe JSON backup is a separate planned feature — do not conflate them.
 
 ---
 
-## L. Current Status and Evolving Areas
+## L. Data Export (implemented)
+
+**Product distinction:** Export = user-readable files for spreadsheets and personal records. Backup = future restore-safe raw app data (JSON/ZIP), not implemented yet.
+
+| Entry point | Output | Scope |
+|-------------|--------|--------|
+| Invoice list overflow → Export | Single `.csv` via SAF | `visibleInvoices` after search/filter/sort in current category |
+| Category list overflow → Export all data | `.zip` via SAF | All categories in `categories.csv`; one invoice CSV per category **with invoices** |
+
+**Implementation notes:**
+- Pure Kotlin: `InvoiceCsvExporter`, `AllDataZipExporter`, `Utf8CsvWriter` in `core/util/`
+- Labels: `InvoiceCsvExportLabels` + `rememberInvoiceCsvExportLabels()`; `CategoriesCsvLabels` for category metadata CSV
+- UTF-8 with conditional BOM per CSV entry (existing `Utf8CsvWriter` logic)
+- File I/O and SAF launchers live in Compose screens; ViewModels supply data / CSV strings
+- **Known limitation:** Google Sheets Android may misread mixed English-header / Hebrew-data CSV; desktop Sheets and LibreOffice are fine
+
+---
+
+## M. Current Status and Evolving Areas
 
 **Stable / complete for MVP:**
 - Room persistence (v13), incremental migrations
@@ -246,11 +272,12 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 - Explicit service period mode (`MONTH` / `DATE`)
 - Bilingual UI with RTL and manual language switching
 - Category manual reorder (`orderIndex`)
-- UI polish pass (Apr–May 2026)
-- **Pre-launch safety refactor** (Jun 2026): data-preservation fixes, error surfacing, targeted responsive/list fixes, debug log removal, build/lint/test validation
+- UI polish pass (May–Jun 2026)
+- Pre-launch safety refactor (Jun 2026)
+- **User-facing export:** invoice-list CSV + category-list all-data ZIP (Jun 2026)
 
 **Not yet implemented:**
-- CSV export / JSON backup / restore
+- JSON backup / restore
 - CI pipeline
 - Play Store release assets
 
@@ -258,6 +285,7 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 - In-memory filter/sort may need DAO queries at scale
 - Startup/seeding logic concentrated in `MainActivity`
 - Deprecation warnings (`menuAnchor`, `Locale(String)`, `LocalLifecycleOwner`)
+- Google Sheets Android CSV encoding limitation (do not add CSV hacks; XLSX possible later)
 - Large Compose files could benefit from selective extraction
 - ViewModel `Context` usage could be narrowed over time
 
@@ -265,4 +293,4 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 
 ## Summary
 
-Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. UI polish and a conservative pre-launch refactor are complete; **next focus is export foundation** (CSV of visible/filtered invoices, then JSON backup/restore), tests, CI, and Play Store readiness.
+Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export is implemented via Storage Access Framework. **Next focus:** restore-safe backup export, restore, tests, CI, and Play Store readiness.
