@@ -77,6 +77,28 @@
     <string name="delete_invoice">Delete invoice?</string>
     <string name="delete_invoice_confirmation">Are you sure you want to delete this invoice? This action cannot be undone.</string>
     <string name="invoice_deleted">Invoice deleted</string>
+    <string name="export">Export</string>
+    <string name="export_completed">Export completed</string>
+    <string name="export_failed">Export failed</string>
+    <string name="no_invoices_to_export">No invoices to export</string>
+
+    <!-- CSV export column headers -->
+    <string name="csv_export_category_name">Category Name</string>
+    <string name="csv_export_invoice_number">Invoice Number</string>
+    <string name="csv_export_amount">Amount</string>
+    <string name="csv_export_currency">Currency</string>
+    <string name="csv_export_status">Status</string>
+    <string name="csv_export_service_period_mode">Service Period Mode</string>
+    <string name="csv_export_service_period_start">Service Period Start</string>
+    <string name="csv_export_service_period_end">Service Period End</string>
+    <string name="csv_export_due_date">Due Date</string>
+    <string name="csv_export_payment_date">Payment Date</string>
+    <string name="csv_export_payment_method">Payment Method</string>
+    <string name="csv_export_confirmation_number">Confirmation Number</string>
+    <string name="csv_export_notes">Notes</string>
+    <string name="csv_export_custom_field_fallback">Custom Field %1$d</string>
+    <string name="csv_export_currency_ils">ILS</string>
+    <string name="csv_export_currency_usd">USD</string>
     <string name="please_try_again_later">Please try again later.</string>
     <string name="no_invoices_yet">No invoices yet</string>
     <string name="tap_to_add_first_invoice">Tap + to add your first invoice for this category.</string>

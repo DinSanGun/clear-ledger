@@ -31,6 +31,9 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -87,7 +90,12 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import com.dinyairsadot.taxtracker.core.util.InvoiceCsvExportLabels
+import com.dinyairsadot.taxtracker.core.util.Utf8CsvWriter
 import com.dinyairsadot.taxtracker.core.ui.SwipeDismissSnackbarHost
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.invoice.SortOption
@@ -127,15 +135,21 @@ fun InvoiceListScreen(
     onServicePeriodStartFilterChange: (LocalDate?) -> Unit,
     onServicePeriodEndFilterChange: (LocalDate?) -> Unit,
     onStatusFilterChange: (PaymentStatus?) -> Unit,
-    onClearFilters: () -> Unit
+    onClearFilters: () -> Unit,
+    onBuildCsvContent: (InvoiceCsvExportLabels) -> String
 ) {
 
     val context = LocalContext.current
+    val csvExportLabels = rememberInvoiceCsvExportLabels()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val invoiceDeletedMessage = stringResource(R.string.invoice_deleted)
+    val noInvoicesToExportMessage = stringResource(R.string.no_invoices_to_export)
+    val exportCompletedMessage = stringResource(R.string.export_completed)
+    val exportFailedMessage = stringResource(R.string.export_failed)
     var pendingDeleteInvoiceId by remember { mutableStateOf<Long?>(null) }
     var showSortMenu by remember { mutableStateOf(false) }
+    var overflowMenuExpanded by remember { mutableStateOf(false) }
     val sortMenuVisibility = remember { MutableTransitionState(false) }
     var showFilterSheet by remember { mutableStateOf(false) }
     val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -160,6 +174,25 @@ fun InvoiceListScreen(
     DisposableEffect(Unit) {
         onDispose {
             snackbarHostState.currentSnackbarData?.dismiss()
+        }
+    }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        coroutineScope.launch {
+            try {
+                val csv = onBuildCsvContent(csvExportLabels)
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri)?.use { stream ->
+                        Utf8CsvWriter.writeUtf8CsvWithBom(stream, csv)
+                    } ?: throw IOException("Failed to open output stream")
+                }
+                snackbarHostState.showSnackbar(exportCompletedMessage)
+            } catch (_: Exception) {
+                snackbarHostState.showSnackbar(exportFailedMessage)
+            }
         }
     }
 
@@ -259,6 +292,34 @@ fun InvoiceListScreen(
                                     }
                                 }
                             }
+                        }
+                    }
+                    Box {
+                        IconButton(onClick = { overflowMenuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.more_options)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = overflowMenuExpanded,
+                            onDismissRequest = { overflowMenuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.export)) },
+                                onClick = {
+                                    overflowMenuExpanded = false
+                                    if (uiState.visibleInvoices.isEmpty()) {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar(noInvoicesToExportMessage)
+                                        }
+                                    } else {
+                                        exportLauncher.launch(
+                                            "tax_tracker_export_${LocalDate.now()}.csv"
+                                        )
+                                    }
+                                }
+                            )
                         }
                     }
                 }

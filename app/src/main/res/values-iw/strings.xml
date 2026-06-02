@@ -70,6 +70,28 @@
     <string name="delete_invoice">למחוק חשבונית?</string>
     <string name="delete_invoice_confirmation">האם אתה בטוח שברצונך למחוק חשבונית זו? פעולה זו לא ניתנת לביטול.</string>
     <string name="invoice_deleted">חשבונית נמחקה</string>
+    <string name="export">ייצוא</string>
+    <string name="export_completed">הייצוא הושלם</string>
+    <string name="export_failed">הייצוא נכשל</string>
+    <string name="no_invoices_to_export">אין חשבוניות לייצוא</string>
+
+    <!-- CSV export column headers -->
+    <string name="csv_export_category_name">שם קטגוריה</string>
+    <string name="csv_export_invoice_number">מספר חשבונית</string>
+    <string name="csv_export_amount">סכום</string>
+    <string name="csv_export_currency">מטבע</string>
+    <string name="csv_export_status">סטטוס</string>
+    <string name="csv_export_service_period_mode">סוג תקופת שירות</string>
+    <string name="csv_export_service_period_start">תחילת תקופת שירות</string>
+    <string name="csv_export_service_period_end">סוף תקופת שירות</string>
+    <string name="csv_export_due_date">תאריך יעד</string>
+    <string name="csv_export_payment_date">תאריך תשלום</string>
+    <string name="csv_export_payment_method">אמצעי תשלום</string>
+    <string name="csv_export_confirmation_number">מספר אישור</string>
+    <string name="csv_export_notes">הערות</string>
+    <string name="csv_export_custom_field_fallback">שדה מותאם %1$d</string>
+    <string name="csv_export_currency_ils">ש״ח (₪)</string>
+    <string name="csv_export_currency_usd">דולר ($)</string>
     <string name="please_try_again_later">אנא נסה שוב מאוחר יותר.</string>
     <string name="no_invoices_yet">אין עדיין חשבוניות</string>
     <string name="tap_to_add_first_invoice">הקש + כדי להוסיף את החשבונית הראשונה שלך עבור קטגוריה זו.</string>

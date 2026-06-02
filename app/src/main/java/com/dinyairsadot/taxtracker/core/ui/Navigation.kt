@@ -308,7 +308,8 @@ fun TaxTrackerNavHost(
                 },
                 onClearFilters = {
                     viewModel.clearFilters()
-                }
+                },
+                onBuildCsvContent = { labels -> viewModel.buildCsvContent(labels) }
             )
         }
         // -------------------------

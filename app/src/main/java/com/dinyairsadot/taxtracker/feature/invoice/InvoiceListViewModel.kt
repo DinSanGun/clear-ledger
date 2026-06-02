@@ -11,6 +11,8 @@ import com.dinyairsadot.taxtracker.core.domain.InvoiceCurrency
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
+import com.dinyairsadot.taxtracker.core.util.InvoiceCsvExportLabels
+import com.dinyairsadot.taxtracker.core.util.InvoiceCsvExporter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,6 +77,7 @@ data class InvoiceListUiState(
     val categoryCustomFieldTitles: List<String> = emptyList(),
     val sourceInvoices: List<InvoiceUi> = emptyList(),
     val visibleInvoices: List<InvoiceUi> = emptyList(),
+    val visibleInvoiceDomains: List<Invoice> = emptyList(),
     val errorMessage: String? = null,
     val searchQuery: String = "",
     val searchMode: SearchMode = SearchMode.INVOICE_NUMBER,
@@ -91,6 +94,7 @@ class InvoiceListViewModel(
 ) : ViewModel() {
 
     private var currentScope: InvoiceListScope? = null
+    private var sourceDomainInvoices: List<Invoice> = emptyList()
     private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     private val _uiState = MutableStateFlow(InvoiceListUiState(isLoading = true))
@@ -137,6 +141,7 @@ class InvoiceListViewModel(
                 is InvoiceListScope.AllInvoices -> invoiceRepository.getAllInvoices()
                 is InvoiceListScope.CategoryInvoices -> invoiceRepository.getInvoicesForCategory(scope.categoryId)
             }
+            sourceDomainInvoices = invoices
             val uiInvoices = invoices.map { it.toUi() }
             updateStateAndRecompute { state ->
                 state.copy(
@@ -146,20 +151,37 @@ class InvoiceListViewModel(
                 )
             }
         } catch (_: Exception) {
+            sourceDomainInvoices = emptyList()
             _uiState.value = _uiState.value.copy(
                 isLoading = false,
                 sourceInvoices = emptyList(),
                 visibleInvoices = emptyList(),
+                visibleInvoiceDomains = emptyList(),
                 errorMessage = context.getString(R.string.failed_to_load_invoices)
             )
         }
+    }
+
+    fun buildCsvContent(labels: InvoiceCsvExportLabels): String {
+        val state = _uiState.value
+        return InvoiceCsvExporter.generate(
+            invoices = state.visibleInvoiceDomains,
+            categoryName = state.categoryName.orEmpty(),
+            customFieldTitles = state.categoryCustomFieldTitles,
+            labels = labels
+        )
     }
 
     private fun updateStateAndRecompute(transform: (InvoiceListUiState) -> InvoiceListUiState) {
         val intermediate = transform(_uiState.value)
         val filtered = applySearchAndFilters(intermediate.sourceInvoices, intermediate)
         val sorted = sortInvoices(filtered, intermediate.sortOption)
-        _uiState.value = intermediate.copy(visibleInvoices = sorted)
+        val domainById = sourceDomainInvoices.associateBy { it.id }
+        val sortedDomains = sorted.mapNotNull { domainById[it.id] }
+        _uiState.value = intermediate.copy(
+            visibleInvoices = sorted,
+            visibleInvoiceDomains = sortedDomains
+        )
     }
 
     private fun applySearchAndFilters(
