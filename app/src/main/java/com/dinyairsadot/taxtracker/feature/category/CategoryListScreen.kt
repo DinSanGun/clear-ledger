@@ -59,7 +59,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.runtime.LaunchedEffect
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import com.dinyairsadot.taxtracker.core.ui.AppSnackbar
+import com.dinyairsadot.taxtracker.core.util.AllDataZipExporter
+import com.dinyairsadot.taxtracker.core.util.CategoriesCsvLabels
+import com.dinyairsadot.taxtracker.feature.invoice.rememberInvoiceCsvExportLabels
+import java.io.IOException
+import java.time.LocalDate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.dinyairsadot.taxtracker.core.ui.SwipeDismissSnackbarHost
 import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.category.CategoryColorPreview
@@ -94,11 +104,27 @@ fun CategoryListScreen(
 ) {
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    
+    val invoiceCsvLabels = rememberInvoiceCsvExportLabels()
+    val customFieldTitleHeaderTemplate =
+        stringResource(R.string.csv_export_custom_field_title_header)
+    val categoriesCsvLabels = CategoriesCsvLabels(
+        categoryNameHeader = stringResource(R.string.csv_export_category_name),
+        descriptionHeader = stringResource(R.string.csv_export_category_description),
+        orderHeader = stringResource(R.string.csv_export_category_order),
+        customFieldTitleHeader = { index ->
+            String.format(customFieldTitleHeaderTemplate, index)
+        }
+    )
+
     val categoryAddedMessage = stringResource(R.string.category_added)
     val categoryDeletedMessage = stringResource(R.string.category_deleted)
+    val exportAllDataMessage = stringResource(R.string.export_all_data)
+    val noDataToExportMessage = stringResource(R.string.no_data_to_export)
+    val exportCompletedMessage = stringResource(R.string.export_completed)
+    val exportFailedMessage = stringResource(R.string.export_failed)
 
     LaunchedEffect(showCategoryAddedMessage) {
         if (showCategoryAddedMessage) {
@@ -114,6 +140,30 @@ fun CategoryListScreen(
 
     DisposableEffect(Unit) {
         onDispose { snackbarHostState.currentSnackbarData?.dismiss() }
+    }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        coroutineScope.launch {
+            try {
+                val allData = viewModel.loadAllDataForExport()
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        AllDataZipExporter.writeZip(
+                            outputStream,
+                            allData,
+                            invoiceCsvLabels,
+                            categoriesCsvLabels
+                        )
+                    } ?: throw IOException("Failed to open output stream")
+                }
+                snackbarHostState.showSnackbar(exportCompletedMessage)
+            } catch (_: Exception) {
+                snackbarHostState.showSnackbar(exportFailedMessage)
+            }
+        }
     }
 
     // Refresh invoice counts when screen resumes
@@ -167,6 +217,21 @@ fun CategoryListScreen(
                                 onClick = {
                                     isOverflowMenuExpanded = false
                                     onLanguageSettingsClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(exportAllDataMessage) },
+                                onClick = {
+                                    isOverflowMenuExpanded = false
+                                    if (categories.isEmpty()) {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar(noDataToExportMessage)
+                                        }
+                                    } else {
+                                        val filename =
+                                            "tax_tracker_all_data_export_${LocalDate.now()}.zip"
+                                        exportLauncher.launch(filename)
+                                    }
                                 }
                             )
                         }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
+import com.dinyairsadot.taxtracker.core.util.AllExportData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -245,6 +246,14 @@ class CategoryListViewModel(
             )
             categoryRepository.updateCategoryOrder(_uiState.value.categories.map { it.id })
         }
+    }
+
+    suspend fun loadAllDataForExport(): AllExportData {
+        val categories = categoryRepository.getCategories()
+        val invoicesByCategory = categories.associate { category ->
+            category.id to invoiceRepository.getInvoicesForCategory(category.id)
+        }
+        return AllExportData(categories, invoicesByCategory)
     }
 
     private suspend fun buildUiCategories(categories: List<Category>): List<CategoryUi> {

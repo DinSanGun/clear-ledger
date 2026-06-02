@@ -71,12 +71,17 @@
     <string name="delete_invoice_confirmation">האם אתה בטוח שברצונך למחוק חשבונית זו? פעולה זו לא ניתנת לביטול.</string>
     <string name="invoice_deleted">חשבונית נמחקה</string>
     <string name="export">ייצוא</string>
+    <string name="export_all_data">ייצוא כל הנתונים</string>
     <string name="export_completed">הייצוא הושלם</string>
     <string name="export_failed">הייצוא נכשל</string>
     <string name="no_invoices_to_export">אין חשבוניות לייצוא</string>
+    <string name="no_data_to_export">אין נתונים לייצוא</string>
 
     <!-- CSV export column headers -->
     <string name="csv_export_category_name">שם קטגוריה</string>
+    <string name="csv_export_category_description">תיאור</string>
+    <string name="csv_export_category_order">סדר</string>
+    <string name="csv_export_custom_field_title_header">כותרת שדה מותאם %1$d</string>
     <string name="csv_export_invoice_number">מספר חשבונית</string>
     <string name="csv_export_amount">סכום</string>
     <string name="csv_export_currency">מטבע</string>
