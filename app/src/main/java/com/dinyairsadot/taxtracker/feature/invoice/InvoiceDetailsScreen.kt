@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.graphics.Color
 import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.feature.invoice.formatServicePeriodForDisplay
@@ -95,18 +93,6 @@ fun InvoiceDetailsScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    IconButton(
-                        onClick = onEditClick,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(y = (-8).dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = stringResource(R.string.edit_invoice)
-                        )
-                    }
-
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
