@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -314,8 +315,13 @@ private fun CategoryListContent(
         LazyColumn(
             state = listState,
             modifier = modifier
-                .fillMaxSize()
-                .padding(8.dp),
+                .fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 8.dp,
+                top = 8.dp,
+                end = 8.dp,
+                bottom = 104.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(
