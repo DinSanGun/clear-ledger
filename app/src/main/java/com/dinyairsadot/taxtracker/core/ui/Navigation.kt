@@ -276,9 +276,6 @@ fun TaxTrackerNavHost(
                 categoryId = categoryId,
                 uiState = uiState,
                 onBackClick = { navController.popBackStack() },
-                onEditCategoryClick = {
-                    navController.navigate(Screen.EditCategory.routeWithId(categoryId))
-                },
                 onAddInvoiceClick = {
                     navController.navigate(Screen.AddInvoice.routeWithCategoryId(categoryId))
                 },
