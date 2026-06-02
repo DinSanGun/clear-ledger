@@ -74,7 +74,8 @@ data class CategoryFormState(
     val colorError: String? = null,
     val description: String = "",
     val customFieldTitles: List<String> = emptyList(), // List of custom field titles (up to 10)
-    val newFieldName: String = "", // New field name input
+    val showPendingNewFieldInput: Boolean = false,
+    val newFieldName: String = "", // Pending new field name (included on save when non-blank)
     val selectedTopicId: String? = null, // Selected topic for catalog browsing
     val fieldExistsError: String? = null  // Error when trying to add duplicate field
 )
@@ -85,13 +86,36 @@ data class CategoryFormCallbacks(
     val onDescriptionChange: (String) -> Unit,
     val onSaveClick: () -> Unit,
     val onCustomFieldTitleChange: (index: Int, value: String) -> Unit,
-    val onAddCustomFieldClick: () -> Unit,
+    val onShowPendingNewFieldClick: () -> Unit,
     val onRequestRemoveCustomField: (index: Int) -> Unit,
     val onNewFieldNameChange: (String) -> Unit,
-    val onAddNewFieldFromInput: () -> Unit,
     val onTopicSelected: (String?) -> Unit,
     val onAddFieldFromCatalog: (String) -> Unit
 )
+
+/**
+ * Merges committed custom field titles with a pending new-field name for save.
+ * Returns null when [pendingNewFieldName] duplicates an existing title (case-insensitive).
+ */
+fun resolveCustomFieldTitlesForSave(
+    customFieldTitles: List<String>,
+    pendingNewFieldName: String,
+    onDuplicatePendingField: () -> Unit
+): List<String>? {
+    val committed = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
+    val pending = pendingNewFieldName.trim()
+    if (pending.isBlank()) {
+        return committed
+    }
+    if (committed.any { it.equals(pending, ignoreCase = true) }) {
+        onDuplicatePendingField()
+        return null
+    }
+    if (committed.size >= Category.MAX_CUSTOM_FIELDS) {
+        return committed
+    }
+    return committed + pending
+}
 
 @Composable
 fun CategoryForm(
@@ -231,48 +255,43 @@ fun CategoryForm(
             }
         }
 
-        // Add new field UI (if space available)
-        if (state.customFieldTitles.size < Category.MAX_CUSTOM_FIELDS) {
-            // 1) FIRST: Text input + Add button (easiest path)
+        val customFieldSlotsUsed =
+            state.customFieldTitles.size + if (state.showPendingNewFieldInput) 1 else 0
+        val canAddMoreCustomFields = customFieldSlotsUsed < Category.MAX_CUSTOM_FIELDS
+
+        if (state.showPendingNewFieldInput) {
             if (state.customFieldTitles.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val newFieldBringIntoViewRequester = remember { BringIntoViewRequester() }
-                OutlinedTextField(
-                    value = state.newFieldName,
-                    onValueChange = callbacks.onNewFieldNameChange,
-                    label = { Text(stringResource(R.string.new_field_name_hint)) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .bringIntoViewRequester(newFieldBringIntoViewRequester)
-                        .onFocusChanged { focusState ->
-                            if (focusState.isFocused) {
-                                coroutineScope.launch {
-                                    delay(250)
-                                    newFieldBringIntoViewRequester.bringIntoView()
-                                }
+            val newFieldBringIntoViewRequester = remember { BringIntoViewRequester() }
+            OutlinedTextField(
+                value = state.newFieldName,
+                onValueChange = callbacks.onNewFieldNameChange,
+                label = { Text(stringResource(R.string.new_field_name_hint)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(newFieldBringIntoViewRequester)
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            coroutineScope.launch {
+                                delay(250)
+                                newFieldBringIntoViewRequester.bringIntoView()
                             }
-                        },
-                    isError = state.fieldExistsError != null,
-                    supportingText = state.fieldExistsError?.let { { Text(it) } }
-                )
-                IconButton(
-                    onClick = callbacks.onAddNewFieldFromInput,
-                    enabled = state.newFieldName.isNotBlank()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.add)
-                    )
-                }
+                        }
+                    },
+                isError = state.fieldExistsError != null,
+                supportingText = state.fieldExistsError?.let { { Text(it) } }
+            )
+        }
+
+        if (canAddMoreCustomFields) {
+            TextButton(
+                onClick = callbacks.onShowPendingNewFieldClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.add_custom_field))
             }
-            
-            // 2) THEN: Catalog selection
+
             FieldCatalogPicker(
                 selectedTopicId = state.selectedTopicId,
                 onTopicSelected = callbacks.onTopicSelected,
@@ -457,12 +476,12 @@ fun FieldCatalogPicker(
                                     )
                                 }
                             }
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
 }
 

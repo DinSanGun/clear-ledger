@@ -35,6 +35,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.feature.category.CategoryListViewModel
 import com.dinyairsadot.taxtracker.R
 import kotlinx.coroutines.delay
@@ -51,13 +52,19 @@ private fun editableSnapshot(
     name: String,
     colorHex: String,
     description: String,
-    customFieldTitles: List<String>
+    customFieldTitles: List<String>,
+    pendingNewFieldName: String = ""
 ): EditableCategorySnapshot {
+    val resolved = resolveCustomFieldTitlesForSave(
+        customFieldTitles = customFieldTitles,
+        pendingNewFieldName = pendingNewFieldName,
+        onDuplicatePendingField = {}
+    ) ?: customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
     return EditableCategorySnapshot(
         name = name.trim(),
         colorHex = colorHex.trim(),
         description = description.trim(),
-        customFieldTitles = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
+        customFieldTitles = resolved
     )
 }
 
@@ -88,7 +95,7 @@ fun EditCategoryScreen(
     var pendingRemoveFieldIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var hasFieldData by rememberSaveable { mutableStateOf(false) }
     
-    // New field input state
+    var showPendingNewFieldInput by rememberSaveable { mutableStateOf(false) }
     var newFieldName by rememberSaveable { mutableStateOf("") }
     var selectedTopicId by rememberSaveable { mutableStateOf<String?>(null) }
     var showDiscardChangesDialog by rememberSaveable { mutableStateOf(false) }
@@ -115,30 +122,45 @@ fun EditCategoryScreen(
         customFieldTitles = newList
     }
     
-    fun addFieldFromInput() {
-        val trimmed = newFieldName.trim()
-        if (trimmed.isBlank()) return
-        
-        // Check for duplicates (case-insensitive)
-        if (customFieldTitles.any { it.trim().equals(trimmed, ignoreCase = true) }) {
-            fieldExistsError = context.getString(R.string.field_already_exists)
-            return
+    fun onShowPendingNewFieldClick() {
+        if (showPendingNewFieldInput) {
+            val trimmed = newFieldName.trim()
+            if (trimmed.isNotBlank()) {
+                val committed = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
+                if (committed.any { it.equals(trimmed, ignoreCase = true) }) {
+                    fieldExistsError = context.getString(R.string.field_already_exists)
+                    return
+                }
+                if (committed.size >= Category.MAX_CUSTOM_FIELDS) {
+                    showPendingNewFieldInput = false
+                    newFieldName = ""
+                    return
+                }
+                customFieldTitles = committed + trimmed
+                newFieldName = ""
+                fieldExistsError = null
+            }
         }
-        
-        customFieldTitles = customFieldTitles + trimmed
-        newFieldName = ""
-        fieldExistsError = null
+        showPendingNewFieldInput = customFieldTitles.size < Category.MAX_CUSTOM_FIELDS
     }
-    
+
     fun addFieldFromCatalog(fieldName: String) {
-        // Check for duplicates (case-insensitive)
-        if (customFieldTitles.any { it.trim().equals(fieldName.trim(), ignoreCase = true) }) {
+        val trimmed = fieldName.trim()
+        if (trimmed.isBlank()) return
+        val committed = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
+        if (committed.any { it.equals(trimmed, ignoreCase = true) }) {
             fieldExistsError = context.getString(R.string.field_already_exists)
             return
         }
-        
-        customFieldTitles = customFieldTitles + fieldName
+        if (committed.size >= Category.MAX_CUSTOM_FIELDS) {
+            return
+        }
+        customFieldTitles = committed + trimmed
         fieldExistsError = null
+        if (customFieldTitles.size >= Category.MAX_CUSTOM_FIELDS) {
+            showPendingNewFieldInput = false
+            newFieldName = ""
+        }
     }
 
     fun onSaveClicked() {
@@ -182,7 +204,15 @@ fun EditCategoryScreen(
             return
         }
 
-        val trimmedTitles = customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
+        val trimmedTitles = resolveCustomFieldTitlesForSave(
+            customFieldTitles = customFieldTitles,
+            pendingNewFieldName = newFieldName,
+            onDuplicatePendingField = {
+                fieldExistsError = context.getString(R.string.field_already_exists)
+                showPendingNewFieldInput = true
+            }
+        ) ?: return
+
         onSaveCategory(
             name.trim(),
             colorHex.trim(),
@@ -209,7 +239,8 @@ fun EditCategoryScreen(
         name = name,
         colorHex = colorHex,
         description = description,
-        customFieldTitles = customFieldTitles
+        customFieldTitles = customFieldTitles,
+        pendingNewFieldName = newFieldName
     ) != originalSnapshot
 
     fun onBackRequested() {
@@ -231,6 +262,7 @@ fun EditCategoryScreen(
         colorError = colorError,
         description = description,
         customFieldTitles = customFieldTitles,
+        showPendingNewFieldInput = showPendingNewFieldInput,
         newFieldName = newFieldName,
         selectedTopicId = selectedTopicId,
         fieldExistsError = fieldExistsError
@@ -258,18 +290,13 @@ fun EditCategoryScreen(
             }
             customFieldTitles = newList
         },
-        onAddCustomFieldClick = {
-            customFieldTitles = customFieldTitles + ""
-        },
+        onShowPendingNewFieldClick = { onShowPendingNewFieldClick() },
         onRequestRemoveCustomField = { index ->
             pendingRemoveFieldIndex = index
         },
         onNewFieldNameChange = { newName ->
             newFieldName = newName
             if (fieldExistsError != null) fieldExistsError = null
-        },
-        onAddNewFieldFromInput = {
-            addFieldFromInput()
         },
         onTopicSelected = { topicId ->
             selectedTopicId = topicId
