@@ -76,6 +76,9 @@
     <string name="export_failed">הייצוא נכשל</string>
     <string name="no_invoices_to_export">אין חשבוניות לייצוא</string>
     <string name="no_data_to_export">אין נתונים לייצוא</string>
+    <string name="create_backup">יצירת גיבוי</string>
+    <string name="backup_created">הגיבוי נוצר</string>
+    <string name="backup_failed">יצירת הגיבוי נכשלה</string>
 
     <!-- CSV export column headers -->
     <string name="csv_export_category_name">שם קטגוריה</string>

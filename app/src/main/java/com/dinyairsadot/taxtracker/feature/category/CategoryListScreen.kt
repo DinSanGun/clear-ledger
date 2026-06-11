@@ -64,6 +64,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import com.dinyairsadot.taxtracker.core.ui.AppSnackbar
 import com.dinyairsadot.taxtracker.core.util.AllDataZipExporter
+import com.dinyairsadot.taxtracker.core.util.backup.BackupZipExporter
 import com.dinyairsadot.taxtracker.core.util.CategoriesCsvLabels
 import com.dinyairsadot.taxtracker.feature.invoice.rememberInvoiceCsvExportLabels
 import java.io.IOException
@@ -75,7 +76,7 @@ import com.dinyairsadot.taxtracker.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.taxtracker.feature.category.CategoryColorPreview
 import androidx.compose.foundation.BorderStroke
 import com.dinyairsadot.taxtracker.R
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 
@@ -125,6 +126,9 @@ fun CategoryListScreen(
     val noDataToExportMessage = stringResource(R.string.no_data_to_export)
     val exportCompletedMessage = stringResource(R.string.export_completed)
     val exportFailedMessage = stringResource(R.string.export_failed)
+    val createBackupMessage = stringResource(R.string.create_backup)
+    val backupCreatedMessage = stringResource(R.string.backup_created)
+    val backupFailedMessage = stringResource(R.string.backup_failed)
 
     LaunchedEffect(showCategoryAddedMessage) {
         if (showCategoryAddedMessage) {
@@ -162,6 +166,25 @@ fun CategoryListScreen(
                 snackbarHostState.showSnackbar(exportCompletedMessage)
             } catch (_: Exception) {
                 snackbarHostState.showSnackbar(exportFailedMessage)
+            }
+        }
+    }
+
+    val backupLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        coroutineScope.launch {
+            try {
+                val backupData = viewModel.loadAllDataForBackup()
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        BackupZipExporter.writeZip(outputStream, backupData)
+                    } ?: throw IOException("Failed to open output stream")
+                }
+                snackbarHostState.showSnackbar(backupCreatedMessage)
+            } catch (_: Exception) {
+                snackbarHostState.showSnackbar(backupFailedMessage)
             }
         }
     }
@@ -232,6 +255,14 @@ fun CategoryListScreen(
                                             "tax_tracker_all_data_export_${LocalDate.now()}.zip"
                                         exportLauncher.launch(filename)
                                     }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(createBackupMessage) },
+                                onClick = {
+                                    isOverflowMenuExpanded = false
+                                    val filename = "tax_tracker_backup_${LocalDate.now()}.zip"
+                                    backupLauncher.launch(filename)
                                 }
                             )
                         }

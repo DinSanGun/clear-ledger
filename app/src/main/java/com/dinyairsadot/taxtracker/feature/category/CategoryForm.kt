@@ -36,6 +36,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -385,7 +386,7 @@ fun FieldCatalogPicker(
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier
-                    .menuAnchor()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     .bringIntoViewRequester(topicAnchorBringIntoViewRequester)
                     .fillMaxWidth(),
                 label = { Text(stringResource(R.string.select_topic)) },

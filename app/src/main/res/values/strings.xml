@@ -85,6 +85,9 @@
     <string name="export_failed">Export failed</string>
     <string name="no_invoices_to_export">No invoices to export</string>
     <string name="no_data_to_export">No data to export</string>
+    <string name="create_backup">Create backup</string>
+    <string name="backup_created">Backup created</string>
+    <string name="backup_failed">Backup failed</string>
 
     <!-- CSV export column headers -->
     <string name="csv_export_category_name">Category Name</string>
