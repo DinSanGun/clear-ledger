@@ -1,5 +1,5 @@
 # Tax Tracker – LAUNCH_PLAN.md
-_Last updated: 2026-06-11_
+_Last updated: 2026-06-14_
 
 This document is the **single source of truth** for the pre-release execution plan.
 It is written for the developer and for AI assistants so context survives long deep-dives.
@@ -56,8 +56,10 @@ The following major areas are **implemented** — not pending:
 
 ## High-level execution order (what remains)
 
+**Priority order (do not skip ahead):**
+
 ```
-S9 → S10 → S11 → S12 → S13
+S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 ```
 
 | Step | Focus | Status |
@@ -71,11 +73,15 @@ S9 → S10 → S11 → S12 → S13
 | **S6** | Backup export implementation (JSON/ZIP) | **Done** |
 | **S7** | Restore planning and safety design | **Done** |
 | **S8** | Restore implementation (replace existing data) | **Done** |
-| **S9** | Tests for backup / restore / export integrity | **Next** |
+| **S9** | Targeted test hardening | **Next** |
 | **S10** | CI (GitHub Actions) | Pending |
-| **S11** | App icon and release identity | Pending |
-| **S12** | Privacy policy / Play Store data safety / store assets | Pending |
-| **S13** | Internal testing release | Pending |
+| **S11** | Release polish (export / backup / restore UX) | Pending |
+| **S12** | Project documentation (README, architecture, release) | Pending |
+| **S13** | Release identity (name, package, version, icon, signing) | Pending |
+| **S14** | Privacy policy and Play Store materials | Pending |
+| **S15** | Internal Play Store testing | Pending |
+| **S16** | Launch blocker fixes only | Pending |
+| **S17** | Production release + GitHub / interview presentation | Pending |
 
 ---
 
@@ -200,57 +206,158 @@ S9 → S10 → S11 → S12 → S13
 
 ---
 
-# S9 – Automated Testing: Export / Backup / Restore Integrity
+# S9 – Targeted Test Hardening
 **Status:** Next recommended phase  
-**Goal:** Expand automated safety net before launch.
+**Goal:** Expand automated safety net before launch — focused coverage only; no broad refactors or unnecessary test sprawl.
 
 ## Checklist
 - [x] Backup JSON round-trip tests (`BackupZipExporterTest`, `BackupMapperTest`)
 - [x] Backup import/validation tests (`BackupZipImporterTest`, `BackupValidatorTest`)
-- [ ] CSV escaping and ZIP structure tests (partially started: `AllDataZipExporterTest`, `InvoiceCsvExporterTest`)
-- [ ] Custom-field index alignment invariant tests
-- [ ] Room migration smoke tests (optional stretch)
-- [ ] Instrumented restore transaction test (optional stretch)
+- [ ] **Launch-protection:** custom field title/value index alignment invariant tests
+- [ ] **CSV export:** strengthen escaping, column headers, and scope tests (`InvoiceCsvExporterTest`, `AllDataZipExporterTest`)
+- [ ] **Backup/restore:** strengthen round-trip and invalid-restore validation cases (corrupt JSON, wrong format version, CSV export rejected, orphan invoices)
+- [ ] **Localization:** Hebrew/English export header and display-value edge cases where appropriate
+- [ ] Room migration smoke tests *(optional stretch)*
+- [ ] Instrumented restore transaction test *(optional stretch)*
+
+## Explicitly out of scope
+- Broad UI or architecture refactors “for testability”
+- Large new test suites unrelated to export, backup, restore, or custom-field alignment
 
 ---
 
 # S10 – CI Workflow (GitHub Actions)
+**Status:** Pending — document only until implemented  
 **Goal:** Every push/PR runs a minimal quality gate.
 
-## Checklist
-- [ ] Add GitHub Actions workflow
-- [ ] Run `./gradlew test` and `./gradlew lint` on PR + main
+## Planned workflow (not yet added)
+- [ ] Add `.github/workflows/` workflow (e.g. on push to `main` and on pull requests)
+- [ ] Run `./gradlew test`
+- [ ] Run `./gradlew lintDebug`
+- [ ] Run `./gradlew assembleDebug`
+
+**Purpose:** Catch test regressions, lint issues, and build failures before merge or release. Do not implement in doc-only tasks — add the workflow file when starting S10.
 
 ---
 
-# S11 – App Icon and Release Identity
+# S11 – Release Polish
+**Goal:** Low-risk UX improvements for export, backup, and restore flows before store submission.
+
 ## Checklist
-- [ ] App icon and adaptive icon
-- [ ] Versioning (`versionCode` / `versionName`)
+- [ ] Improve loading and error states for export, backup, and restore (clear feedback; no silent failures)
+- [ ] Prevent duplicate taps during long SAF / file operations if not already handled
+- [ ] Consider optional **About** screen: app version, privacy-first note, GitHub link, privacy policy link
+- [ ] Manual sanity pass on export + backup + restore after polish
+
+## Explicitly out of scope
+- New product features
+- Backup encryption, cloud sync, or merge restore
 
 ---
 
-# S12 – Privacy Policy / Play Store Data Safety / Store Assets
+# S12 – Project Documentation
+**Goal:** Present the app clearly for recruiters, users, and future maintainers.
+
 ## Checklist
-- [ ] Privacy policy URL (mention local-only storage, user-controlled export/backup)
-- [ ] Data Safety form
-- [ ] Store listing screenshots and description
+- [ ] Polish `README.md` — features, privacy-first/local-first story, tech stack, screenshots when available
+- [ ] Maintain `docs/ARCHITECTURE.md` — MVVM, Room, repositories, Compose, export, backup/restore, localization, validation strategy
+- [ ] Maintain `docs/RELEASE.md` — test, build, release, and Play Store checklist (aligned with this plan)
+- [ ] Keep `docs/PROJECT_OVERVIEW.md` and `docs/ai-context.md` in sync with shipped behavior
+- [ ] Regenerate `docs/ARCHITECTURE_SUMMARY.pdf` from markdown when a PDF snapshot is needed
 
 ---
 
-# S13 – Internal Testing Release
+# S13 – Release Identity
+**Goal:** Lock branding and build identity before production signing.
+
 ## Checklist
-- [ ] Play App Signing
-- [ ] Internal testing track upload
-- [ ] Final manual QA pass (export + backup + restore regression)
+- [ ] Finalize public app name (store listing + launcher label)
+- [ ] Confirm package / application ID before production release (no late ID changes)
+- [ ] Finalize `versionName` / `versionCode` strategy (monotonic `versionCode` for each Play upload)
+- [ ] Prepare launcher icon and adaptive icon
+- [ ] Prepare release signing keystore and release build process (`assembleRelease` / AAB)
+- [ ] Document signing and release steps in `docs/RELEASE.md`
+
+---
+
+# S14 – Privacy Policy and Play Store Materials
+**Goal:** Satisfy Play policy and communicate the privacy-first design.
+
+## Privacy-first messaging (use consistently)
+- No account, no cloud sync, no backend, no analytics, no automatic upload
+- All data stays on device in local Room storage
+- Export and backup files are **user-initiated** and **user-controlled** via Storage Access Framework
+
+## Checklist
+- [ ] Publish privacy policy (hosted URL) — local-only storage; user-controlled export/backup; no third-party data collection
+- [ ] Google Play **short description** and **full description**
+- [ ] Screenshots (phone; Hebrew and English if feasible)
+- [ ] Optional short demo video or GIF
+- [ ] Complete **Data Safety** form (no data collected/transferred without user action)
+- [ ] Complete **content rating** questionnaire
+
+---
+
+# S15 – Internal Play Store Testing
+**Goal:** Validate the signed Play build on real devices before public release.
+
+## Checklist
+- [ ] Enable Play App Signing
+- [ ] Upload signed release AAB to **internal testing** track
+- [ ] Install from Play Console link; QA the Play-installed build (not sideload-only)
+
+## Manual QA checklist (internal track)
+- [ ] First launch and seeded categories
+- [ ] Category flow (add, edit, delete, reorder)
+- [ ] Invoice flow (add, edit, delete, details)
+- [ ] Search, filter, sort
+- [ ] Invoice-list CSV export and category-list all-data ZIP export
+- [ ] Create backup and restore backup (round-trip)
+- [ ] Invalid restore handling (wrong file, CSV export, bad format version)
+- [ ] Hebrew and English UI and export behavior
+- [ ] Update from one internal version to the next (migration + data retention)
+
+---
+
+# S16 – Launch Blocker Fixes Only
+**Status:** After S15 internal testing — **feature freeze**  
+**Goal:** Fix only what blocks a stable public launch.
+
+## In scope
+- Crashes and ANRs
+- Broken export, backup, or restore
+- Serious UI breakage on supported devices
+- Play policy or review feedback
+- Critical data loss or corruption bugs
+
+## Out of scope
+- New features
+- Nice-to-have refactors
+- Non-blocking lint or deprecation cleanup
+
+---
+
+# S17 – Production Release
+**Goal:** Publish to Google Play, then polish external presentation.
+
+## Checklist
+- [ ] Promote stable internal build to production (or closed/open testing first if preferred)
+- [ ] Monitor initial crash reports and user feedback
+- [ ] Polish GitHub repo presentation (README badges, screenshots, clear feature list)
+- [ ] Prepare LinkedIn post, resume bullet, and interview demo flow (category → invoice → search → export → backup → restore → localization)
 
 ---
 
 ## Public-facing mapping (README roadmap)
 - S1–S8 → Done (docs, refactor, UI polish, export, backup, restore)
-- S9 → Tests
+- S9 → Targeted test hardening
 - S10 → CI
-- S11–S13 → Play release
+- S11 → Release polish
+- S12 → Project documentation
+- S13–S14 → Release identity + privacy/store assets
+- S15 → Internal Play testing
+- S16 → Launch blocker fixes
+- S17 → Production release
 
 ---
 
@@ -275,10 +382,11 @@ S9 → S10 → S11 → S12 → S13
 - **2026-05-31:** UI polish phase marked complete.
 - **2026-06-01:** S1–S3 complete. Pre-launch refactor (`cc6e8f5`). **Next: export.**
 - **2026-06-02:** S4 + S4b complete (invoice CSV + all-data ZIP). UI polish items landed (`9189ace`–`df3d14e`). **Next: S5 backup export planning.**
-- **2026-06-11:** S5–S8 complete. Backup creation (`37ff651`) and full-replace restore (`73b7bd6`). Room v14 (FK index on `invoices.categoryId`). **Next: S9 tests, S10 CI, S11–S13 release readiness.**
+- **2026-06-11:** S5–S8 complete. Backup creation (`37ff651`) and full-replace restore (`73b7bd6`). Room v14 (FK index on `invoices.categoryId`). **Next: S9 tests, S10 CI, release readiness.**
+- **2026-06-14:** Pre-release roadmap expanded to S9–S17: targeted tests → CI → release polish → docs → release identity → privacy/store assets → internal testing → launch blocker fixes → production release. Added `docs/ARCHITECTURE.md` and `docs/RELEASE.md`.
 
 ---
 
 ## Historical note
 
-`docs/ARCHITECTURE_SUMMARY.pdf` is a snapshot and may be outdated. Regenerate from `PROJECT_OVERVIEW.md` / `ai-context.md` when a PDF is needed — do not edit the PDF directly.
+`docs/ARCHITECTURE_SUMMARY.pdf` is a snapshot and may be outdated. Regenerate from `docs/ARCHITECTURE.md`, `docs/PROJECT_OVERVIEW.md`, or `docs/ai-context.md` when a PDF is needed — do not edit the PDF directly.

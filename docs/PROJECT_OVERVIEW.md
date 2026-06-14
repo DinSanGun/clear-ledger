@@ -1,7 +1,7 @@
 # Tax Tracker - Project Overview
 
 Technical overview of the Tax Tracker Android app for future development and interview context.  
-For the pre-release execution plan, see `docs/LAUNCH_PLAN.md`. For AI-assisted work, see `docs/ai-context.md`.
+For the pre-release execution plan, see `docs/LAUNCH_PLAN.md`. For architecture patterns and validation, see `docs/ARCHITECTURE.md`. For AI-assisted work, see `docs/ai-context.md`. For release checklist, see `docs/RELEASE.md`.
 
 > **Note:** `docs/ARCHITECTURE_SUMMARY.pdf` is a historical snapshot and may not reflect the current codebase. Prefer this file and `docs/ai-context.md` until the PDF is regenerated.
 
@@ -307,9 +307,20 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 - **Backup and restore:** create backup + full-replace restore (Jun 2026)
 
 **Not yet implemented:**
-- CI pipeline
-- Play Store release assets
+- CI pipeline (planned: `./gradlew test`, `lintDebug`, `assembleDebug` on push/PR)
+- Play Store production release
 - Cloud sync, encryption, automatic backup, selective merge restore
+
+**Pre-release focus (see `docs/LAUNCH_PLAN.md` S9–S17):**
+1. Targeted test hardening
+2. GitHub Actions CI
+3. Release polish (export/backup/restore UX)
+4. Documentation (README, `ARCHITECTURE.md`, `RELEASE.md`)
+5. Release identity and signing
+6. Privacy policy and store materials
+7. Internal Play testing
+8. Launch blocker fixes only
+9. Production release
 
 **Known improvement areas (non-blocking follow-ups):**
 - In-memory filter/sort may need DAO queries at scale
@@ -323,4 +334,4 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 
 ## Summary
 
-Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** test coverage expansion, CI, and Play Store readiness.
+Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** pre-release roadmap S9–S17 (tests → CI → polish → docs → release identity → store assets → internal testing → blocker fixes → production). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.

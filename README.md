@@ -116,10 +116,21 @@ Domain models and business concepts are separated from persistence and UI logic.
 
 ## Roadmap
 
-### Next (pre-release)
-1. **Tests** — expand backup/restore and export integrity coverage
-2. **CI** — GitHub Actions for unit tests and lint
-3. **Release readiness** — app icon, store assets, privacy policy, Play Store internal testing
+The app is **feature-complete** for MVP. Remaining work is launch readiness — see `docs/LAUNCH_PLAN.md` for step IDs (S9–S17).
+
+### Pre-release (in priority order)
+
+| Step | Focus |
+|------|--------|
+| **S9** | Targeted test hardening (custom fields, CSV, backup/restore, EN/HE export) |
+| **S10** | GitHub Actions CI (`test`, `lintDebug`, `assembleDebug`) — *planned, not yet added* |
+| **S11** | Release polish (export/backup/restore UX, optional About screen) |
+| **S12** | Project documentation (README, architecture, release guides) |
+| **S13** | Release identity (name, package ID, versioning, icon, signing) |
+| **S14** | Privacy policy and Play Store materials |
+| **S15** | Internal Play Store testing |
+| **S16** | Launch blocker fixes only *(feature freeze)* |
+| **S17** | Production release + GitHub / interview presentation |
 
 ### Recently completed
 - UI polish pass (May–Jun 2026): category list FAB fix, edit-category save/discard, invoice list simplification, filter UX
@@ -129,20 +140,22 @@ Domain models and business concepts are separated from persistence and UI logic.
 
 ### Not yet implemented
 - CI pipeline
-- Google Play release
+- Google Play production release
 - Cloud sync, encryption, automatic backup, or selective merge restore
 
-See `docs/LAUNCH_PLAN.md` for the detailed execution plan.
+See `docs/LAUNCH_PLAN.md`, `docs/RELEASE.md`, and `docs/ARCHITECTURE.md` for details.
 
 ---
 
 ## Status
 
-The app is under active development and nearing its first public release.
+The app is **near feature-complete** and entering pre-release / launch preparation.
 
 Core functionality is implemented: Room persistence, bilingual UI (Hebrew / English), invoice search/filter/sort, category reordering, service-period handling, dynamic custom fields, **user-facing export** (localized CSV and all-data ZIP), and **backup/restore** (restore-ready JSON backup with full-replace import). A UI polish pass and conservative pre-launch refactor completed in June 2026.
 
-**Validated:** manual QA, `./gradlew assembleDebug`, `./gradlew lintDebug`, and `./gradlew test`.
+**Next:** targeted test hardening (S9), then CI, release polish, documentation, release identity, store assets, internal testing, and production release — see roadmap above.
+
+**Validated locally:** `./gradlew assembleDebug`, `./gradlew lintDebug`, and `./gradlew test`.
 
 ---
 
@@ -151,9 +164,11 @@ Core functionality is implemented: Room persistence, bilingual UI (Hebrew / Engl
 | File | Purpose |
 |------|---------|
 | `docs/PROJECT_OVERVIEW.md` | Technical architecture overview |
+| `docs/ARCHITECTURE.md` | MVVM, Room, export/backup/restore, localization, validation |
+| `docs/RELEASE.md` | Test, build, and Play Store release checklist |
 | `docs/ai-context.md` | Concise context for AI-assisted development |
 | `docs/CHANGELOG.md` | User-facing development history |
-| `docs/LAUNCH_PLAN.md` | Pre-release execution plan |
+| `docs/LAUNCH_PLAN.md` | Pre-release execution plan (S9–S17) |
 | `docs/ARCHITECTURE_SUMMARY.pdf` | Historical architecture snapshot — may be outdated; regenerate from current docs when needed |
 
 ---

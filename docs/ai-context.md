@@ -1,8 +1,8 @@
 # Tax Tracker (Android) — AI Context (Cursor)
 
-_Last updated: 2026-06-11_
+_Last updated: 2026-06-14_
 
-Concise working context for AI-assisted development. For the full overview see `docs/PROJECT_OVERVIEW.md`; for release planning see `docs/LAUNCH_PLAN.md`.
+Concise working context for AI-assisted development. For the full overview see `docs/PROJECT_OVERVIEW.md`; for architecture patterns see `docs/ARCHITECTURE.md`; for release planning see `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.
 
 ---
 
@@ -190,12 +190,18 @@ Ask before: DB migrations, conflating export with backup, allowing CSV restore, 
 
 **Done:** Room, bilingual UI, custom fields, search/filter/sort, service period, category reorder, UI polish, pre-launch refactor, user-facing export (CSV + ZIP), backup creation, full-replace restore.
 
-**Next (see LAUNCH_PLAN):**
-1. **S9** — Expand backup/restore/export integrity tests
-2. **S10** — CI
-3. **S11–S13** — Play release assets, privacy, internal testing
+**Pre-release (priority order — see `LAUNCH_PLAN` S9–S17):**
+1. **S9** — Targeted test hardening (custom fields, CSV, backup/restore, EN/HE export)
+2. **S10** — CI (`test`, `lintDebug`, `assembleDebug`) — *planned, not yet added*
+3. **S11** — Release polish (export/backup/restore UX, optional About)
+4. **S12** — Project docs (README, `ARCHITECTURE.md`, `RELEASE.md`)
+5. **S13** — Release identity (name, package ID, version, icon, signing)
+6. **S14** — Privacy policy and Play Store materials
+7. **S15** — Internal Play testing
+8. **S16** — Launch blocker fixes only
+9. **S17** — Production release + GitHub/interview presentation
 
-**Not implemented:** CI, Play Store assets, cloud sync, encryption, automatic backup, selective merge restore.
+**Not implemented:** CI workflow file, Play production release, cloud sync, encryption, automatic backup, selective merge restore.
 
 ---
 
