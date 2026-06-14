@@ -1,12 +1,12 @@
 # Tax Tracker – LAUNCH_PLAN.md
-_Last updated: 2026-06-02_
+_Last updated: 2026-06-11_
 
 This document is the **single source of truth** for the pre-release execution plan.
 It is written for the developer and for AI assistants so context survives long deep-dives.
 
 ## How we use this plan
 - Work in order, one step at a time.
-- Refer to steps by ID in chat (e.g. **“Next: S5”**).
+- Refer to steps by ID in chat (e.g. **“Next: S9”**).
 - When reality changes, update this file — do not rely on chat memory.
 
 ### Definition of “Done”
@@ -15,12 +15,14 @@ A step is **Done** when:
 - manually sanity-tested where applicable,
 - and committed with a clear message.
 
-### Export vs backup (product distinction)
-| | **Export** (done) | **Backup** (planned) |
-|---|-------------------|------------------------|
-| Purpose | User-readable spreadsheets / records | Restore-safe app data |
-| Format | Localized CSV; ZIP with `categories.csv` + invoice CSVs | JSON/ZIP (TBD) |
-| Restore | Not supported | Replace-existing-data restore (S9) |
+### Export vs backup vs restore (product distinction)
+| | **Export** | **Backup** | **Restore** |
+|---|---|---|---|
+| Purpose | Human-readable spreadsheets / records | Restore-ready app data snapshot | Full replacement of local app data |
+| Format | Localized CSV; ZIP with CSV files | ZIP with `backup.json` | Reads backup ZIP / `backup.json` |
+| Menu | Invoice list Export; Category list Export all data | Category list Create backup | Category list Restore backup |
+| Restore | **Not supported** | N/A (creates file) | **Full replace only** — not merge |
+| CSV accepted? | N/A | No | **No** — CSV/ZIP exports cannot be restored |
 
 ---
 
@@ -30,7 +32,7 @@ The following major areas are **implemented** — not pending:
 
 | Area | Status |
 |------|--------|
-| Room persistence (v13, incremental migrations) | Done |
+| Room persistence (v14, incremental migrations) | Done |
 | Hebrew / English localization + manual language switch | Done |
 | Dynamic custom fields (category titles + invoice values) | Done |
 | Seeded categories with locale-aware refresh | Done |
@@ -45,13 +47,17 @@ The following major areas are **implemented** — not pending:
 | **Responsive fixes from refactor (S3)** | **Done** (targeted) |
 | **Invoice-list CSV export (S4)** | **Done** (`0819b53`) |
 | **Category-list all-data ZIP export (S4b)** | **Done** (`36ddae4`) |
+| **Backup export planning (S5)** | **Done** |
+| **Backup export implementation (S6)** | **Done** (`37ff651`) |
+| **Restore planning and safety design (S7)** | **Done** |
+| **Restore implementation (S8)** | **Done** (`73b7bd6`) |
 
 ---
 
 ## High-level execution order (what remains)
 
 ```
-S5 → S6 → S7 → S8 → S9 → S10
+S9 → S10 → S11 → S12 → S13
 ```
 
 | Step | Focus | Status |
@@ -61,11 +67,11 @@ S5 → S6 → S7 → S8 → S9 → S10
 | **S3** | Responsive / design safety verification | **Done** (targeted) |
 | **S4** | User-facing CSV export (invoice list) | **Done** |
 | **S4b** | User-facing all-data ZIP export (category list) | **Done** |
-| **S5** | Backup export planning | **Next** |
-| **S6** | Backup export implementation (JSON/ZIP) | Pending |
-| **S7** | Restore planning and safety design | Pending |
-| **S8** | Restore implementation (replace existing data) | Pending |
-| **S9** | Tests for backup / restore / export integrity | Pending |
+| **S5** | Backup export planning | **Done** |
+| **S6** | Backup export implementation (JSON/ZIP) | **Done** |
+| **S7** | Restore planning and safety design | **Done** |
+| **S8** | Restore implementation (replace existing data) | **Done** |
+| **S9** | Tests for backup / restore / export integrity | **Next** |
 | **S10** | CI (GitHub Actions) | Pending |
 | **S11** | App icon and release identity | Pending |
 | **S12** | Privacy policy / Play Store data safety / store assets | Pending |
@@ -122,62 +128,89 @@ S5 → S6 → S7 → S8 → S9 → S10
 
 ## Explicitly not in scope
 - Backup / restore
-- Room schema changes
 - Changing invoice-list export behavior
 
 ---
 
 # S5 – Backup Export Planning
-**Status:** Next recommended phase  
-**Goal:** Design restore-safe export separate from user-facing CSV/ZIP.
+**Status:** Done (Jun 2026)
 
-## Checklist
-- [ ] Define JSON schema (categories, invoices, metadata, version)
-- [ ] Document replace vs merge restore semantics for S7–S8
-- [ ] Keep raw enum/storage values (not localized display strings)
-- [ ] Decide ZIP packaging and file naming
+## Delivered
+- JSON schema defined: `BackupPayload` with `formatVersion`, `metadata`, `categories`, `invoices`
+- Replace-all restore semantics documented for S7–S8
+- Raw enum/storage values and ISO dates (not localized display strings)
+- ZIP packaging: single `backup.json` entry
 
 ---
 
 # S6 – Backup Export Implementation
-**Goal:** User-controlled local backup storable anywhere (Drive, PC, etc.).
+**Status:** Done (Jun 2026)  
+**Commit:** `37ff651`
 
-## Checklist
-- [ ] Implement JSON export via SAF
-- [ ] Version field inside backup payload
-- [ ] Test backup creation and file sharing
-- [ ] Do not conflate with S4/S4b user-facing CSV export
+## Delivered
+- “Create backup” in category list overflow menu
+- ZIP via SAF containing `backup.json` with versioned restore-oriented payload
+- `BackupZipExporter`, `BackupMapper`, `BackupFormat`, `BackupDtos` in `core/util/backup/`
+- `CategoryListViewModel.loadAllDataForBackup()` supplies domain data
+- Unit tests: `BackupZipExporterTest`
+
+## Explicitly not in scope
+- Conflating with S4/S4b user-facing CSV export
+- Encryption or cloud sync
 
 ---
 
 # S7 – Restore Planning and Safety Design
-**Goal:** Safe replace-existing-data restore UX before implementation.
+**Status:** Done (Jun 2026)
 
-## Checklist
-- [ ] Confirm replace-all vs selective restore for MVP
-- [ ] Warning dialogs and confirmation copy (EN + HE)
-- [ ] Validation rules for malformed/partial files
+## Delivered
+- Full replace (not merge) confirmed for MVP
+- UX flow: pick file → validate → destructive confirmation → restore
+- Validation rules: format version, required fields, unique IDs, enum/date checks, orphan invoice rejection
+- Seeding flag handling after successful restore documented
 
 ---
 
 # S8 – Restore Implementation
-**Goal:** Import backup with replace-existing-data behavior.
+**Status:** Done (Jun 2026)  
+**Commit:** `73b7bd6`
 
-## Checklist
-- [ ] Parse and validate backup JSON
-- [ ] Transactional replace of categories + invoices
-- [ ] Error handling and user feedback
+## Delivered
+- “Restore backup” in category list overflow menu
+- `BackupZipImporter` reads ZIP and parses `backup.json`
+- `BackupValidator` validates payload before any DB changes
+- Destructive confirmation dialog (EN + HE) shown only after validation succeeds
+- `RoomBackupRestoreRepository` performs transactional delete + insert via `withTransaction`
+- Preserves original category and invoice IDs
+- Sets `has_seeded_default_categories` and `has_cleared_seeded_custom_fields` after successful restore
+- Language preference not modified
+- Unit tests: `BackupZipImporterTest`, `BackupValidatorTest`, `BackupMapperTest`
+
+## Manual QA checklist (S8)
+- [x] Create backup from populated app
+- [x] Modify app data, restore backup, confirm previous state returns
+- [x] Cancel at file picker — no change, no snackbar
+- [x] Cancel at confirmation dialog — no change, no snackbar
+- [x] Invalid file (non-ZIP) → error snackbar
+- [x] Wrong ZIP (no `backup.json`) → error snackbar
+- [x] Unsupported `formatVersion` → error snackbar
+- [x] CSV all-data ZIP export → restore correctly rejected
+- [x] Hebrew/English UI labels and restored data round-trip
+- [x] Export features still work after restore
 
 ---
 
 # S9 – Automated Testing: Export / Backup / Restore Integrity
-**Goal:** Small, high-value safety net before launch.
+**Status:** Next recommended phase  
+**Goal:** Expand automated safety net before launch.
 
 ## Checklist
+- [x] Backup JSON round-trip tests (`BackupZipExporterTest`, `BackupMapperTest`)
+- [x] Backup import/validation tests (`BackupZipImporterTest`, `BackupValidatorTest`)
 - [ ] CSV escaping and ZIP structure tests (partially started: `AllDataZipExporterTest`, `InvoiceCsvExporterTest`)
-- [ ] Backup JSON round-trip tests
 - [ ] Custom-field index alignment invariant tests
 - [ ] Room migration smoke tests (optional stretch)
+- [ ] Instrumented restore transaction test (optional stretch)
 
 ---
 
@@ -199,7 +232,7 @@ S5 → S6 → S7 → S8 → S9 → S10
 
 # S12 – Privacy Policy / Play Store Data Safety / Store Assets
 ## Checklist
-- [ ] Privacy policy URL
+- [ ] Privacy policy URL (mention local-only storage, user-controlled export/backup)
 - [ ] Data Safety form
 - [ ] Store listing screenshots and description
 
@@ -209,14 +242,12 @@ S5 → S6 → S7 → S8 → S9 → S10
 ## Checklist
 - [ ] Play App Signing
 - [ ] Internal testing track upload
-- [ ] Final manual QA pass
+- [ ] Final manual QA pass (export + backup + restore regression)
 
 ---
 
 ## Public-facing mapping (README roadmap)
-- S1–S4b → Done (docs, refactor, UI polish, user-facing export)
-- S5–S6 → Backup export (JSON/ZIP)
-- S7–S8 → Restore
+- S1–S8 → Done (docs, refactor, UI polish, export, backup, restore)
 - S9 → Tests
 - S10 → CI
 - S11–S13 → Play release
@@ -244,6 +275,7 @@ S5 → S6 → S7 → S8 → S9 → S10
 - **2026-05-31:** UI polish phase marked complete.
 - **2026-06-01:** S1–S3 complete. Pre-launch refactor (`cc6e8f5`). **Next: export.**
 - **2026-06-02:** S4 + S4b complete (invoice CSV + all-data ZIP). UI polish items landed (`9189ace`–`df3d14e`). **Next: S5 backup export planning.**
+- **2026-06-11:** S5–S8 complete. Backup creation (`37ff651`) and full-replace restore (`73b7bd6`). Room v14 (FK index on `invoices.categoryId`). **Next: S9 tests, S10 CI, S11–S13 release readiness.**
 
 ---
 

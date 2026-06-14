@@ -3,6 +3,28 @@
 This changelog documents incremental development steps of the Tax Tracker app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
 
+## 11/06/2026
+
+### Backup and Restore
+- **Create backup:** category list overflow → “Create backup” writes a ZIP via Storage Access Framework containing `backup.json` with restore-oriented app data (categories, invoices, IDs, order, colors, seed fields, custom field titles/values, invoice relationships, service period modes, currencies, raw enum values, ISO dates, explicit nulls, metadata, format version)
+- **Restore backup:** category list overflow → “Restore backup” opens a backup ZIP via SAF, validates `backup.json`, shows a destructive confirmation dialog, then fully replaces current local categories and invoices
+- Restore is **full replace only** — not merge; validation runs before any data is deleted; failed validation leaves current data unchanged
+- Restore uses a Room transaction (delete all invoices/categories, insert backup data) and preserves original category and invoice IDs
+- After successful restore, seeding preference flags are set so first-run default seeding does not duplicate or modify restored data; language preference is not restored or modified
+- Pure Kotlin backup utilities: `BackupZipExporter`, `BackupZipImporter`, `BackupValidator`, `BackupMapper`; `RoomBackupRestoreRepository` for transactional DB replacement
+- Unit tests: `BackupZipExporterTest`, `BackupZipImporterTest`, `BackupValidatorTest`, `BackupMapperTest`
+
+### Database
+- Room schema v14: add index on `invoices.categoryId` (FK performance)
+
+### Known Limitations
+- **Export vs backup vs restore:** CSV/ZIP exports are for human review only — restore accepts backup ZIPs with `backup.json` only, not CSV exports
+- **Backup security:** backup files are plaintext JSON containing sensitive financial/user data; no encryption or cloud sync
+- **Restore safety:** restore is destructive; create a fresh backup before restoring another backup if you may want to return to the current state
+- **Google Sheets Android:** may misread valid UTF-8 CSV when headers are English and data contains Hebrew; LibreOffice and desktop Google Sheets open exports correctly; future XLSX export may address this
+
+---
+
 ## 02/06/2026
 
 ### UI Polish
@@ -23,7 +45,7 @@ Entries are ordered from newest to oldest and correspond to tested, committed ch
 - Pre-launch conservative refactor (see 01/06/2026 entry) validated with `./gradlew assembleDebug`, `./gradlew lintDebug`, `./gradlew test`
 
 ### Known Limitations
-- **Export vs backup:** current export is user-readable CSV/ZIP for spreadsheets and records — not restore-safe backup
+- **Export vs backup:** CSV/ZIP export is user-readable for spreadsheets and records — not restore-safe backup (see 11/06/2026 entry for backup/restore)
 - **Google Sheets Android:** may misread valid UTF-8 CSV when headers are English and data contains Hebrew; LibreOffice and desktop Google Sheets open exports correctly; future XLSX export may address this
 
 ---

@@ -44,15 +44,43 @@ The app helps users keep financial documents consistent, searchable, and ready f
 - Invoice list active filter indication and clear-filters action
 - Portrait-optimized layout
 
-### Data Export (user-facing)
-- **Invoice list:** export currently visible invoices (after search, filter, and sort) to localized CSV via Storage Access Framework
-- **Category list:** export all data to a ZIP (`categories.csv` + one invoice CSV per category that has invoices)
+### Data Portability
+
+The app offers three distinct data portability features. **Do not confuse them:**
+
+| Feature | Menu location | Format | Purpose |
+|---------|---------------|--------|---------|
+| **Export** (invoice list) | Invoice overflow → Export | Localized CSV | Human-readable spreadsheet of currently visible invoices |
+| **Export all data** | Category overflow → Export all data | ZIP with CSV files | Human-readable archive for review, accountants, or records |
+| **Backup** | Category overflow → Create backup | ZIP with `backup.json` | Restore-ready app data snapshot |
+| **Restore** | Category overflow → Restore backup | Reads backup ZIP | Full replacement of local app data from a backup |
+
+#### Export (human-readable)
+- **Invoice list:** exports currently visible invoices (after search, filter, and sort) to localized CSV via Storage Access Framework (SAF)
+- **Category list:** exports all data to a ZIP (`categories.csv` + one invoice CSV per category that has invoices)
 - Localized English/Hebrew headers and display values; custom fields as CSV columns
 - UTF-8 with conditional BOM for spreadsheet compatibility (LibreOffice, desktop Google Sheets)
-- **Not** backup/restore — restore-safe JSON backup is planned separately
+- **Not for restore** — CSV/ZIP exports cannot be imported back into the app
+
+#### Backup and restore (app data)
+- **Create backup:** writes a ZIP containing a single `backup.json` with restore-oriented data (categories, invoices, IDs, order, colors, custom fields, service period modes, currencies, raw enum values, ISO dates, metadata, format version)
+- **Restore backup:** user selects a backup ZIP via SAF; app validates `backup.json`, shows a destructive confirmation dialog, then **fully replaces** current local categories and invoices
+- Restore is **full replace only** — not merge, not selective
+- Validation runs **before** any data is deleted; if validation fails, current data stays unchanged
+- Restore uses a Room transaction (delete + insert) and preserves original category and invoice IDs
+- After a successful restore, seeding flags are updated so first-run default seeding does not duplicate restored data
+- Language preference is **not** restored or modified
+- Backup files are **plaintext JSON** and contain sensitive financial/user data — treat them like private documents
+
+> **Before restoring:** create a fresh backup of your current data if you may want to return to the present state. Restore cannot be undone unless you have another backup.
+
+### Privacy and local-first storage
+- All app data stays on the device in a local Room (SQLite) database
+- Nothing is uploaded automatically — export and backup only happen when the user explicitly chooses a destination via SAF
+- Backup and export files are user-controlled; store them securely
 
 ### Local Persistence
-- Offline-first design with Room (SQLite), currently at schema version 13
+- Offline-first design with Room (SQLite), currently at schema version 14
 - Incremental migrations for backward compatibility
 - First-run seeding with idempotent preference flags
 
@@ -89,21 +117,20 @@ Domain models and business concepts are separated from persistence and UI logic.
 ## Roadmap
 
 ### Next (pre-release)
-1. **Backup export** — restore-safe JSON/ZIP (separate from user-facing CSV export)
-2. **Restore** — replace-existing-data import with safety design
-3. **Tests** — backup/restore and export integrity coverage
-4. **CI** — GitHub Actions for unit tests and lint
-5. **Release readiness** — app icon, store assets, privacy policy, Play Store internal testing
+1. **Tests** — expand backup/restore and export integrity coverage
+2. **CI** — GitHub Actions for unit tests and lint
+3. **Release readiness** — app icon, store assets, privacy policy, Play Store internal testing
 
 ### Recently completed
 - UI polish pass (May–Jun 2026): category list FAB fix, edit-category save/discard, invoice list simplification, filter UX
 - Pre-launch refactor / safety pass (Jun 2026)
 - Invoice-list CSV export and category-list all-data ZIP export (Jun 2026)
+- Restore-ready app backup creation and full-replace backup restore (Jun 2026)
 
 ### Not yet implemented
-- Backup / restore (JSON)
 - CI pipeline
 - Google Play release
+- Cloud sync, encryption, automatic backup, or selective merge restore
 
 See `docs/LAUNCH_PLAN.md` for the detailed execution plan.
 
@@ -113,7 +140,7 @@ See `docs/LAUNCH_PLAN.md` for the detailed execution plan.
 
 The app is under active development and nearing its first public release.
 
-Core functionality is implemented: Room persistence, bilingual UI (Hebrew / English), invoice search/filter/sort, category reordering, service-period handling, dynamic custom fields, and **user-facing export** (localized CSV from the invoice list; ZIP with `categories.csv` and per-category invoice CSVs from the category list). A UI polish pass and conservative pre-launch refactor completed in June 2026 without architecture rewrites or database schema changes.
+Core functionality is implemented: Room persistence, bilingual UI (Hebrew / English), invoice search/filter/sort, category reordering, service-period handling, dynamic custom fields, **user-facing export** (localized CSV and all-data ZIP), and **backup/restore** (restore-ready JSON backup with full-replace import). A UI polish pass and conservative pre-launch refactor completed in June 2026.
 
 **Validated:** manual QA, `./gradlew assembleDebug`, `./gradlew lintDebug`, and `./gradlew test`.
 

@@ -1,6 +1,6 @@
 # Tax Tracker (Android) — AI Context (Cursor)
 
-_Last updated: 2026-06-02_
+_Last updated: 2026-06-11_
 
 Concise working context for AI-assisted development. For the full overview see `docs/PROJECT_OVERVIEW.md`; for release planning see `docs/LAUNCH_PLAN.md`.
 
@@ -12,7 +12,10 @@ Local-first Android app for tracking **bills / taxes by category**. Users manage
 
 Supports **Hebrew and English** with manual language switching and RTL/LTR layout.
 
-**User-facing export** (CSV/ZIP via SAF) is implemented. **Backup/restore** (restore-safe JSON) is **not** implemented yet.
+**Data portability (all implemented):**
+- **Export** — localized CSV/ZIP for humans/spreadsheets (not for restore)
+- **Backup** — restore-ready ZIP with `backup.json`
+- **Restore** — full replace of local app data from a backup ZIP
 
 ---
 
@@ -20,9 +23,9 @@ Supports **Hebrew and English** with manual language switching and RTL/LTR layou
 
 - Kotlin, Jetpack Compose (Material 3), Navigation Compose
 - MVVM: ViewModels + `StateFlow`, lifecycle-aware collection
-- Room (SQLite) v13 — `RoomCategoryRepository`, `RoomInvoiceRepository`
-- No DI framework; repos wired in `MainActivity` → `TaxTrackerNavHost`
-- Export: pure Kotlin in `core/util/`; SAF + file I/O in Compose screens
+- Room (SQLite) v14 — `RoomCategoryRepository`, `RoomInvoiceRepository`, `RoomBackupRestoreRepository`
+- No DI framework; repos wired in `MainActivity` / ViewModel factories
+- Export/backup: pure Kotlin in `core/util/` and `core/util/backup/`; SAF + file I/O in Compose screens
 - Gradle KTS with version catalog (`libs.*`)
 
 ---
@@ -37,20 +40,22 @@ Supports **Hebrew and English** with manual language switching and RTL/LTR layou
 | `core/data/TaxTrackerDatabase.kt` | Migrations — **do not change casually** |
 | `feature/invoice/InvoiceListViewModel.kt` | Search/filter/sort pipeline; `buildCsvContent()` |
 | `feature/invoice/InvoiceListScreen.kt` | List UI, filter sheet, invoice CSV export SAF |
-| `feature/category/CategoryListViewModel.kt` | Category CRUD, reorder, `loadAllDataForExport()` |
-| `feature/category/CategoryListScreen.kt` | Category list UI, all-data ZIP export SAF |
+| `feature/category/CategoryListViewModel.kt` | Category CRUD, reorder, export/backup/restore |
+| `feature/category/CategoryListScreen.kt` | Category list UI, export/backup/restore SAF |
 | `core/util/InvoiceCsvExporter.kt` | Pure Kotlin invoice CSV generation |
 | `core/util/AllDataZipExporter.kt` | Pure Kotlin ZIP (categories.csv + invoice CSVs) |
-| `core/util/Utf8CsvWriter.kt` | UTF-8 + conditional BOM per CSV |
-| `feature/invoice/InvoiceCsvExportLabelsProvider.kt` | Composable localized export labels |
-| `core/data/repositories/RoomCategoryRepository.kt` | Category persistence; hidden fields on update |
-| `core/data/repositories/RoomInvoiceRepository.kt` | Invoice entity ↔ domain mapping |
+| `core/util/backup/BackupZipExporter.kt` | Pure Kotlin backup ZIP writer |
+| `core/util/backup/BackupZipImporter.kt` | Pure Kotlin backup ZIP reader |
+| `core/util/backup/BackupValidator.kt` | Defensive backup payload validation |
+| `core/util/backup/BackupMapper.kt` | Domain ↔ backup DTO mapping |
+| `core/data/repositories/RoomBackupRestoreRepository.kt` | Transactional full-replace restore |
+| `core/data/SeedingPreferenceManager.kt` | Seeding flags updated after restore |
 
 ---
 
 ## 4) Architecture in one paragraph
 
-Compose screens render immutable UI state and forward intents. ViewModels own state, call repositories in `viewModelScope`, and expose `StateFlow`. Repositories map Room entities to domain models. Navigation Compose defines routes; related screens share a ViewModel via parent `NavBackStackEntry`. Export reads domain data through repositories/ViewModels; CSV/ZIP bytes written via SAF in the screen layer.
+Compose screens render immutable UI state and forward intents. ViewModels own state, call repositories in `viewModelScope`, and expose `StateFlow`. Repositories map Room entities to domain models. Navigation Compose defines routes; related screens share a ViewModel via parent `NavBackStackEntry`. Export/backup read domain data through ViewModels; CSV/ZIP/JSON bytes written or read via SAF in the screen layer. Restore validates backup JSON before any DB mutation, then `RoomBackupRestoreRepository` replaces all data in a single transaction.
 
 ---
 
@@ -78,16 +83,19 @@ Compose screens render immutable UI state and forward intents. ViewModels own st
 
 ### Seeded categories
 - `seedKey` identifies built-in categories; `userEdited` blocks locale overwrite
+- After restore, seeding flags are set so first-run seeding does not duplicate restored data
 
 ### Localization / RTL
 - Language preference persisted; locale applied in `attachBaseContext`
 - Hebrew resources in `values-iw/`; test RTL after UI changes
 - Read locale via **`LocalConfiguration.current`**, not `LocalContext.current.resources.configuration`
 - Export headers follow **app locale only** (English or Hebrew) — **no bilingual headers**, no encoding hacks
+- Restore does **not** modify language preference
 
-### Export vs backup
-- **Export** = localized CSV/ZIP for humans/spreadsheets — **implemented**
-- **Backup** = raw, restore-safe JSON/ZIP — **not implemented** — do not label export as backup
+### Export vs backup vs restore
+- **Export** = localized CSV/ZIP for humans/spreadsheets — **not for restore**
+- **Backup** = raw restore-ready JSON in ZIP (`backup.json`) — plaintext, sensitive
+- **Restore** = full replace only from backup ZIP — **not** from CSV exports
 
 ### UI text display
 - **List cards:** ellipsis / `maxLines` acceptable
@@ -128,7 +136,26 @@ Invoice CSV export uses **`visibleInvoices`** (and category name/titles from UiS
 
 ---
 
-## 8) What NOT to change casually
+## 8) Backup and restore behavior (do not regress)
+
+### Create backup (`CategoryListScreen`)
+- Overflow → Create backup; SAF `application/zip`
+- `CategoryListViewModel.loadAllDataForBackup()` → `BackupZipExporter.writeZip()`
+- ZIP contains single `backup.json` with `formatVersion`, metadata, categories, invoices
+- Stores raw enum names, ISO dates, explicit nulls, IDs, order, custom fields — **not** localized display strings
+
+### Restore backup (`CategoryListScreen`)
+- Overflow → Restore backup; SAF `OpenDocument` for `application/zip`
+- `CategoryListViewModel.validateAndParseBackup(uri)` → `BackupZipImporter` + `BackupValidator`
+- If valid: show destructive confirmation dialog; on confirm → `performRestore()` → `RoomBackupRestoreRepository.restoreFromBackup()`
+- **Full replace only** — not merge; validation before delete; transaction rolls back on failure
+- Preserves original category and invoice IDs
+- Sets seeding flags after success; does not touch language preference
+- **CSV/ZIP exports are rejected** — only backup ZIPs with `backup.json`
+
+---
+
+## 9) What NOT to change casually
 
 | Area | Guidance |
 |------|----------|
@@ -138,14 +165,14 @@ Invoice CSV export uses **`visibleInvoices`** (and category name/titles from UiS
 | **Category orderIndex sorting** | Name-based sort breaks user order |
 | **Hidden category fields on update** | Round-trip `supplierName` / `pinnedDefaults` |
 | **Export scope & format** | Invoice export = visible only; ZIP skips empty invoice CSVs |
+| **Backup format / restore semantics** | Full replace; validate before delete; preserve IDs |
 | **Localization** | Both `values/` and `values-iw/` |
-| **Architecture** | No DI, no broad rewrites |
 
-Ask before: DB migrations, conflating export with backup, bilingual CSV headers, changing invoice-list export.
+Ask before: DB migrations, conflating export with backup, allowing CSV restore, bilingual CSV headers, changing restore to merge mode.
 
 ---
 
-## 9) Recent completed work (Jun 2026)
+## 10) Recent completed work (Jun 2026)
 
 **Pre-launch refactor** (`cc6e8f5`): debug log removal; hidden category fields; invoice errors; reorder on refresh; list fixes; Hebrew strings; build/lint/test green.
 
@@ -153,31 +180,22 @@ Ask before: DB migrations, conflating export with backup, bilingual CSV headers,
 
 **Export** (`0819b53`, `36ddae4`): invoice CSV + all-data ZIP.
 
+**Backup** (`37ff651`): create restore-ready backup ZIP with `backup.json`.
+
+**Restore** (`73b7bd6`): full-replace restore with validation, transaction, ID preservation, seeding flag handling.
+
 ---
 
-## 10) Project status (Jun 2026)
+## 11) Project status (Jun 2026)
 
-**Done:** Room, bilingual UI, custom fields, search/filter/sort, service period, category reorder, UI polish, pre-launch refactor, **user-facing export (CSV + ZIP)**.
+**Done:** Room, bilingual UI, custom fields, search/filter/sort, service period, category reorder, UI polish, pre-launch refactor, user-facing export (CSV + ZIP), backup creation, full-replace restore.
 
 **Next (see LAUNCH_PLAN):**
-1. **S5** — Backup export planning (JSON schema, versioning)
-2. **S6** — Backup export implementation
-3. **S7–S8** — Restore design + implementation (replace existing data)
-4. **S9** — Backup/restore/export integrity tests
-5. **S10** — CI
-6. **S11–S13** — Play release assets, privacy, internal testing
+1. **S9** — Expand backup/restore/export integrity tests
+2. **S10** — CI
+3. **S11–S13** — Play release assets, privacy, internal testing
 
-**Not implemented:** backup, restore, CI, Play Store assets.
-
----
-
-## 11) How to work on backup (next major feature)
-
-1. **Separate** from `InvoiceCsvExporter` / `AllDataZipExporter` — new raw JSON serializer
-2. Use stable machine values (enum names, raw dates), not localized CSV strings
-3. SAF for file picker; no new storage permissions for MVP
-4. Keep Room schema unchanged unless explicitly requested; plan migrations if backup format requires DB changes
-5. Restore: replace-existing-data UX with strong confirmation — design in S7 before coding S8
+**Not implemented:** CI, Play Store assets, cloud sync, encryption, automatic backup, selective merge restore.
 
 ---
 
@@ -187,6 +205,7 @@ Ask before: DB migrations, conflating export with backup, bilingual CSV headers,
 - Dependency/version warnings, unused resources, portrait lint
 - ViewModel `Context` usage — optional cleanup
 - Future XLSX export for Google Sheets Android (not CSV hacks)
+- Instrumented restore transaction test (optional)
 
 ---
 

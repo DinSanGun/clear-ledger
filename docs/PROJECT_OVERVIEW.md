@@ -17,7 +17,9 @@ For the pre-release execution plan, see `docs/LAUNCH_PLAN.md`. For AI-assisted w
    - Category list → add / edit / delete category
    - Manual reorder mode (persisted `orderIndex`)
    - Language settings (Hebrew / English)
-   - **Export all data** → ZIP via Storage Access Framework (`categories.csv` + invoice CSVs per category with invoices)
+   - **Export all data** → ZIP via Storage Access Framework (`categories.csv` + invoice CSVs per category with invoices) — human-readable, not for restore
+   - **Create backup** → ZIP via SAF containing `backup.json` — restore-ready app data
+   - **Restore backup** → pick backup ZIP, validate, confirm, full replace of local data
 
 2. **Invoice management**
    - Select category → invoice list (search, filter, sort)
@@ -68,8 +70,9 @@ com.dinyairsadot.taxtracker/
 │   │   ├── CategoryRepository.kt
 │   │   └── InvoiceRepository.kt
 │   ├── data/
-│   │   ├── TaxTrackerDatabase.kt   # Room v13, migrations
+│   │   ├── TaxTrackerDatabase.kt   # Room v14, migrations
 │   │   ├── dao/, entities/, converters/, repositories/
+│   │   │   └── RoomBackupRestoreRepository.kt
 │   │   ├── LanguagePreferenceManager.kt
 │   │   └── SeedingPreferenceManager.kt
 │   └── ui/
@@ -81,7 +84,11 @@ com.dinyairsadot.taxtracker/
 │   └── util/
 │       ├── InvoiceCsvExporter.kt, InvoiceCsvExportLabels.kt
 │       ├── Utf8CsvWriter.kt, AllDataZipExporter.kt
-│       └── CategoriesCsvLabels.kt, AllExportData.kt
+│       ├── CategoriesCsvLabels.kt, AllExportData.kt
+│       └── backup/
+│           ├── BackupFormat.kt, BackupDtos.kt, BackupMapper.kt
+│           ├── BackupZipExporter.kt, BackupZipImporter.kt
+│           └── BackupValidator.kt, BackupValidationResult.kt
 ├── feature/
 │   ├── category/                # List, add, edit, reorder, CategoryForm
 │   ├── invoice/                 # List, add, edit, details, search/filter/sort
@@ -150,11 +157,12 @@ Backward-compat getters: `customFieldTitle1..3`
 
 ## F. Data Layer
 
-**Room database:** version **13**, non-destructive migration chain.
+**Room database:** version **14**, non-destructive migration chain.
 
 **Repositories:**
 - `RoomCategoryRepository` — CRUD, seeded localization, `updateCategoryOrder()`
 - `RoomInvoiceRepository` — CRUD per category, entity ↔ domain mapping
+- `RoomBackupRestoreRepository` — transactional full-replace restore from `BackupPayload`
 
 **Entity highlights:**
 - `CategoryEntity` — `customFieldTitlesJson`, `orderIndex`, `seedKey`, `userEdited`
@@ -192,7 +200,7 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 ## H. UI Conventions
 
 ### Top app bars
-- Category list: default theme, title “Bills & Taxes”, overflow menu (reorder, language, export all data)
+- Category list: default theme, title “Bills & Taxes”, overflow menu (reorder, language, export all data, create backup, restore backup)
 - Invoice flows: category-colored bar via `categoryTopAppBarColors()` with contrast-aware text/icons
 - Edit Category: top-bar Save action; discard warning for unsaved changes
 - Invoice list: overflow Export; active filter indication and clear-filters action
@@ -240,13 +248,13 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 5. **Seeded categories:** `userEdited` blocks automatic locale overwrite of name/description.
 6. **ViewModel scope:** Invoice/category mutations must go through the shared parent ViewModel so list state stays consistent.
 7. **Migrations:** Avoid new DB migrations unless explicitly requested and tested.
-8. **Export vs backup:** User-facing export (CSV/ZIP) is localized and spreadsheet-oriented. Restore-safe JSON backup is a separate planned feature — do not conflate them.
+8. **Export vs backup vs restore:** User-facing export (CSV/ZIP) is localized and spreadsheet-oriented — **not for restore**. Backup (ZIP with `backup.json`) is restore-ready raw app data. Restore is full replace only and accepts backup ZIPs, not CSV exports.
 
 ---
 
 ## L. Data Export (implemented)
 
-**Product distinction:** Export = user-readable files for spreadsheets and personal records. Backup = future restore-safe raw app data (JSON/ZIP), not implemented yet.
+**Product distinction:** Export = user-readable files for spreadsheets and personal records. **Not for restore.**
 
 | Entry point | Output | Scope |
 |-------------|--------|--------|
@@ -262,10 +270,31 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 
 ---
 
-## M. Current Status and Evolving Areas
+## M. Backup and Restore (implemented)
+
+**Product distinction:** Backup = restore-ready app data in plaintext JSON. Restore = full replacement of local categories and invoices from a backup ZIP.
+
+| Entry point | Output / input | Behavior |
+|-------------|----------------|----------|
+| Category list overflow → Create backup | `.zip` via SAF containing `backup.json` | Exports all categories and invoices with IDs, order, colors, custom fields, service period modes, currencies, raw enums, ISO dates, metadata |
+| Category list overflow → Restore backup | User picks backup `.zip` via SAF | Validates `backup.json` → destructive confirmation → transactional full replace |
+
+**Implementation notes:**
+- Pure Kotlin: `BackupZipExporter`, `BackupZipImporter`, `BackupValidator`, `BackupMapper` in `core/util/backup/`
+- `BackupRestoreRepository` interface; `RoomBackupRestoreRepository` uses `withTransaction` (delete all + insert)
+- Validation before any DB mutation; failed validation leaves current data unchanged
+- Preserves original category and invoice IDs
+- After successful restore, `SeedingPreferenceManager` flags set to prevent first-run seeding from duplicating restored data
+- Language preference not restored or modified
+- Backup files are **plaintext** and contain sensitive financial/user data
+- **CSV/ZIP exports cannot be restored** — only backup ZIPs with `backup.json`
+
+---
+
+## N. Current Status and Evolving Areas
 
 **Stable / complete for MVP:**
-- Room persistence (v13), incremental migrations
+- Room persistence (v14), incremental migrations
 - Category and invoice CRUD
 - Dynamic custom fields (indexed title/value lists)
 - Invoice search, filter, sort (`sourceInvoices` → `visibleInvoices`)
@@ -275,11 +304,12 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 - UI polish pass (May–Jun 2026)
 - Pre-launch safety refactor (Jun 2026)
 - **User-facing export:** invoice-list CSV + category-list all-data ZIP (Jun 2026)
+- **Backup and restore:** create backup + full-replace restore (Jun 2026)
 
 **Not yet implemented:**
-- JSON backup / restore
 - CI pipeline
 - Play Store release assets
+- Cloud sync, encryption, automatic backup, selective merge restore
 
 **Known improvement areas (non-blocking follow-ups):**
 - In-memory filter/sort may need DAO queries at scale
@@ -293,4 +323,4 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 
 ## Summary
 
-Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export is implemented via Storage Access Framework. **Next focus:** restore-safe backup export, restore, tests, CI, and Play Store readiness.
+Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** test coverage expansion, CI, and Play Store readiness.
