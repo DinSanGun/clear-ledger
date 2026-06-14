@@ -26,6 +26,9 @@ interface CategoryDao {
     
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM categories")
+    suspend fun deleteAll()
     
     @Query("SELECT COUNT(*) FROM categories")
     suspend fun getCount(): Int

@@ -88,6 +88,14 @@
     <string name="create_backup">Create backup</string>
     <string name="backup_created">Backup created</string>
     <string name="backup_failed">Backup failed</string>
+    <string name="restore_backup">Restore backup</string>
+    <string name="restore_backup_dialog_title">Restore backup?</string>
+    <string name="restore_backup_dialog_message">The selected backup is valid. Restoring it will replace all current categories and invoices. This cannot be undone unless you have another backup.</string>
+    <string name="restore">Restore</string>
+    <string name="restore_completed">Backup restored</string>
+    <string name="restore_failed">Restore failed</string>
+    <string name="restore_invalid_backup">Invalid backup file</string>
+    <string name="restore_unsupported_version">Unsupported backup version</string>
 
     <!-- CSV export column headers -->
     <string name="csv_export_category_name">Category Name</string>

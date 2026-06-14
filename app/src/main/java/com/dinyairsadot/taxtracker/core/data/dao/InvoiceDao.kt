@@ -32,4 +32,7 @@ interface InvoiceDao {
     
     @Query("DELETE FROM invoices WHERE categoryId = :categoryId")
     suspend fun deleteByCategoryId(categoryId: Long)
+
+    @Query("DELETE FROM invoices")
+    suspend fun deleteAll()
 }

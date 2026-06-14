@@ -1,7 +1,11 @@
 package com.dinyairsadot.taxtracker.core.util.backup
 
 import com.dinyairsadot.taxtracker.core.domain.Category
+import com.dinyairsadot.taxtracker.core.domain.DocumentType
 import com.dinyairsadot.taxtracker.core.domain.Invoice
+import com.dinyairsadot.taxtracker.core.domain.InvoiceCurrency
+import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
+import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -71,7 +75,55 @@ object BackupMapper {
         )
     }
 
+    fun fromCategoryDto(dto: BackupCategoryDto): Category {
+        return Category(
+            id = dto.id,
+            name = dto.name,
+            colorHex = dto.colorHex,
+            description = dto.description,
+            customFieldTitles = dto.customFieldTitles.orEmpty(),
+            supplierName = dto.supplierName,
+            pinnedDefaults = dto.pinnedDefaults.orEmpty(),
+            seedKey = dto.seedKey,
+            userEdited = dto.userEdited,
+            orderIndex = dto.orderIndex
+        )
+    }
+
+    fun fromInvoiceDto(dto: BackupInvoiceDto): Invoice {
+        return Invoice(
+            id = dto.id,
+            categoryId = dto.categoryId,
+            invoiceNumber = dto.invoiceNumber,
+            amount = dto.amount,
+            amountDue = dto.amountDue,
+            documentNumber = dto.documentNumber,
+            paymentStatus = PaymentStatus.valueOf(dto.paymentStatus),
+            amountCurrency = InvoiceCurrency.valueOf(dto.amountCurrency),
+            vendorName = dto.vendorName,
+            issueDate = parseDate(dto.issueDate),
+            dueDate = parseDate(dto.dueDate),
+            paymentDate = parseDate(dto.paymentDate),
+            servicePeriodStart = parseDate(dto.servicePeriodStart),
+            servicePeriodEnd = parseDate(dto.servicePeriodEnd),
+            servicePeriodMode = ServicePeriodMode.valueOf(dto.servicePeriodMode),
+            documentType = dto.documentType?.let { DocumentType.valueOf(it) },
+            paymentMethod = dto.paymentMethod,
+            numberOfPayments = dto.numberOfPayments,
+            confirmationNumber = dto.confirmationNumber,
+            consumptionValue = dto.consumptionValue,
+            consumptionUnit = dto.consumptionUnit,
+            notes = dto.notes,
+            customFieldValues = dto.customFieldValues.orEmpty(),
+            pinnedSnapshot = dto.pinnedSnapshot.orEmpty()
+        )
+    }
+
     private fun formatDate(date: LocalDate?): String? {
         return date?.format(isoDateFormatter)
+    }
+
+    private fun parseDate(value: String?): LocalDate? {
+        return value?.let { LocalDate.parse(it, isoDateFormatter) }
     }
 }

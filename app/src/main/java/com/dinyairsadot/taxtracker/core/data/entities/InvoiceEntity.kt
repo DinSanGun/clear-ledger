@@ -2,6 +2,7 @@ package com.dinyairsadot.taxtracker.core.data.entities
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.dinyairsadot.taxtracker.core.data.converters.DocumentTypeConverter
@@ -23,7 +24,8 @@ import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
             childColumns = ["categoryId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["categoryId"])]
 )
 @TypeConverters(
     LocalDateConverter::class,

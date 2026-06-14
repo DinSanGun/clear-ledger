@@ -29,9 +29,9 @@ data class BackupCategoryDto(
     val name: String,
     val colorHex: String,
     val description: String?,
-    val customFieldTitles: List<String>,
+    val customFieldTitles: List<String>?,
     val supplierName: String?,
-    val pinnedDefaults: Map<String, String>,
+    val pinnedDefaults: Map<String, String>?,
     val seedKey: String?,
     val userEdited: Boolean,
     val orderIndex: Int
@@ -60,8 +60,8 @@ data class BackupInvoiceDto(
     val consumptionValue: Double?,
     val consumptionUnit: String?,
     val notes: String?,
-    val customFieldValues: List<String>,
-    val pinnedSnapshot: Map<String, String>
+    val customFieldValues: List<String>?,
+    val pinnedSnapshot: Map<String, String>?
 )
 
 data class BackupPayload(

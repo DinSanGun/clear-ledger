@@ -64,6 +64,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import com.dinyairsadot.taxtracker.core.ui.AppSnackbar
 import com.dinyairsadot.taxtracker.core.util.AllDataZipExporter
+import com.dinyairsadot.taxtracker.core.util.backup.BackupPayload
+import com.dinyairsadot.taxtracker.core.util.backup.BackupValidationResult
 import com.dinyairsadot.taxtracker.core.util.backup.BackupZipExporter
 import com.dinyairsadot.taxtracker.core.util.CategoriesCsvLabels
 import com.dinyairsadot.taxtracker.feature.invoice.rememberInvoiceCsvExportLabels
@@ -104,6 +106,7 @@ fun CategoryListScreen(
     viewModel: CategoryListViewModel
 ) {
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
+    var pendingRestorePayload by remember { mutableStateOf<BackupPayload?>(null) }
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -129,6 +132,14 @@ fun CategoryListScreen(
     val createBackupMessage = stringResource(R.string.create_backup)
     val backupCreatedMessage = stringResource(R.string.backup_created)
     val backupFailedMessage = stringResource(R.string.backup_failed)
+    val restoreBackupMessage = stringResource(R.string.restore_backup)
+    val restoreBackupDialogTitle = stringResource(R.string.restore_backup_dialog_title)
+    val restoreBackupDialogMessage = stringResource(R.string.restore_backup_dialog_message)
+    val restoreButtonLabel = stringResource(R.string.restore)
+    val restoreCompletedMessage = stringResource(R.string.restore_completed)
+    val restoreFailedMessage = stringResource(R.string.restore_failed)
+    val restoreInvalidBackupMessage = stringResource(R.string.restore_invalid_backup)
+    val restoreUnsupportedVersionMessage = stringResource(R.string.restore_unsupported_version)
 
     LaunchedEffect(showCategoryAddedMessage) {
         if (showCategoryAddedMessage) {
@@ -185,6 +196,26 @@ fun CategoryListScreen(
                 snackbarHostState.showSnackbar(backupCreatedMessage)
             } catch (_: Exception) {
                 snackbarHostState.showSnackbar(backupFailedMessage)
+            }
+        }
+    }
+
+    val restoreLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        coroutineScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                viewModel.validateAndParseBackup(uri)
+            }
+            when (result) {
+                is BackupValidationResult.Valid -> pendingRestorePayload = result.payload
+                is BackupValidationResult.UnsupportedVersion -> {
+                    snackbarHostState.showSnackbar(restoreUnsupportedVersionMessage)
+                }
+                is BackupValidationResult.Invalid -> {
+                    snackbarHostState.showSnackbar(restoreInvalidBackupMessage)
+                }
             }
         }
     }
@@ -265,6 +296,13 @@ fun CategoryListScreen(
                                     backupLauncher.launch(filename)
                                 }
                             )
+                            DropdownMenuItem(
+                                text = { Text(restoreBackupMessage) },
+                                onClick = {
+                                    isOverflowMenuExpanded = false
+                                    restoreLauncher.launch(arrayOf("application/zip"))
+                                }
+                            )
                         }
                     }
                 }
@@ -332,6 +370,40 @@ fun CategoryListScreen(
                     modifier = Modifier.padding(innerPadding)
                 )
             }
+        }
+
+        pendingRestorePayload?.let { payload ->
+            AlertDialog(
+                onDismissRequest = { pendingRestorePayload = null },
+                title = { Text(restoreBackupDialogTitle) },
+                text = { Text(restoreBackupDialogMessage) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            pendingRestorePayload = null
+                            coroutineScope.launch {
+                                try {
+                                    viewModel.performRestore(payload)
+                                    viewModel.refresh()
+                                    snackbarHostState.showSnackbar(restoreCompletedMessage)
+                                } catch (_: Exception) {
+                                    snackbarHostState.showSnackbar(restoreFailedMessage)
+                                }
+                            }
+                        }
+                    ) {
+                        Text(
+                            text = restoreButtonLabel,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingRestorePayload = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
         }
 
         // Confirmation dialog

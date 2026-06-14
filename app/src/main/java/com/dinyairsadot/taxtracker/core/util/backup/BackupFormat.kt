@@ -6,5 +6,5 @@ object BackupFormat {
     const val PRODUCER = "tax-tracker-android"
 
     // IMPORTANT: Update this constant whenever TaxTrackerDatabase @Database(version = ...) changes.
-    const val DB_SCHEMA_VERSION = 13
+    const val DB_SCHEMA_VERSION = 14
 }

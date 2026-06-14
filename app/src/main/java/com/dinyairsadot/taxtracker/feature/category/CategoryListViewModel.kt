@@ -2,11 +2,17 @@ package com.dinyairsadot.taxtracker.feature.category
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.net.Uri
+import com.dinyairsadot.taxtracker.core.domain.BackupRestoreRepository
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.CategoryRepository
 import com.dinyairsadot.taxtracker.core.domain.InvoiceRepository
 import com.dinyairsadot.taxtracker.core.util.AllExportData
 import com.dinyairsadot.taxtracker.core.util.backup.BackupData
+import com.dinyairsadot.taxtracker.core.util.backup.BackupPayload
+import com.dinyairsadot.taxtracker.core.util.backup.BackupValidationResult
+import com.dinyairsadot.taxtracker.core.util.backup.BackupValidator
+import com.dinyairsadot.taxtracker.core.util.backup.BackupZipImporter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +43,8 @@ data class CategoryListUiState(
 class CategoryListViewModel(
     private val categoryRepository: CategoryRepository,
     private val invoiceRepository: InvoiceRepository,
-    private val context: Context
+    private val context: Context,
+    private val backupRestoreRepository: BackupRestoreRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoryListUiState(isLoading = true))
@@ -261,6 +268,23 @@ class CategoryListViewModel(
         val categories = categoryRepository.getCategories()
         val invoices = invoiceRepository.getAllInvoices()
         return BackupData(categories, invoices)
+    }
+
+    suspend fun validateAndParseBackup(uri: Uri): BackupValidationResult {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+                ?: return BackupValidationResult.Invalid("Failed to open backup file")
+            inputStream.use { stream ->
+                val payload = BackupZipImporter.readPayload(stream)
+                BackupValidator.validate(payload)
+            }
+        } catch (_: Exception) {
+            BackupValidationResult.Invalid("Failed to read backup file")
+        }
+    }
+
+    suspend fun performRestore(payload: BackupPayload) {
+        backupRestoreRepository.restoreFromBackup(payload)
     }
 
     private suspend fun buildUiCategories(categories: List<Category>): List<CategoryUi> {

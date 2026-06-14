@@ -79,6 +79,14 @@
     <string name="create_backup">יצירת גיבוי</string>
     <string name="backup_created">הגיבוי נוצר</string>
     <string name="backup_failed">יצירת הגיבוי נכשלה</string>
+    <string name="restore_backup">שחזור גיבוי</string>
+    <string name="restore_backup_dialog_title">לשחזר גיבוי?</string>
+    <string name="restore_backup_dialog_message">הגיבוי שנבחר תקין. שחזורו יחליף את כל הקטגוריות והחשבוניות הנוכחיות. לא ניתן לבטל פעולה זו אלא אם יש לך גיבוי נוסף.</string>
+    <string name="restore">שחזר</string>
+    <string name="restore_completed">הגיבוי שוחזר</string>
+    <string name="restore_failed">שחזור הגיבוי נכשל</string>
+    <string name="restore_invalid_backup">קובץ גיבוי לא תקין</string>
+    <string name="restore_unsupported_version">גרסת גיבוי לא נתמכת</string>
 
     <!-- CSV export column headers -->
     <string name="csv_export_category_name">שם קטגוריה</string>

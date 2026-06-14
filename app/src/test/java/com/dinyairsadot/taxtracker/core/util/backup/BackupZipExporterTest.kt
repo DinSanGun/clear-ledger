@@ -51,7 +51,7 @@ class BackupZipExporterTest {
         val metadata = testMetadata()
         val payload = writeAndParse(sampleBackupData(), metadata)
 
-        assertEquals(13, payload.metadata.dbSchemaVersion)
+        assertEquals(BackupFormat.DB_SCHEMA_VERSION, payload.metadata.dbSchemaVersion)
         assertEquals("tax-tracker-android", payload.metadata.producer)
         assertEquals("2026-06-11T12:00:00Z", payload.metadata.exportedAt)
     }
