@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -107,6 +108,7 @@ fun CategoryListScreen(
 ) {
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
     var pendingRestorePayload by remember { mutableStateOf<BackupPayload?>(null) }
+    var isFileOperationInProgress by remember { mutableStateOf(false) }
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -162,6 +164,7 @@ fun CategoryListScreen(
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         coroutineScope.launch {
+            isFileOperationInProgress = true
             try {
                 val allData = viewModel.loadAllDataForExport()
                 withContext(Dispatchers.IO) {
@@ -177,6 +180,8 @@ fun CategoryListScreen(
                 snackbarHostState.showSnackbar(exportCompletedMessage)
             } catch (_: Exception) {
                 snackbarHostState.showSnackbar(exportFailedMessage)
+            } finally {
+                isFileOperationInProgress = false
             }
         }
     }
@@ -186,6 +191,7 @@ fun CategoryListScreen(
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         coroutineScope.launch {
+            isFileOperationInProgress = true
             try {
                 val backupData = viewModel.loadAllDataForBackup()
                 withContext(Dispatchers.IO) {
@@ -196,6 +202,8 @@ fun CategoryListScreen(
                 snackbarHostState.showSnackbar(backupCreatedMessage)
             } catch (_: Exception) {
                 snackbarHostState.showSnackbar(backupFailedMessage)
+            } finally {
+                isFileOperationInProgress = false
             }
         }
     }
@@ -205,17 +213,22 @@ fun CategoryListScreen(
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         coroutineScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                viewModel.validateAndParseBackup(uri)
-            }
-            when (result) {
-                is BackupValidationResult.Valid -> pendingRestorePayload = result.payload
-                is BackupValidationResult.UnsupportedVersion -> {
-                    snackbarHostState.showSnackbar(restoreUnsupportedVersionMessage)
+            isFileOperationInProgress = true
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    viewModel.validateAndParseBackup(uri)
                 }
-                is BackupValidationResult.Invalid -> {
-                    snackbarHostState.showSnackbar(restoreInvalidBackupMessage)
+                when (result) {
+                    is BackupValidationResult.Valid -> pendingRestorePayload = result.payload
+                    is BackupValidationResult.UnsupportedVersion -> {
+                        snackbarHostState.showSnackbar(restoreUnsupportedVersionMessage)
+                    }
+                    is BackupValidationResult.Invalid -> {
+                        snackbarHostState.showSnackbar(restoreInvalidBackupMessage)
+                    }
                 }
+            } finally {
+                isFileOperationInProgress = false
             }
         }
     }
@@ -275,6 +288,7 @@ fun CategoryListScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text(exportAllDataMessage) },
+                                enabled = !isFileOperationInProgress,
                                 onClick = {
                                     isOverflowMenuExpanded = false
                                     if (categories.isEmpty()) {
@@ -290,6 +304,7 @@ fun CategoryListScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text(createBackupMessage) },
+                                enabled = !isFileOperationInProgress,
                                 onClick = {
                                     isOverflowMenuExpanded = false
                                     val filename = "tax_tracker_backup_${LocalDate.now()}.zip"
@@ -298,6 +313,7 @@ fun CategoryListScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text(restoreBackupMessage) },
+                                enabled = !isFileOperationInProgress,
                                 onClick = {
                                     isOverflowMenuExpanded = false
                                     restoreLauncher.launch(arrayOf("application/zip"))
@@ -329,6 +345,14 @@ fun CategoryListScreen(
             )
         }
     ) { innerPadding ->
+        if (isFileOperationInProgress) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = innerPadding.calculateTopPadding())
+            )
+        }
+
         when {
             isLoading -> {
                 Box(
@@ -382,12 +406,15 @@ fun CategoryListScreen(
                         onClick = {
                             pendingRestorePayload = null
                             coroutineScope.launch {
+                                isFileOperationInProgress = true
                                 try {
                                     viewModel.performRestore(payload)
                                     viewModel.refresh()
                                     snackbarHostState.showSnackbar(restoreCompletedMessage)
                                 } catch (_: Exception) {
                                     snackbarHostState.showSnackbar(restoreFailedMessage)
+                                } finally {
+                                    isFileOperationInProgress = false
                                 }
                             }
                         }

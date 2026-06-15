@@ -157,6 +157,7 @@ fun InvoiceListScreen(
     val exportCompletedMessage = stringResource(R.string.export_completed)
     val exportFailedMessage = stringResource(R.string.export_failed)
     var pendingDeleteInvoiceId by remember { mutableStateOf<Long?>(null) }
+    var isExporting by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
     var overflowMenuExpanded by remember { mutableStateOf(false) }
     val sortMenuVisibility = remember { MutableTransitionState(false) }
@@ -191,6 +192,7 @@ fun InvoiceListScreen(
     ) { uri ->
         uri ?: return@rememberLauncherForActivityResult
         coroutineScope.launch {
+            isExporting = true
             try {
                 val csv = onBuildCsvContent(csvExportLabels)
                 withContext(Dispatchers.IO) {
@@ -201,6 +203,8 @@ fun InvoiceListScreen(
                 snackbarHostState.showSnackbar(exportCompletedMessage)
             } catch (_: Exception) {
                 snackbarHostState.showSnackbar(exportFailedMessage)
+            } finally {
+                isExporting = false
             }
         }
     }
@@ -316,6 +320,7 @@ fun InvoiceListScreen(
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.export)) },
+                                enabled = !isExporting,
                                 onClick = {
                                     overflowMenuExpanded = false
                                     if (uiState.visibleInvoices.isEmpty()) {
