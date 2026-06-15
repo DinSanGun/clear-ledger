@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">מעקב חשבוניות מס</string>
+    <string name="app_name">Clear Ledger</string>
     
     <!-- Common -->
     <string name="back">חזרה</string>

@@ -1,4 +1,4 @@
-# Tax Tracker – Architecture
+# Clear Ledger – Architecture
 
 Concise architecture reference for developers, code review, and interview prep.  
 For user flows and package layout detail, see `docs/PROJECT_OVERVIEW.md`. For release planning, see `docs/LAUNCH_PLAN.md`.
@@ -9,7 +9,7 @@ _Last updated: 2026-06-14_
 
 ## Overview
 
-Tax Tracker is a **local-first** Android app: categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. Data never leaves the device unless the user explicitly exports or backs up via Storage Access Framework (SAF).
+Clear Ledger is a **local-first** Android app: categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. Data never leaves the device unless the user explicitly exports or backs up via Storage Access Framework (SAF).
 
 **Stack:** Kotlin · Jetpack Compose (Material 3) · Navigation Compose · Room · MVVM-style separation
 

@@ -1,4 +1,4 @@
-# Tax Tracker (Android) — AI Context (Cursor)
+# Clear Ledger (Android) — AI Context (Cursor)
 
 _Last updated: 2026-06-14_
 
@@ -37,7 +37,7 @@ Supports **Hebrew and English** with manual language switching and RTL/LTR layou
 | `MainActivity.kt` | DB init, seeding, locale, repository wiring |
 | `core/ui/Navigation.kt` | All routes, ViewModel scoping, nav args |
 | `core/domain/Models.kt` | Domain contracts and invariants |
-| `core/data/TaxTrackerDatabase.kt` | Migrations — **do not change casually** |
+| `core/data/ClearLedgerDatabase.kt` | Migrations — **do not change casually** |
 | `feature/invoice/InvoiceListViewModel.kt` | Search/filter/sort pipeline; `buildCsvContent()` |
 | `feature/invoice/InvoiceListScreen.kt` | List UI, filter sheet, invoice CSV export SAF |
 | `feature/category/CategoryListViewModel.kt` | Category CRUD, reorder, export/backup/restore |

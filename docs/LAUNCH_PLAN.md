@@ -1,4 +1,4 @@
-# Tax Tracker – LAUNCH_PLAN.md
+# Clear Ledger – LAUNCH_PLAN.md
 _Last updated: 2026-06-14_
 
 This document is the **single source of truth** for the pre-release execution plan.
@@ -126,7 +126,7 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 
 ## Delivered
 - “Export all data” / “ייצוא כל הנתונים” in category list overflow menu
-- ZIP via SAF (`application/zip`), suggested name `tax_tracker_all_data_export_YYYY-MM-DD.zip`
+- ZIP via SAF (`application/zip`), suggested name `clear_ledger_all_data_export_YYYY-MM-DD.zip`
 - `categories.csv`: name, description, order, custom field title columns (no color column)
 - `invoices/<categoryName>_<id>.csv` — **only** for categories with at least one invoice
 - Readable filenames preserve Hebrew/English; sanitize unsafe path characters only

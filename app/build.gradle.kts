@@ -6,13 +6,13 @@ plugins {
 }
 
 android {
-    namespace = "com.dinyairsadot.taxtracker"
+    namespace = "com.dinyairsadot.clearledger"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.dinyairsadot.taxtracker"
+        applicationId = "com.dinyairsadot.clearledger"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

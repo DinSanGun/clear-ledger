@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Tax Invoice Tracker</string>
+    <string name="app_name">Clear Ledger</string>
     
     <!-- Common -->
     <string name="back">Back</string>

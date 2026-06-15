@@ -1,7 +1,9 @@
-# Tax Tracker – Development Changelog
+# Clear Ledger – Development Changelog
 
-This changelog documents incremental development steps of the Tax Tracker app.
+This changelog documents incremental development steps of the app.
 Entries are ordered from newest to oldest and correspond to tested, committed changes.
+
+> **Note (2026-06-15):** The app was renamed from "Tax Tracker" / "Tax Invoice Tracker" to **Clear Ledger** (`com.dinyairsadot.clearledger`). Historical entries below retain the original development names for continuity.
 
 ## 11/06/2026
 

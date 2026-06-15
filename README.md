@@ -1,6 +1,6 @@
-# Tax Tracker (Android)
+# Clear Ledger (Android)
 
-**Tax Tracker** is an Android app for structured tracking of invoices, bills, and tax-related expenses, organized by customizable categories and fields.
+**Clear Ledger** – Simple Bill & Tax Tracker. An Android app for structured tracking of invoices, bills, and tax-related expenses, organized by customizable categories and fields.
 
 The app helps users keep financial documents consistent, searchable, and ready for export — with a focus on real-world tax and billing use cases (including Israel-specific fields).
 

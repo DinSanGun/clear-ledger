@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Tax Invoice Tracker"
+rootProject.name = "Clear Ledger"
 include(":app")

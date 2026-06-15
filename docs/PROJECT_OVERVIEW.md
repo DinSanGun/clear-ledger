@@ -1,6 +1,6 @@
-# Tax Tracker - Project Overview
+# Clear Ledger - Project Overview
 
-Technical overview of the Tax Tracker Android app for future development and interview context.  
+Technical overview of the Clear Ledger Android app for future development and interview context.  
 For the pre-release execution plan, see `docs/LAUNCH_PLAN.md`. For architecture patterns and validation, see `docs/ARCHITECTURE.md`. For AI-assisted work, see `docs/ai-context.md`. For release checklist, see `docs/RELEASE.md`.
 
 > **Note:** `docs/ARCHITECTURE_SUMMARY.pdf` is a historical snapshot and may not reflect the current codebase. Prefer this file and `docs/ai-context.md` until the PDF is regenerated.
@@ -62,7 +62,7 @@ For the pre-release execution plan, see `docs/LAUNCH_PLAN.md`. For architecture 
 ## C. Package Structure
 
 ```
-com.dinyairsadot.taxtracker/
+com.dinyairsadot.clearledger/
 ├── MainActivity.kt              # Entry, DB init, seeding, locale, repo wiring
 ├── core/
 │   ├── domain/
@@ -70,7 +70,7 @@ com.dinyairsadot.taxtracker/
 │   │   ├── CategoryRepository.kt
 │   │   └── InvoiceRepository.kt
 │   ├── data/
-│   │   ├── TaxTrackerDatabase.kt   # Room v14, migrations
+│   │   ├── ClearLedgerDatabase.kt  # Room v14, migrations
 │   │   ├── dao/, entities/, converters/, repositories/
 │   │   │   └── RoomBackupRestoreRepository.kt
 │   │   ├── LanguagePreferenceManager.kt
@@ -334,4 +334,4 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 
 ## Summary
 
-Tax Tracker is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** pre-release roadmap S9–S17 (tests → CI → polish → docs → release identity → store assets → internal testing → blocker fixes → production). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.
+Clear Ledger is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** pre-release roadmap S9–S17 (tests → CI → polish → docs → release identity → store assets → internal testing → blocker fixes → production). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.

@@ -1,4 +1,4 @@
-# Tax Tracker – Release Guide
+# Clear Ledger – Release Guide
 
 Practical checklist for building, testing, and publishing to Google Play.  
 Execution order and step IDs follow `docs/LAUNCH_PLAN.md` (S9–S17).
