@@ -74,8 +74,8 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 | **S7** | Restore planning and safety design | **Done** |
 | **S8** | Restore implementation (replace existing data) | **Done** |
 | **S9** | Targeted test hardening | **Done** |
-| **S10** | CI (GitHub Actions) | **Next** |
-| **S11** | Release polish (export / backup / restore UX) | Pending |
+| **S10** | CI (GitHub Actions) | **Done** |
+| **S11** | Release polish (export / backup / restore UX) | **Next** |
 | **S12** | Project documentation (README, architecture, release) | Pending |
 | **S13** | Release identity (name, package, version, icon, signing) | Pending |
 | **S14** | Privacy policy and Play Store materials | Pending |
@@ -227,16 +227,16 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 ---
 
 # S10 – CI Workflow (GitHub Actions)
-**Status:** Pending — document only until implemented  
+**Status:** Done (Jun 2026)  
 **Goal:** Every push/PR runs a minimal quality gate.
 
-## Planned workflow (not yet added)
-- [ ] Add `.github/workflows/` workflow (e.g. on push to `main` and on pull requests)
-- [ ] Run `./gradlew test`
-- [ ] Run `./gradlew lintDebug`
-- [ ] Run `./gradlew assembleDebug`
+## Checklist
+- [x] Add `.github/workflows/android-ci.yml` (push to `main` and pull requests)
+- [x] Run `./gradlew test`
+- [x] Run `./gradlew lintDebug`
+- [x] Run `./gradlew assembleDebug`
 
-**Purpose:** Catch test regressions, lint issues, and build failures before merge or release. Do not implement in doc-only tasks — add the workflow file when starting S10.
+**Workflow:** Temurin 17, Gradle cache, separate steps for test / lint / assemble. No signing or secrets.
 
 ---
 
@@ -385,6 +385,7 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 - **2026-06-11:** S5–S8 complete. Backup creation (`37ff651`) and full-replace restore (`73b7bd6`). Room v14 (FK index on `invoices.categoryId`). **Next: S9 tests, S10 CI, release readiness.**
 - **2026-06-14:** Pre-release roadmap expanded to S9–S17: targeted tests → CI → release polish → docs → release identity → privacy/store assets → internal testing → launch blocker fixes → production release. Added `docs/ARCHITECTURE.md` and `docs/RELEASE.md`.
 - **2026-06-15:** S9 targeted test hardening complete (~13 new unit tests). `./gradlew test` and `lintDebug` pass. **Next: S10 CI.**
+- **2026-06-15:** S10 GitHub Actions CI added (`.github/workflows/android-ci.yml` — Temurin 17, `test` / `lintDebug` / `assembleDebug`). Local verification passed. **Next: S11 release polish.**
 
 ---
 
