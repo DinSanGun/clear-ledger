@@ -73,8 +73,8 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 | **S6** | Backup export implementation (JSON/ZIP) | **Done** |
 | **S7** | Restore planning and safety design | **Done** |
 | **S8** | Restore implementation (replace existing data) | **Done** |
-| **S9** | Targeted test hardening | **Next** |
-| **S10** | CI (GitHub Actions) | Pending |
+| **S9** | Targeted test hardening | **Done** |
+| **S10** | CI (GitHub Actions) | **Next** |
 | **S11** | Release polish (export / backup / restore UX) | Pending |
 | **S12** | Project documentation (README, architecture, release) | Pending |
 | **S13** | Release identity (name, package, version, icon, signing) | Pending |
@@ -207,16 +207,16 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 ---
 
 # S9 – Targeted Test Hardening
-**Status:** Next recommended phase  
+**Status:** Done (Jun 2026)  
 **Goal:** Expand automated safety net before launch — focused coverage only; no broad refactors or unnecessary test sprawl.
 
 ## Checklist
 - [x] Backup JSON round-trip tests (`BackupZipExporterTest`, `BackupMapperTest`)
 - [x] Backup import/validation tests (`BackupZipImporterTest`, `BackupValidatorTest`)
-- [ ] **Launch-protection:** custom field title/value index alignment invariant tests
-- [ ] **CSV export:** strengthen escaping, column headers, and scope tests (`InvoiceCsvExporterTest`, `AllDataZipExporterTest`)
-- [ ] **Backup/restore:** strengthen round-trip and invalid-restore validation cases (corrupt JSON, wrong format version, CSV export rejected, orphan invoices)
-- [ ] **Localization:** Hebrew/English export header and display-value edge cases where appropriate
+- [x] **Launch-protection:** custom field title/value index alignment invariant tests
+- [x] **CSV export:** strengthen escaping, column headers, and scope tests (`InvoiceCsvExporterTest`, `AllDataZipExporterTest`)
+- [x] **Backup/restore:** strengthen round-trip and invalid-restore validation cases (export ZIP rejected, full pipeline round-trip)
+- [x] **Localization:** Hebrew export filename/content/BOM edge cases in ZIP export tests
 - [ ] Room migration smoke tests *(optional stretch)*
 - [ ] Instrumented restore transaction test *(optional stretch)*
 
@@ -384,6 +384,7 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 - **2026-06-02:** S4 + S4b complete (invoice CSV + all-data ZIP). UI polish items landed (`9189ace`–`df3d14e`). **Next: S5 backup export planning.**
 - **2026-06-11:** S5–S8 complete. Backup creation (`37ff651`) and full-replace restore (`73b7bd6`). Room v14 (FK index on `invoices.categoryId`). **Next: S9 tests, S10 CI, release readiness.**
 - **2026-06-14:** Pre-release roadmap expanded to S9–S17: targeted tests → CI → release polish → docs → release identity → privacy/store assets → internal testing → launch blocker fixes → production release. Added `docs/ARCHITECTURE.md` and `docs/RELEASE.md`.
+- **2026-06-15:** S9 targeted test hardening complete (~13 new unit tests). `./gradlew test` and `lintDebug` pass. **Next: S10 CI.**
 
 ---
 

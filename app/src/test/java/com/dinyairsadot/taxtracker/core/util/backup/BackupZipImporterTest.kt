@@ -2,14 +2,17 @@ package com.dinyairsadot.taxtracker.core.util.backup
 
 import com.dinyairsadot.taxtracker.core.domain.Category
 import com.dinyairsadot.taxtracker.core.domain.Invoice
+import com.dinyairsadot.taxtracker.core.domain.InvoiceCurrency
 import com.dinyairsadot.taxtracker.core.domain.PaymentStatus
 import com.dinyairsadot.taxtracker.core.domain.ServicePeriodMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
+import java.time.LocalDate
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -64,6 +67,62 @@ class BackupZipImporterTest {
         val output = ByteArrayOutputStream()
         ZipOutputStream(output).use { zip ->
             zip.putNextEntry(ZipEntry(BackupFormat.JSON_ENTRY_NAME))
+            zip.closeEntry()
+        }
+
+        BackupZipImporter.readPayload(ByteArrayInputStream(output.toByteArray()))
+    }
+
+    @Test
+    fun readPayload_fullRoundTrip_preservesDomainData() {
+        val category = Category(
+            id = 3L,
+            name = "Electricity",
+            colorHex = "#FF9800",
+            description = "Bills",
+            customFieldTitles = listOf("T1", "T2", "T3"),
+            supplierName = "Supplier Co",
+            pinnedDefaults = mapOf("supplierName" to "Default Supplier"),
+            seedKey = "electricity",
+            userEdited = true,
+            orderIndex = 1
+        )
+        val invoice = Invoice(
+            id = 42L,
+            categoryId = 3L,
+            invoiceNumber = "INV-001",
+            amount = 150.0,
+            amountDue = 150.0,
+            documentNumber = "DOC-001",
+            paymentStatus = PaymentStatus.NOT_PAID,
+            amountCurrency = InvoiceCurrency.USD,
+            servicePeriodStart = LocalDate.of(2026, 1, 1),
+            servicePeriodEnd = LocalDate.of(2026, 1, 31),
+            servicePeriodMode = ServicePeriodMode.DATE,
+            dueDate = LocalDate.of(2026, 2, 15),
+            paymentDate = LocalDate.of(2026, 2, 10),
+            customFieldValues = listOf("a", "", "c")
+        )
+        val data = BackupData(listOf(category), listOf(invoice))
+        val zipBytes = writeZipBytes(data)
+
+        val payload = BackupZipImporter.readPayload(ByteArrayInputStream(zipBytes))
+        val validation = BackupValidator.validate(payload)
+        assertTrue(validation is BackupValidationResult.Valid)
+
+        val restoredCategory = BackupMapper.fromCategoryDto(payload.categories.single())
+        val restoredInvoice = BackupMapper.fromInvoiceDto(payload.invoices.single())
+
+        assertEquals(category, restoredCategory)
+        assertEquals(invoice, restoredInvoice)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun readPayload_exportStyleZipWithoutBackupJson_throws() {
+        val output = ByteArrayOutputStream()
+        ZipOutputStream(output).use { zip ->
+            zip.putNextEntry(ZipEntry("categories.csv"))
+            zip.write("Category Name,Description,Order".toByteArray(StandardCharsets.UTF_8))
             zip.closeEntry()
         }
 

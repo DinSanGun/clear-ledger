@@ -162,6 +162,156 @@ class AllDataZipExporterTest {
         assertTrue(lines[0].contains("Custom Field 2 Title"))
     }
 
+    @Test
+    fun writeZip_hebrewCategoryName_usesHebrewInFilename() {
+        val category = Category(
+            id = 1L,
+            name = "ארנונה",
+            colorHex = "#FF9800",
+            orderIndex = 0
+        )
+        val invoice = Invoice(
+            id = 10L,
+            categoryId = 1L,
+            invoiceNumber = "INV-1",
+            amount = 100.0,
+            amountCurrency = InvoiceCurrency.ILS,
+            paymentStatus = PaymentStatus.PAID,
+            servicePeriodMode = ServicePeriodMode.MONTH
+        )
+        val zipBytes = writeZipBytes(
+            AllExportData(
+                categories = listOf(category),
+                invoicesByCategory = mapOf(1L to listOf(invoice))
+            )
+        )
+
+        val entryNames = listZipEntryNames(zipBytes)
+        assertTrue(entryNames.contains("invoices/ארנונה_1.csv"))
+    }
+
+    @Test
+    fun writeZip_invoiceCsv_customFieldTitlesAndValuesAligned() {
+        val category = Category(
+            id = 1L,
+            name = "Utilities",
+            colorHex = "#FF9800",
+            customFieldTitles = listOf("Meter"),
+            orderIndex = 0
+        )
+        val invoice = Invoice(
+            id = 10L,
+            categoryId = 1L,
+            invoiceNumber = "INV-1",
+            amount = 100.0,
+            amountCurrency = InvoiceCurrency.ILS,
+            paymentStatus = PaymentStatus.NOT_PAID,
+            servicePeriodMode = ServicePeriodMode.MONTH,
+            customFieldValues = listOf("123")
+        )
+        val zipBytes = writeZipBytes(
+            AllExportData(
+                categories = listOf(category),
+                invoicesByCategory = mapOf(1L to listOf(invoice))
+            )
+        )
+
+        val csv = readZipEntryText(zipBytes, "invoices/Utilities_1.csv")
+        val lines = csv.lines()
+        assertEquals(2, lines.size)
+        assertTrue(lines[0].endsWith("Meter"))
+        assertTrue(lines[1].endsWith("123"))
+    }
+
+    @Test
+    fun writeZip_hebrewInvoiceCsv_writesBomAndPreservesHebrew() {
+        val category = Category(
+            id = 1L,
+            name = "ארנונה",
+            colorHex = "#FF9800",
+            customFieldTitles = listOf("מונה"),
+            orderIndex = 0
+        )
+        val invoice = Invoice(
+            id = 10L,
+            categoryId = 1L,
+            invoiceNumber = "INV-1",
+            amount = 100.0,
+            amountCurrency = InvoiceCurrency.ILS,
+            paymentStatus = PaymentStatus.PAID,
+            servicePeriodMode = ServicePeriodMode.MONTH,
+            customFieldValues = listOf("ערך")
+        )
+        val zipBytes = writeZipBytes(
+            AllExportData(
+                categories = listOf(category),
+                invoicesByCategory = mapOf(1L to listOf(invoice))
+            )
+        )
+
+        val entryBytes = readZipEntryBytes(zipBytes, "invoices/ארנונה_1.csv")
+        assertEquals(0xEF.toByte(), entryBytes[0])
+        assertEquals(0xBB.toByte(), entryBytes[1])
+        assertEquals(0xBF.toByte(), entryBytes[2])
+
+        val csv = entryBytes.copyOfRange(3, entryBytes.size).toString(Charsets.UTF_8)
+        assertTrue(csv.contains("מונה"))
+        assertTrue(csv.contains("ערך"))
+    }
+
+    private fun writeZipBytes(data: AllExportData): ByteArray {
+        val output = ByteArrayOutputStream()
+        AllDataZipExporter.writeZip(
+            outputStream = output,
+            data = data,
+            invoiceLabels = testInvoiceLabels(),
+            categoryLabels = testCategoryLabels()
+        )
+        return output.toByteArray()
+    }
+
+    private fun listZipEntryNames(zipBytes: ByteArray): List<String> {
+        val entryNames = mutableListOf<String>()
+        ZipInputStream(zipBytes.inputStream()).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                entryNames.add(entry.name)
+                zip.closeEntry()
+                entry = zip.nextEntry
+            }
+        }
+        return entryNames
+    }
+
+    private fun readZipEntryBytes(zipBytes: ByteArray, entryName: String): ByteArray {
+        ZipInputStream(zipBytes.inputStream()).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                if (entry.name == entryName) {
+                    return zip.readBytes()
+                }
+                zip.closeEntry()
+                entry = zip.nextEntry
+            }
+        }
+        throw IllegalArgumentException("ZIP entry not found: $entryName")
+    }
+
+    private fun readZipEntryText(zipBytes: ByteArray, entryName: String): String {
+        val bytes = readZipEntryBytes(zipBytes, entryName)
+        val content = if (
+            bytes.size >= 3 &&
+            bytes[0] == 0xEF.toByte() &&
+            bytes[1] == 0xBB.toByte() &&
+            bytes[2] == 0xBF.toByte()
+        ) {
+            bytes.copyOfRange(3, bytes.size)
+        } else {
+            bytes
+        }
+        return content.toString(Charsets.UTF_8)
+    }
+
     private fun testCategoryLabels() = CategoriesCsvLabels(
         categoryNameHeader = "Category Name",
         descriptionHeader = "Description",

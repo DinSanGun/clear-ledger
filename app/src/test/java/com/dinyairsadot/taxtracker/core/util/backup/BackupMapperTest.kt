@@ -117,4 +117,53 @@ class BackupMapperTest {
 
         assertEquals(ServicePeriodMode.DATE, restored.servicePeriodMode)
     }
+
+    @Test
+    fun customFieldAlignment_blankMiddleValue_roundTripsByIndex() {
+        val category = Category(
+            id = 1L,
+            name = "Test",
+            colorHex = "#000000",
+            customFieldTitles = listOf("T1", "T2", "T3"),
+            orderIndex = 0
+        )
+        val invoice = Invoice(
+            id = 10L,
+            categoryId = 1L,
+            invoiceNumber = "INV-1",
+            amount = 50.0,
+            paymentStatus = PaymentStatus.PAID,
+            customFieldValues = listOf("a", "", "c")
+        )
+
+        val restoredCategory = BackupMapper.fromCategoryDto(BackupMapper.toCategoryDto(category))
+        val restoredInvoice = BackupMapper.fromInvoiceDto(BackupMapper.toInvoiceDto(invoice))
+
+        assertEquals(category, restoredCategory)
+        assertEquals(invoice, restoredInvoice)
+        assertEquals(listOf("a", "", "c"), restoredInvoice.customFieldValues)
+    }
+
+    @Test
+    fun customFieldAlignment_shorterValuesList_roundTripsWithoutPadding() {
+        val category = Category(
+            id = 1L,
+            name = "Test",
+            colorHex = "#000000",
+            customFieldTitles = listOf("T1", "T2", "T3"),
+            orderIndex = 0
+        )
+        val invoice = Invoice(
+            id = 10L,
+            categoryId = 1L,
+            invoiceNumber = "INV-1",
+            amount = 50.0,
+            paymentStatus = PaymentStatus.PAID,
+            customFieldValues = listOf("x")
+        )
+
+        val restoredInvoice = BackupMapper.fromInvoiceDto(BackupMapper.toInvoiceDto(invoice))
+
+        assertEquals(listOf("x"), restoredInvoice.customFieldValues)
+    }
 }

@@ -281,8 +281,8 @@ class BackupZipExporterTest {
         val payload = writeAndParse(BackupData(listOf(category), emptyList()))
         val dto = payload.categories.single()
 
-        assertTrue(dto.customFieldTitles.isEmpty())
-        assertTrue(dto.pinnedDefaults.isEmpty())
+        assertTrue(dto.customFieldTitles.orEmpty().isEmpty())
+        assertTrue(dto.pinnedDefaults.orEmpty().isEmpty())
     }
 
     private fun sampleBackupData(): BackupData {

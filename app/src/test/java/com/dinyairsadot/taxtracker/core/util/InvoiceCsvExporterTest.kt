@@ -180,22 +180,128 @@ class InvoiceCsvExporterTest {
         assertEquals("\"say \"\"hi\"\"\"", InvoiceCsvExporter.escapeCsvField("say \"hi\""))
     }
 
+    @Test
+    fun generate_shorterCustomFieldValues_padsEmptyCellsByIndex() {
+        val invoice = sampleInvoice(customFieldValues = listOf("v1"))
+        val csv = InvoiceCsvExporter.generate(
+            invoices = listOf(invoice),
+            categoryName = "Test",
+            customFieldTitles = listOf("A", "B", "C"),
+            labels = englishLabels
+        )
+        val lines = csv.lines()
+        assertEquals(2, lines.size)
+        assertTrue(lines[0].endsWith("A,B,C"))
+        assertTrue(lines[1].endsWith("v1,,"))
+    }
+
+    @Test
+    fun generate_blankMiddleCustomFieldValue_preservesColumnPosition() {
+        val invoice = sampleInvoice(customFieldValues = listOf("v1", "", "v3"))
+        val csv = InvoiceCsvExporter.generate(
+            invoices = listOf(invoice),
+            categoryName = "Test",
+            customFieldTitles = listOf("A", "B", "C"),
+            labels = englishLabels
+        )
+        val lines = csv.lines()
+        assertTrue(lines[0].endsWith("A,B,C"))
+        assertTrue(lines[1].endsWith("v1,,v3"))
+    }
+
+    @Test
+    fun generate_exportsOnlyInvoicesInInputList() {
+        val first = sampleInvoice(invoiceNumber = "INV-1")
+        val second = sampleInvoice(invoiceNumber = "INV-2")
+        val csv = InvoiceCsvExporter.generate(
+            invoices = listOf(first),
+            categoryName = "Utilities",
+            customFieldTitles = emptyList(),
+            labels = englishLabels
+        )
+        val lines = csv.lines()
+        assertEquals(2, lines.size)
+        assertTrue(lines[1].contains("INV-1"))
+        assertFalse(csv.contains("INV-2"))
+    }
+
+    @Test
+    fun generate_usdCurrencyUsesAsciiUsdLabel() {
+        val invoice = sampleInvoice(amountCurrency = InvoiceCurrency.USD)
+        val csv = InvoiceCsvExporter.generate(
+            invoices = listOf(invoice),
+            categoryName = "Utilities",
+            customFieldTitles = emptyList(),
+            labels = englishLabels
+        )
+        assertTrue(csv.contains(",USD,"))
+    }
+
+    @Test
+    fun generate_amountFormatting_stripsTrailingZeros() {
+        val whole = sampleInvoice(invoiceNumber = "INV-W", amount = 100.0)
+        val decimal = sampleInvoice(invoiceNumber = "INV-D", amount = 123.45)
+        val csv = InvoiceCsvExporter.generate(
+            invoices = listOf(whole, decimal),
+            categoryName = "Utilities",
+            customFieldTitles = emptyList(),
+            labels = englishLabels
+        )
+        val lines = csv.lines()
+        assertEquals(3, lines.size)
+        assertTrue(lines[1].contains(",100,"))
+        assertTrue(lines[2].contains(",123.45,"))
+    }
+
+    @Test
+    fun generate_servicePeriodModeAndDatesInRow() {
+        val invoice = sampleInvoice(
+            servicePeriodMode = ServicePeriodMode.DATE,
+            servicePeriodStart = LocalDate.of(2026, 1, 1),
+            servicePeriodEnd = LocalDate.of(2026, 1, 31),
+            dueDate = LocalDate.of(2026, 2, 15),
+            paymentDate = LocalDate.of(2026, 2, 10)
+        )
+        val csv = InvoiceCsvExporter.generate(
+            invoices = listOf(invoice),
+            categoryName = "Utilities",
+            customFieldTitles = emptyList(),
+            labels = englishLabels
+        )
+        val dataRow = csv.lines()[1]
+        assertTrue(dataRow.contains("Exact dates"))
+        assertTrue(dataRow.contains("2026-01-01"))
+        assertTrue(dataRow.contains("2026-01-31"))
+        assertTrue(dataRow.contains("2026-02-15"))
+        assertTrue(dataRow.contains("2026-02-10"))
+    }
+
     private fun sampleInvoice(
         invoiceNumber: String = "100",
+        amount: Double = 123.45,
         notes: String? = null,
         paymentMethod: String? = null,
-        customFieldValues: List<String> = emptyList()
+        customFieldValues: List<String> = emptyList(),
+        amountCurrency: InvoiceCurrency = InvoiceCurrency.ILS,
+        servicePeriodMode: ServicePeriodMode = ServicePeriodMode.MONTH,
+        servicePeriodStart: LocalDate? = null,
+        servicePeriodEnd: LocalDate? = null,
+        dueDate: LocalDate? = LocalDate.of(2026, 1, 15),
+        paymentDate: LocalDate? = null
     ): Invoice = Invoice(
         id = 1L,
         categoryId = 10L,
         invoiceNumber = invoiceNumber,
-        amount = 123.45,
+        amount = amount,
         paymentStatus = PaymentStatus.PAID,
-        dueDate = LocalDate.of(2026, 1, 15),
+        dueDate = dueDate,
+        paymentDate = paymentDate,
+        servicePeriodStart = servicePeriodStart,
+        servicePeriodEnd = servicePeriodEnd,
         notes = notes,
         paymentMethod = paymentMethod,
         customFieldValues = customFieldValues,
-        servicePeriodMode = ServicePeriodMode.MONTH,
-        amountCurrency = InvoiceCurrency.ILS
+        servicePeriodMode = servicePeriodMode,
+        amountCurrency = amountCurrency
     )
 }
