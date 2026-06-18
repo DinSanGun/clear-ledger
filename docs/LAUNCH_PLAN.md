@@ -265,18 +265,46 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 - [ ] Keep `docs/PROJECT_OVERVIEW.md` and `docs/ai-context.md` in sync with shipped behavior
 - [ ] Regenerate `docs/ARCHITECTURE_SUMMARY.pdf` from markdown when a PDF snapshot is needed
 
+### S12A – App rename to Clear Ledger
+**Status:** Done (Jun 2026)
+
+Renamed package/applicationId to `com.dinyairsadot.clearledger`, updated user-facing strings, source tree, and docs.
+
+### S12B – Launcher icon
+**Status:** Done (Jun 2026)
+
+Adaptive launcher icon finalized and referenced in `AndroidManifest.xml`.
+
+### S12C – Release build preparation
+**Status:** Done (Jun 2026)
+
+## Checklist
+- [x] Confirm `applicationId` / `namespace` = `com.dinyairsadot.clearledger`
+- [x] Confirm launcher name and icon are release-ready
+- [x] Set first-release versioning: `versionCode = 1`, `versionName = "1.0.0"`
+- [x] Review release build type (`isMinifyEnabled = false` for v1.0.0)
+- [x] Document unsigned `./gradlew bundleRelease` output path
+- [x] Defer signing to S15 (no keystore or passwords in repo)
+- [x] Update `docs/RELEASE.md` with S12C decisions
+
+## Decisions
+- R8/minify left off for first release — Room, Gson, and Compose would need keep rules
+- `./gradlew bundleRelease` produces unsigned AAB at `app/build/outputs/bundle/release/app-release.aab`
+- Signing and Play upload key setup happen in S15 before internal testing
+
 ---
 
 # S13 – Release Identity
-**Goal:** Lock branding and build identity before production signing.
+**Goal:** Lock branding and build identity before Play Store materials.
 
 ## Checklist
-- [ ] Finalize public app name (store listing + launcher label)
-- [ ] Confirm package / application ID before production release (no late ID changes)
-- [ ] Finalize `versionName` / `versionCode` strategy (monotonic `versionCode` for each Play upload)
-- [ ] Prepare launcher icon and adaptive icon
-- [ ] Prepare release signing keystore and release build process (`assembleRelease` / AAB)
-- [ ] Document signing and release steps in `docs/RELEASE.md`
+- [x] Finalize public app name (store listing + launcher label) — Clear Ledger (S12A)
+- [x] Confirm package / application ID — `com.dinyairsadot.clearledger` (no late ID changes)
+- [x] First-release `versionName` / `versionCode` — `1.0.0` / `1` (S12C)
+- [x] Launcher icon and adaptive icon (S12B)
+- [ ] Confirm store listing aligns with finalized identity (S14)
+
+Signing is deferred to **S15** (internal testing setup).
 
 ---
 
@@ -299,11 +327,14 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 ---
 
 # S15 – Internal Play Store Testing
-**Goal:** Validate the signed Play build on real devices before public release.
+**Goal:** Configure signing, validate the signed Play build on real devices before public release.
 
 ## Checklist
+- [ ] Create release upload keystore and back it up securely (private — not in repo)
+- [ ] Configure release `signingConfig` via `local.properties` or CI secrets (never commit passwords)
 - [ ] Enable Play App Signing
-- [ ] Upload signed release AAB to **internal testing** track
+- [ ] Build signed release AAB (`./gradlew bundleRelease`)
+- [ ] Upload signed AAB to **internal testing** track
 - [ ] Install from Play Console link; QA the Play-installed build (not sideload-only)
 
 ## Manual QA checklist (internal track)
@@ -386,6 +417,7 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 - **2026-06-14:** Pre-release roadmap expanded to S9–S17: targeted tests → CI → release polish → docs → release identity → privacy/store assets → internal testing → launch blocker fixes → production release. Added `docs/ARCHITECTURE.md` and `docs/RELEASE.md`.
 - **2026-06-15:** S9 targeted test hardening complete (~13 new unit tests). `./gradlew test` and `lintDebug` pass. **Next: S10 CI.**
 - **2026-06-15:** S10 GitHub Actions CI added (`.github/workflows/android-ci.yml` — Temurin 17, `test` / `lintDebug` / `assembleDebug`). Local verification passed. **Next: S11 release polish.**
+- **2026-06-18:** S12C release build preparation complete. Identity confirmed (`com.dinyairsadot.clearledger`), `versionCode = 1`, `versionName = "1.0.0"`, `isMinifyEnabled = false`. Unsigned `bundleRelease` documented; signing deferred to S15.
 
 ---
 

@@ -3,7 +3,7 @@
 Practical checklist for building, testing, and publishing to Google Play.  
 Execution order and step IDs follow `docs/LAUNCH_PLAN.md` (S9–S17).
 
-_Last updated: 2026-06-14_
+_Last updated: 2026-06-18_
 
 ---
 
@@ -12,7 +12,7 @@ _Last updated: 2026-06-14_
 Work in this sequence — do not skip ahead:
 
 1. **S9** — Targeted test hardening  
-2. **S10** — GitHub Actions CI *(workflow not yet added)*  
+2. **S10** — GitHub Actions CI  
 3. **S11** — Release polish (export / backup / restore UX)  
 4. **S12** — Project documentation  
 5. **S13** — Release identity  
@@ -33,11 +33,15 @@ Run before each release candidate:
 ./gradlew assembleDebug
 ```
 
-For signed release builds (after S13 signing is configured):
+For release builds:
 
 ```bash
+# Unsigned AAB (S12C — signing configured in S15):
+./gradlew bundleRelease
+# Output: app/build/outputs/bundle/release/app-release.aab
+
+# Signed release (after S15 signing is configured):
 ./gradlew assembleRelease
-# or bundle for Play:
 ./gradlew bundleRelease
 ```
 
@@ -45,6 +49,34 @@ For signed release builds (after S13 signing is configured):
 - [ ] `lintDebug` has no new blocking issues
 - [ ] Debug and release builds succeed
 - [ ] Manual smoke test on device/emulator
+
+### S12C — Release build preparation (Jun 2026)
+
+Release Gradle config reviewed and documented. Signing deferred to S15.
+
+**App identity (confirmed):**
+- `applicationId` / `namespace`: `com.dinyairsadot.clearledger`
+- Launcher name: **Clear Ledger** (EN + HE)
+- Adaptive launcher icon in place
+
+**Versioning (first release):**
+- `versionCode = 1` — increment on every Play upload
+- `versionName = "1.0.0"` — semver for first public release
+
+**Release build settings:**
+- `minSdk = 26`, `targetSdk = 36`, `compileSdk = 36`
+- `isMinifyEnabled = false` for v1.0.0 — R8/minify deferred (Room, Gson, Compose need keep rules if enabled later)
+- No `signingConfig` in committed Gradle files
+
+**Signing (deferred to S15):**
+- Do **not** commit keystores, passwords, or `signingConfig` blocks
+- Create upload keystore and configure signing privately before internal testing
+- Use **Play App Signing** when uploading to Play Console
+- Document keystore location in a **private** secure note only
+
+**Unsigned release AAB:**
+- `./gradlew bundleRelease` produces an unsigned AAB without signing config
+- Signing is required before Play Console upload (S15)
 
 ### S9 — Targeted tests to add/strengthen
 
@@ -55,15 +87,15 @@ For signed release builds (after S13 signing is configured):
 
 ---
 
-## CI checklist (S10 — planned, not yet implemented)
+## CI checklist (S10 — done)
 
-Add a GitHub Actions workflow that runs on push to `main` and on pull requests:
+GitHub Actions workflow (`.github/workflows/android-ci.yml`) runs on push to `main` and on pull requests:
 
-- [ ] `./gradlew test`
-- [ ] `./gradlew lintDebug`
-- [ ] `./gradlew assembleDebug`
+- [x] `./gradlew test`
+- [x] `./gradlew lintDebug`
+- [x] `./gradlew assembleDebug`
 
-**Purpose:** Catch regressions before merge. Do not add workflow files until starting S10 implementation.
+**Purpose:** Catch regressions before merge.
 
 ---
 
@@ -77,14 +109,13 @@ Add a GitHub Actions workflow that runs on push to `main` and on pull requests:
 
 ## Release identity (S13)
 
-- [ ] Finalize app name (launcher + store listing)
-- [ ] Confirm package / application ID — **no changes after production**
-- [ ] `versionCode` increments on every Play upload; `versionName` follows semver or chosen scheme
-- [ ] Launcher + adaptive icon finalized
-- [ ] Release signing keystore created and backed up securely
-- [ ] Release build produces signed AAB
+- [x] Finalize app name (launcher + store listing) — **Clear Ledger** (S12A)
+- [x] Confirm package / application ID — `com.dinyairsadot.clearledger` (**no changes after production**)
+- [x] First-release versioning — `versionCode = 1`, `versionName = "1.0.0"` (S12C)
+- [x] Launcher + adaptive icon finalized (S12B)
+- [ ] Store listing copy and screenshots (S14)
 
-Document keystore location and signing config in a **private** secure note — not in the public repo.
+Signing is configured in **S15** (internal testing setup), not here.
 
 ---
 
@@ -109,9 +140,14 @@ Document keystore location and signing config in a **private** secure note — n
 
 ## Internal testing (S15)
 
-- [ ] Play App Signing enabled
-- [ ] Signed AAB uploaded to **internal testing** track
+- [ ] Create release upload keystore and back it up securely (private — not in repo)
+- [ ] Configure release `signingConfig` via `local.properties` or CI secrets (never commit passwords)
+- [ ] Enable Play App Signing
+- [ ] Build signed release AAB (`./gradlew bundleRelease`)
+- [ ] Upload signed AAB to **internal testing** track
 - [ ] Testers install from Play link (not sideload-only)
+
+Document keystore location and signing config in a **private** secure note — not in the public repo.
 
 ### Manual QA on Play-installed build
 
