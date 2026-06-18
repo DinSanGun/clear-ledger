@@ -123,20 +123,30 @@ Signing is configured in **S15** (internal testing setup), not here.
 
 ## Privacy and store materials (S14)
 
-### Privacy-first facts (use in policy and store copy)
+### Privacy-first facts (verified against codebase)
 
-- No account, no cloud sync, no backend, no analytics, no automatic upload
+- **No `INTERNET` permission** — app is technically incapable of outbound network requests
+- No analytics, crash-reporting, or advertising SDK included
+- No developer-initiated data collection; no backend server
 - All app data stored locally on device (Room / SQLite)
 - Export and backup are user-initiated; files go only where the user saves them via SAF
+- **Android Auto Backup note:** `allowBackup=true` — Android may back up app data to the user's own Google Account via the OS backup feature; this is not developer-initiated and the developer has no access to that backup
 
-### Checklist
+See `docs/PRIVACY_POLICY.md` for the full policy and `docs/PLAY_STORE_MATERIALS.md` for the store listing draft and Data Safety form guidance.
 
-- [ ] Privacy policy published at a stable URL
-- [ ] Play **short description** and **full description**
-- [ ] Phone screenshots (EN; HE if feasible)
+### Documentation deliverables
+
+- [x] `docs/PRIVACY_POLICY.md` — full privacy policy
+- [x] `docs/PLAY_STORE_MATERIALS.md` — store listing draft, Data Safety draft, asset checklist
+
+### Remaining before Play submission
+
+- [ ] Publish privacy policy at a stable URL
+- [ ] Finalize and enter Play **short description** and **full description** in Play Console
+- [ ] Capture phone screenshots (EN; HE if feasible)
 - [ ] Optional demo video or GIF
-- [ ] **Data Safety** form completed (no collection/transmission without explicit user file save)
-- [ ] **Content rating** questionnaire completed
+- [ ] **Data Safety** form completed in Play Console — verify against final AAB before submitting
+- [ ] **Content rating** questionnaire completed in Play Console
 
 ---
 

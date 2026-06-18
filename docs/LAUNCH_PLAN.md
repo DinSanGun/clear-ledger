@@ -1,5 +1,5 @@
 # Clear Ledger – LAUNCH_PLAN.md
-_Last updated: 2026-06-14_
+_Last updated: 2026-06-18_
 
 This document is the **single source of truth** for the pre-release execution plan.
 It is written for the developer and for AI assistants so context survives long deep-dives.
@@ -322,20 +322,25 @@ Signing is deferred to **S15** (internal testing setup).
 ---
 
 # S14 – Privacy Policy and Play Store Materials
+**Status:** In progress (Jun 2026)  
 **Goal:** Satisfy Play policy and communicate the privacy-first design.
 
-## Privacy-first messaging (use consistently)
-- No account, no cloud sync, no backend, no analytics, no automatic upload
-- All data stays on device in local Room storage
+## Privacy-first messaging (verified against codebase)
+- No `INTERNET` permission — app is incapable of network requests
+- No analytics, crash-reporting, or advertising SDK
+- No backend, cloud sync, or developer data collection
 - Export and backup files are **user-initiated** and **user-controlled** via Storage Access Framework
+- Note: Android Auto Backup (`allowBackup=true`) may back up app data to the user's own Google Account — this is OS-level, not developer-initiated
 
 ## Checklist
-- [ ] Publish privacy policy (hosted URL) — local-only storage; user-controlled export/backup; no third-party data collection
-- [ ] Google Play **short description** and **full description**
-- [ ] Screenshots (phone; Hebrew and English if feasible)
+- [x] `docs/PRIVACY_POLICY.md` created
+- [x] `docs/PLAY_STORE_MATERIALS.md` created (Data Safety draft, store listing, asset checklist)
+- [ ] Privacy policy published at a stable URL (required before Play submission)
+- [ ] Play **short description** and **full description** finalized in Play Console
+- [ ] Phone screenshots captured (EN; HE if feasible)
 - [ ] Optional short demo video or GIF
-- [ ] Complete **Data Safety** form (no data collected/transferred without user action)
-- [ ] Complete **content rating** questionnaire
+- [ ] **Data Safety** form completed in Play Console (verify against final AAB before submitting)
+- [ ] **Content rating** questionnaire completed in Play Console
 
 ---
 
@@ -433,6 +438,7 @@ Signing is deferred to **S15** (internal testing setup).
 - **2026-06-15:** S10 GitHub Actions CI added (`.github/workflows/android-ci.yml` — Temurin 17, `test` / `lintDebug` / `assembleDebug`). Local verification passed. **Next: S11 release polish.**
 - **2026-06-18:** S12C release build preparation complete. Identity confirmed (`com.dinyairsadot.clearledger`), `versionCode = 1`, `versionName = "1.0.0"`, `isMinifyEnabled = false`. Unsigned `bundleRelease` documented; signing deferred to S15.
 - **2026-06-18:** S12D documentation polish complete. README CI badge, architecture/release doc updates, roadmap synced. **Next: S14 privacy policy and Play Store materials.**
+- **2026-06-18:** S14 in progress. `docs/PRIVACY_POLICY.md` and `docs/PLAY_STORE_MATERIALS.md` created (store listing draft, Data Safety draft, asset checklist). Privacy claims verified against codebase — no INTERNET permission, no analytics SDK. Remaining: host policy URL, capture screenshots, complete Play Console forms.
 
 ---
 
