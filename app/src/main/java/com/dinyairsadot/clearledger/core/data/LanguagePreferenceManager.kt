@@ -46,8 +46,8 @@ class LanguagePreferenceManager(context: Context) {
     fun getSavedLocale(): Locale {
         val languageCode = getCurrentLanguage()
         return when (languageCode) {
-            "he" -> Locale("he")
-            "en" -> Locale("en")
+            "he" -> Locale.forLanguageTag("he")
+            "en" -> Locale.forLanguageTag("en")
             else -> Locale.getDefault()
         }
     }

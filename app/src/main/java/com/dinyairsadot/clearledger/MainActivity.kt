@@ -27,7 +27,7 @@ import com.dinyairsadot.clearledger.core.data.repositories.RoomInvoiceRepository
 import com.dinyairsadot.clearledger.core.domain.Category
 import com.dinyairsadot.clearledger.core.ui.LoadingScreen
 import com.dinyairsadot.clearledger.core.ui.ClearLedgerNavHost
-import com.dinyairsadot.clearledger.ui.theme.TaxInvoiceTrackerTheme
+import com.dinyairsadot.clearledger.ui.theme.ClearLedgerTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
