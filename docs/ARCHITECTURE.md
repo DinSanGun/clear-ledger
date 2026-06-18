@@ -3,7 +3,7 @@
 Concise architecture reference for developers, code review, and interview prep.  
 For user flows and package layout detail, see `docs/PROJECT_OVERVIEW.md`. For release planning, see `docs/LAUNCH_PLAN.md`.
 
-_Last updated: 2026-06-14_
+_Last updated: 2026-06-18_
 
 ---
 
@@ -11,7 +11,16 @@ _Last updated: 2026-06-14_
 
 Clear Ledger is a **local-first** Android app: categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. Data never leaves the device unless the user explicitly exports or backs up via Storage Access Framework (SAF).
 
-**Stack:** Kotlin · Jetpack Compose (Material 3) · Navigation Compose · Room · MVVM-style separation
+**Stack:** Kotlin · Jetpack Compose (Material 3) · Navigation Compose · Room v14 · MVVM-style separation
+
+---
+
+## Privacy and local-first design
+
+- No account, cloud sync, backend, or analytics — all app data in local Room storage
+- Export and backup are **user-initiated** via Storage Access Framework; the app never uploads data automatically
+- Backup ZIPs contain **plaintext JSON** with sensitive financial data — users must store them securely
+- Restore is full replace only; validation runs before any data is deleted
 
 ---
 
@@ -131,7 +140,7 @@ Validation is layered so bad input never corrupts local data.
 4. Export vs backup vs restore remain distinct product paths
 5. Hidden category fields (`supplierName`, `pinnedDefaults`) round-trip on update
 
-### Automated tests (see S9 in `LAUNCH_PLAN.md`)
+### Automated tests (S9 — done)
 - Unit tests for export utilities, backup mapper/exporter/importer/validator
 - Targeted tests for custom-field alignment, CSV edge cases, invalid restore rejection, EN/HE export labels
 
@@ -139,9 +148,9 @@ Optional stretch: Room migration smoke tests, instrumented restore transaction t
 
 ---
 
-## Testing and build commands
+## Testing and CI
 
-Local quality gate (also planned for CI in S10):
+Local quality gate (mirrored in CI):
 
 ```bash
 ./gradlew test
@@ -149,7 +158,13 @@ Local quality gate (also planned for CI in S10):
 ./gradlew assembleDebug
 ```
 
+**GitHub Actions** (`.github/workflows/android-ci.yml`) runs the same commands on push to `main` and on pull requests (Temurin 17).
+
 See `docs/RELEASE.md` for release build and Play Store checklist.
+
+### Interview demo flow
+
+Category list → add/edit category → invoice list → search/filter/sort → CSV export → create backup → restore (with validation) → switch language → highlight local-first / no cloud design. Full checklist in `docs/RELEASE.md`.
 
 ---
 

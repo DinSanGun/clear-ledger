@@ -75,10 +75,10 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 | **S8** | Restore implementation (replace existing data) | **Done** |
 | **S9** | Targeted test hardening | **Done** |
 | **S10** | CI (GitHub Actions) | **Done** |
-| **S11** | Release polish (export / backup / restore UX) | **Next** |
-| **S12** | Project documentation (README, architecture, release) | Pending |
-| **S13** | Release identity (name, package, version, icon, signing) | Pending |
-| **S14** | Privacy policy and Play Store materials | Pending |
+| **S11** | Release polish (export / backup / restore UX) | **Done** |
+| **S12** | Project documentation (README, architecture, release) | **Done** |
+| **S13** | Release identity (name, package, version, icon) | **Done** |
+| **S14** | Privacy policy and Play Store materials | **Next** |
 | **S15** | Internal Play Store testing | Pending |
 | **S16** | Launch blocker fixes only | Pending |
 | **S17** | Production release + GitHub / interview presentation | Pending |
@@ -241,13 +241,14 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 ---
 
 # S11 – Release Polish
+**Status:** Done (Jun 2026)  
 **Goal:** Low-risk UX improvements for export, backup, and restore flows before store submission.
 
 ## Checklist
-- [ ] Improve loading and error states for export, backup, and restore (clear feedback; no silent failures)
-- [ ] Prevent duplicate taps during long SAF / file operations if not already handled
-- [ ] Consider optional **About** screen: app version, privacy-first note, GitHub link, privacy policy link
-- [ ] Manual sanity pass on export + backup + restore after polish
+- [x] Improve loading and error states for export, backup, and restore (clear feedback; no silent failures)
+- [x] Prevent duplicate taps during long SAF / file operations if not already handled
+- [x] Consider optional **About** screen: app version, privacy-first note, GitHub link, privacy policy link
+- [x] Manual sanity pass on export + backup + restore after polish
 
 ## Explicitly out of scope
 - New product features
@@ -256,13 +257,14 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 ---
 
 # S12 – Project Documentation
+**Status:** Done (Jun 2026)  
 **Goal:** Present the app clearly for recruiters, users, and future maintainers.
 
 ## Checklist
-- [ ] Polish `README.md` — features, privacy-first/local-first story, tech stack, screenshots when available
-- [ ] Maintain `docs/ARCHITECTURE.md` — MVVM, Room, repositories, Compose, export, backup/restore, localization, validation strategy
-- [ ] Maintain `docs/RELEASE.md` — test, build, release, and Play Store checklist (aligned with this plan)
-- [ ] Keep `docs/PROJECT_OVERVIEW.md` and `docs/ai-context.md` in sync with shipped behavior
+- [x] Polish `README.md` — features, privacy-first/local-first story, tech stack, screenshots placeholder
+- [x] Maintain `docs/ARCHITECTURE.md` — MVVM, Room, repositories, Compose, export, backup/restore, localization, validation strategy
+- [x] Maintain `docs/RELEASE.md` — test, build, release, and Play Store checklist (aligned with this plan)
+- [x] Keep `docs/PROJECT_OVERVIEW.md` and `docs/ai-context.md` in sync with shipped behavior
 - [ ] Regenerate `docs/ARCHITECTURE_SUMMARY.pdf` from markdown when a PDF snapshot is needed
 
 ### S12A – App rename to Clear Ledger
@@ -292,9 +294,20 @@ Adaptive launcher icon finalized and referenced in `AndroidManifest.xml`.
 - `./gradlew bundleRelease` produces unsigned AAB at `app/build/outputs/bundle/release/app-release.aab`
 - Signing and Play upload key setup happen in S15 before internal testing
 
+### S12D – Documentation polish
+**Status:** Done (Jun 2026)
+
+## Checklist
+- [x] README as public-facing page: CI badge, tagline, privacy-first positioning, architecture/CI/release status
+- [x] Screenshots placeholder for S14 store assets
+- [x] `ARCHITECTURE.md` updated for interview/review (CI done, privacy subsection)
+- [x] `RELEASE.md` coherence pass (S9/S11 done, secrets policy)
+- [x] Sync roadmap/status across `LAUNCH_PLAN.md`, `PROJECT_OVERVIEW.md`, `ai-context.md`
+
 ---
 
 # S13 – Release Identity
+**Status:** Done (Jun 2026)  
 **Goal:** Lock branding and build identity before Play Store materials.
 
 ## Checklist
@@ -381,11 +394,12 @@ Signing is deferred to **S15** (internal testing setup).
 
 ## Public-facing mapping (README roadmap)
 - S1–S8 → Done (docs, refactor, UI polish, export, backup, restore)
-- S9 → Targeted test hardening
-- S10 → CI
-- S11 → Release polish
-- S12 → Project documentation
-- S13–S14 → Release identity + privacy/store assets
+- S9 → Targeted test hardening — **Done**
+- S10 → CI — **Done**
+- S11 → Release polish — **Done**
+- S12 → Project documentation — **Done**
+- S13 → Release identity — **Done**
+- S14 → Privacy policy + Play Store materials — **Next**
 - S15 → Internal Play testing
 - S16 → Launch blocker fixes
 - S17 → Production release
@@ -418,6 +432,7 @@ Signing is deferred to **S15** (internal testing setup).
 - **2026-06-15:** S9 targeted test hardening complete (~13 new unit tests). `./gradlew test` and `lintDebug` pass. **Next: S10 CI.**
 - **2026-06-15:** S10 GitHub Actions CI added (`.github/workflows/android-ci.yml` — Temurin 17, `test` / `lintDebug` / `assembleDebug`). Local verification passed. **Next: S11 release polish.**
 - **2026-06-18:** S12C release build preparation complete. Identity confirmed (`com.dinyairsadot.clearledger`), `versionCode = 1`, `versionName = "1.0.0"`, `isMinifyEnabled = false`. Unsigned `bundleRelease` documented; signing deferred to S15.
+- **2026-06-18:** S12D documentation polish complete. README CI badge, architecture/release doc updates, roadmap synced. **Next: S14 privacy policy and Play Store materials.**
 
 ---
 

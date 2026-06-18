@@ -11,11 +11,11 @@ _Last updated: 2026-06-18_
 
 Work in this sequence — do not skip ahead:
 
-1. **S9** — Targeted test hardening  
-2. **S10** — GitHub Actions CI  
-3. **S11** — Release polish (export / backup / restore UX)  
-4. **S12** — Project documentation  
-5. **S13** — Release identity  
+1. **S9** — Targeted test hardening *(done)*  
+2. **S10** — GitHub Actions CI *(done)*  
+3. **S11** — Release polish *(done)*  
+4. **S12** — Project documentation *(done)*  
+5. **S13** — Release identity *(done — S12A–C)*  
 6. **S14** — Privacy policy and store materials  
 7. **S15** — Internal Play Store testing  
 8. **S16** — Launch blocker fixes only *(feature freeze)*  
@@ -50,6 +50,8 @@ For release builds:
 - [ ] Debug and release builds succeed
 - [ ] Manual smoke test on device/emulator
 
+**Secrets policy:** Never commit keystores, signing passwords, or `signingConfig` blocks. `.gitignore` excludes `local.properties`, `*.jks`, and `*.keystore`. Document signing details in a private secure note only.
+
 ### S12C — Release build preparation (Jun 2026)
 
 Release Gradle config reviewed and documented. Signing deferred to S15.
@@ -78,12 +80,12 @@ Release Gradle config reviewed and documented. Signing deferred to S15.
 - `./gradlew bundleRelease` produces an unsigned AAB without signing config
 - Signing is required before Play Console upload (S15)
 
-### S9 — Targeted tests to add/strengthen
+### S9 — Targeted tests *(done)*
 
-- [ ] Custom field title/value index alignment (launch-protection)
-- [ ] CSV export escaping, headers, visible-invoice scope
-- [ ] Backup/restore round-trip and invalid-restore cases (wrong file, CSV export, bad version, orphans)
-- [ ] Hebrew/English export label edge cases where appropriate
+- [x] Custom field title/value index alignment (launch-protection)
+- [x] CSV export escaping, headers, visible-invoice scope
+- [x] Backup/restore round-trip and invalid-restore cases (wrong file, CSV export, bad version, orphans)
+- [x] Hebrew/English export label edge cases where appropriate
 
 ---
 
@@ -99,11 +101,11 @@ GitHub Actions workflow (`.github/workflows/android-ci.yml`) runs on push to `ma
 
 ---
 
-## Release polish (S11)
+## Release polish (S11 — done)
 
-- [ ] Loading/error states for export, backup, restore
-- [ ] Guard against duplicate taps during long file operations
-- [ ] Optional About screen (version, privacy note, GitHub, privacy policy link)
+- [x] Loading/error states for export, backup, restore
+- [x] Guard against duplicate taps during long file operations
+- [x] Optional About screen (version, privacy note, GitHub, privacy policy link)
 
 ---
 

@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
 
             // Explicitly provide layout direction to Compose
             CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
-                TaxInvoiceTrackerTheme {
+                ClearLedgerTheme {
                     val navController = rememberNavController()
 
                     // Remember repositories and preference manager to avoid recreating them on recomposition

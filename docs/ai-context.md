@@ -1,6 +1,6 @@
 # Clear Ledger (Android) — AI Context (Cursor)
 
-_Last updated: 2026-06-14_
+_Last updated: 2026-06-18_
 
 Concise working context for AI-assisted development. For the full overview see `docs/PROJECT_OVERVIEW.md`; for architecture patterns see `docs/ARCHITECTURE.md`; for release planning see `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.
 
@@ -188,20 +188,20 @@ Ask before: DB migrations, conflating export with backup, allowing CSV restore, 
 
 ## 11) Project status (Jun 2026)
 
-**Done:** Room, bilingual UI, custom fields, search/filter/sort, service period, category reorder, UI polish, pre-launch refactor, user-facing export (CSV + ZIP), backup creation, full-replace restore.
+**Done:** Room, bilingual UI, custom fields, search/filter/sort, service period, category reorder, UI polish, pre-launch refactor, user-facing export (CSV + ZIP), backup creation, full-replace restore, targeted unit tests (S9), GitHub Actions CI (S10), release polish (S11), documentation polish (S12), release identity (S13 — `com.dinyairsadot.clearledger`, v1.0.0).
 
 **Pre-release (priority order — see `LAUNCH_PLAN` S9–S17):**
-1. **S9** — Targeted test hardening (custom fields, CSV, backup/restore, EN/HE export)
-2. **S10** — CI (`test`, `lintDebug`, `assembleDebug`) — *planned, not yet added*
-3. **S11** — Release polish (export/backup/restore UX, optional About)
-4. **S12** — Project docs (README, `ARCHITECTURE.md`, `RELEASE.md`)
-5. **S13** — Release identity (name, package ID, version, icon, signing)
-6. **S14** — Privacy policy and Play Store materials
-7. **S15** — Internal Play testing
+1. **S9** — Targeted test hardening — **Done**
+2. **S10** — CI (`test`, `lintDebug`, `assembleDebug`) — **Done**
+3. **S11** — Release polish — **Done**
+4. **S12** — Project docs — **Done**
+5. **S13** — Release identity — **Done**
+6. **S14** — Privacy policy and Play Store materials — **Next**
+7. **S15** — Internal Play testing (signing deferred here)
 8. **S16** — Launch blocker fixes only
 9. **S17** — Production release + GitHub/interview presentation
 
-**Not implemented:** CI workflow file, Play production release, cloud sync, encryption, automatic backup, selective merge restore.
+**Not implemented:** Play production release, cloud sync, encryption, automatic backup, selective merge restore.
 
 ---
 

@@ -305,22 +305,17 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 - Pre-launch safety refactor (Jun 2026)
 - **User-facing export:** invoice-list CSV + category-list all-data ZIP (Jun 2026)
 - **Backup and restore:** create backup + full-replace restore (Jun 2026)
+- **Targeted unit tests** (S9), **GitHub Actions CI** (S10), **release polish** (S11)
+- **Release identity** (`com.dinyairsadot.clearledger`, v1.0.0, launcher icon) and **documentation polish** (S12)
 
 **Not yet implemented:**
-- CI pipeline (planned: `./gradlew test`, `lintDebug`, `assembleDebug` on push/PR)
 - Play Store production release
 - Cloud sync, encryption, automatic backup, selective merge restore
 
 **Pre-release focus (see `docs/LAUNCH_PLAN.md` S9–S17):**
-1. Targeted test hardening
-2. GitHub Actions CI
-3. Release polish (export/backup/restore UX)
-4. Documentation (README, `ARCHITECTURE.md`, `RELEASE.md`)
-5. Release identity and signing
-6. Privacy policy and store materials
-7. Internal Play testing
-8. Launch blocker fixes only
-9. Production release
+- **Done:** S9 tests, S10 CI, S11 release polish, S12 docs, S13 release identity
+- **Next:** S14 privacy policy and Play Store materials (screenshots, store copy)
+- **Then:** S15 internal Play testing (signing + upload), S16 launch blocker fixes, S17 production release
 
 **Known improvement areas (non-blocking follow-ups):**
 - In-memory filter/sort may need DAO queries at scale
@@ -334,4 +329,4 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 
 ## Summary
 
-Clear Ledger is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** pre-release roadmap S9–S17 (tests → CI → polish → docs → release identity → store assets → internal testing → blocker fixes → production). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.
+Clear Ledger is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** S14 privacy policy and Play Store materials, then S15 internal Play testing (signing). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.

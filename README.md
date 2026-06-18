@@ -1,8 +1,27 @@
-# Clear Ledger (Android)
+# Clear Ledger
 
-**Clear Ledger** – Simple Bill & Tax Tracker. An Android app for structured tracking of invoices, bills, and tax-related expenses, organized by customizable categories and fields.
+[![Android CI](https://github.com/DinSanGun/clear-ledger/actions/workflows/android-ci.yml/badge.svg)](https://github.com/DinSanGun/clear-ledger/actions/workflows/android-ci.yml)
 
-The app helps users keep financial documents consistent, searchable, and ready for export — with a focus on real-world tax and billing use cases (including Israel-specific fields).
+**Simple Bill & Tax Tracker**
+
+Clear Ledger is a local-first Android app for structured tracking of invoices, bills, and tax-related expenses. Users organize records by customizable categories and fields, search and filter invoices, and export or back up data on their own terms.
+
+The app targets real-world billing and tax workflows, including Israel-specific fields, with full Hebrew and English support.
+
+---
+
+## Privacy-first / local-first
+
+- **No account, no cloud sync, no backend** — all data stays on the device in a Room (SQLite) database
+- **No analytics or automatic upload** — nothing leaves the device unless the user explicitly chooses a destination
+- **Export and backup via Storage Access Framework (SAF)** — files go only where the user saves them
+- **Backup files are plaintext JSON** — treat them like private financial documents
+
+---
+
+## Screenshots
+
+*Screenshots coming before Play Store release (S14).*
 
 ---
 
@@ -29,10 +48,11 @@ The app helps users keep financial documents consistent, searchable, and ready f
 - Sort by date or amount (ascending / descending)
 - Scope-aware retrieval pipeline: `sourceInvoices` → search → filter → sort → `visibleInvoices`
 
-### Localization & Accessibility
+### Localization
 - Full Hebrew and English support with manual language switching
 - Persistent language preference and proper RTL / LTR layout handling
 - Locale-aware seeded categories (user-edited seeded rows are protected from overwrite)
+- Export headers and display values follow the active app locale
 
 ### Polished UI (Jetpack Compose)
 - Category color theming with contrast-aware top app bars
@@ -74,11 +94,6 @@ The app offers three distinct data portability features. **Do not confuse them:*
 
 > **Before restoring:** create a fresh backup of your current data if you may want to return to the present state. Restore cannot be undone unless you have another backup.
 
-### Privacy and local-first storage
-- All app data stays on the device in a local Room (SQLite) database
-- Nothing is uploaded automatically — export and backup only happen when the user explicitly chooses a destination via SAF
-- Backup and export files are user-controlled; store them securely
-
 ### Local Persistence
 - Offline-first design with Room (SQLite), currently at schema version 14
 - Incremental migrations for backward compatibility
@@ -92,70 +107,78 @@ The app offers three distinct data portability features. **Do not confuse them:*
 - **UI:** Jetpack Compose (Material 3)
 - **Navigation:** Navigation Compose
 - **Architecture:** MVVM-style separation (UI / ViewModel / Repository)
-- **Persistence:** Room with entity ↔ domain mapping
-- **State Management:** ViewModels + `StateFlow`, lifecycle-aware collection
-- **Localization:** Android string resources with RTL support
-- **Build System:** Gradle (KTS)
+- **Persistence:** Room (schema version 14) with KSP, entity ↔ domain mapping
+- **State:** ViewModels + `StateFlow`, lifecycle-aware collection
+- **Localization:** Android string resources (`values/`, `values-iw/`) with RTL support
+- **Build:** Gradle (KTS), version catalog
+- **CI:** GitHub Actions (Temurin 17) — `test`, `lintDebug`, `assembleDebug`
+
+**Package:** `com.dinyairsadot.clearledger` · **Version:** `1.0.0` (versionCode 1)
+
+---
+
+## Architecture Overview
+
+- **MVVM:** Compose screens render state; ViewModels own UI state and call repositories; repositories map Room entities ↔ domain models
+- **No DI framework:** repositories wired in `MainActivity` and ViewModel factories
+- **Feature modules:** `feature/category/`, `feature/invoice/`, `feature/settings/` with shared `core/` layer
+- **Export / backup:** pure Kotlin utilities in `core/util/`; file I/O via SAF in Compose screens
+- **Restore safety:** validate backup JSON before any DB mutation; full replace in a single Room transaction
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for MVVM layers, validation strategy, and interview-oriented detail. See [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) for package layout.
 
 ---
 
 ## Project Structure
 
-The project follows a feature-oriented structure with a shared core layer.
-
 - `core/domain/` — domain models and repository interfaces
 - `core/data/` — Room entities, DAOs, converters, repositories
 - `core/ui/` — navigation, shared UI helpers
-- `feature/category/` — category list, add/edit, reorder
-- `feature/invoice/` — invoice list, add/edit/details, search/filter/sort
+- `core/util/` — CSV/ZIP export and backup/restore utilities
+- `feature/category/` — category list, add/edit, reorder, export/backup/restore
+- `feature/invoice/` — invoice list, add/edit/details, search/filter/sort, CSV export
 - `feature/settings/` — language settings
 
-Domain models and business concepts are separated from persistence and UI logic. Each feature encapsulates its screens and ViewModels; shared navigation and cross-cutting concerns live in `core/ui`.
+---
+
+## Testing & CI
+
+**Unit tests** cover export utilities, backup mapper/exporter/importer/validator, custom-field alignment, CSV edge cases, and invalid-restore rejection (EN/HE export labels included).
+
+**GitHub Actions** (`.github/workflows/android-ci.yml`) runs on push to `main` and on pull requests:
+
+```bash
+./gradlew test
+./gradlew lintDebug
+./gradlew assembleDebug
+```
+
+For release build commands and Play Store checklist, see [`docs/RELEASE.md`](docs/RELEASE.md).
 
 ---
 
-## Roadmap
+## Release Status
 
-The app is **feature-complete** for MVP. Remaining work is launch readiness — see `docs/LAUNCH_PLAN.md` for step IDs (S9–S17).
+Clear Ledger is **feature-complete** for MVP and in late pre-release preparation.
 
-### Pre-release (in priority order)
+| Stage | Status |
+|-------|--------|
+| S9 — Targeted test hardening | Done |
+| S10 — GitHub Actions CI | Done |
+| S11 — Release polish | Done |
+| S12 — Project documentation & release identity (S12A–C) | Done |
+| **S14 — Privacy policy & Play Store materials** | **Next** |
+| S15 — Internal Play Store testing (signing + upload) | Pending |
+| S16 — Launch blocker fixes | Pending |
+| S17 — Production release | Pending |
 
-| Step | Focus |
-|------|--------|
-| **S9** | Targeted test hardening (custom fields, CSV, backup/restore, EN/HE export) |
-| **S10** | GitHub Actions CI (`test`, `lintDebug`, `assembleDebug`) — *planned, not yet added* |
-| **S11** | Release polish (export/backup/restore UX, optional About screen) |
-| **S12** | Project documentation (README, architecture, release guides) |
-| **S13** | Release identity (name, package ID, versioning, icon, signing) |
-| **S14** | Privacy policy and Play Store materials |
-| **S15** | Internal Play Store testing |
-| **S16** | Launch blocker fixes only *(feature freeze)* |
-| **S17** | Production release + GitHub / interview presentation |
+**Release build:** `versionName = 1.0.0`, unsigned `./gradlew bundleRelease` documented; signing deferred to S15.
 
-### Recently completed
-- UI polish pass (May–Jun 2026): category list FAB fix, edit-category save/discard, invoice list simplification, filter UX
-- Pre-launch refactor / safety pass (Jun 2026)
-- Invoice-list CSV export and category-list all-data ZIP export (Jun 2026)
-- Restore-ready app backup creation and full-replace backup restore (Jun 2026)
+See [`docs/LAUNCH_PLAN.md`](docs/LAUNCH_PLAN.md) for the full execution plan (S9–S17).
 
 ### Not yet implemented
-- CI pipeline
 - Google Play production release
 - Cloud sync, encryption, automatic backup, or selective merge restore
-
-See `docs/LAUNCH_PLAN.md`, `docs/RELEASE.md`, and `docs/ARCHITECTURE.md` for details.
-
----
-
-## Status
-
-The app is **near feature-complete** and entering pre-release / launch preparation.
-
-Core functionality is implemented: Room persistence, bilingual UI (Hebrew / English), invoice search/filter/sort, category reordering, service-period handling, dynamic custom fields, **user-facing export** (localized CSV and all-data ZIP), and **backup/restore** (restore-ready JSON backup with full-replace import). A UI polish pass and conservative pre-launch refactor completed in June 2026.
-
-**Next:** targeted test hardening (S9), then CI, release polish, documentation, release identity, store assets, internal testing, and production release — see roadmap above.
-
-**Validated locally:** `./gradlew assembleDebug`, `./gradlew lintDebug`, and `./gradlew test`.
 
 ---
 
