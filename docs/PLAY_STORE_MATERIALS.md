@@ -77,7 +77,7 @@ SUITABLE FOR:
 - Small businesses tracking payments and tax documents
 - Anyone who wants structured, private, local financial records
 
-NO ACCOUNT. NO CLOUD. NO ADS. YOUR DATA STAYS ON YOUR DEVICE.
+No account. No ads. No developer cloud sync. Your records stay on your device unless you choose to export or back them up.
 ```
 
 ### Category
