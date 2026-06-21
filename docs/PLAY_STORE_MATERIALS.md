@@ -18,7 +18,7 @@ Clear Ledger
 ### Short description (80 characters max)
 
 ```
-Simple bill & tax tracker. Local-first. No account. No cloud.
+Simple bill & tax tracker. Local-first. No account needed.
 ```
 
 Character count: 61 — within limit.
