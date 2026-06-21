@@ -570,7 +570,7 @@ private fun CategoryItem(
         modifier = modifier
             .fillMaxWidth(),
         border = BorderStroke(
-            width = 1.5.dp,
+            width = 2.2.dp,
             color = parseColor(category.colorHex).copy(alpha = 0.4f),
         ),
         colors = CardDefaults.cardColors(

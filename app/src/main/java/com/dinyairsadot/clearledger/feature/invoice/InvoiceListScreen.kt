@@ -1030,11 +1030,14 @@ private fun InvoiceItem(
                     stringResource(R.string.invoice_number_fallback, invoice.id)
                 }
                 Text(
-                    text = stringResource(R.string.invoice_number_label, invoiceNumberText.truncateForList()),
+                    text = stringResource(R.string.invoice_number_label, invoiceNumberText),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 8.dp)
                 )
 
                 Spacer(modifier = Modifier.padding(top = 2.dp))
@@ -1106,11 +1109,6 @@ private fun InvoiceItem(
             }
         }
     }
-}
-
-private fun String.truncateForList(maxChars: Int = 12): String {
-    if (this.length <= maxChars) return this
-    return this.take(maxChars) + "…"
 }
 
 @Composable
