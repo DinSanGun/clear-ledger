@@ -21,7 +21,7 @@ Clear Ledger
 Simple bill & tax tracker. Local-first. No account needed.
 ```
 
-Character count: 61 — within limit.
+Character count: 59 — within limit.
 
 ### Full description
 

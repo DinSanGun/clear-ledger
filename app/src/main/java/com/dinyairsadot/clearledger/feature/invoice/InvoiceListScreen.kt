@@ -1085,8 +1085,7 @@ private fun InvoiceItem(
 
                 Text(
                     text = formatAmountWithCurrency(context, invoice.amount, invoice.amountCurrency),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 invoice.notes?.takeIf { it.isNotBlank() }?.let { notes ->

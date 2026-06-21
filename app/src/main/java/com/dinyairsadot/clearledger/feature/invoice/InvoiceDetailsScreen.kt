@@ -100,11 +100,18 @@ fun InvoiceDetailsScreen(
                         val invoiceNumberText = invoice.invoiceNumber.ifBlank {
                             stringResource(R.string.invoice_number_fallback, invoice.id)
                         }
-                        Text(
-                            text = stringResource(R.string.invoice_number_label, invoiceNumberText),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = stringResource(R.string.invoice_number_label, "").trimEnd(),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = invoiceNumberText,
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
+                        }
 
                         invoice.documentType?.let { docType ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
@@ -113,32 +120,29 @@ fun InvoiceDetailsScreen(
                                 DocumentType.TAX_INVOICE -> stringResource(R.string.document_type_tax_invoice)
                                 DocumentType.INVOICE_RECEIPT -> stringResource(R.string.document_type_invoice_receipt)
                             }
-                            Text(
-                                text = stringResource(R.string.document_type_label, docTypeText),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.document_type_label, "").trimEnd(),
+                                value = docTypeText
                             )
                         }
 
                         invoice.vendorName?.takeIf { it.isNotBlank() }?.let { vendor ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.vendor_name_label, vendor),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.vendor_name_label, "").trimEnd(),
+                                value = vendor
                             )
                         }
 
                         Spacer(modifier = Modifier.padding(top = 8.dp))
 
-                        Text(
-                            text = stringResource(
-                                R.string.amount_label,
-                                formatAmountWithCurrency(
-                                    LocalContext.current,
-                                    invoice.amount,
-                                    invoice.amountCurrency
-                                )
-                            ),
-                            style = MaterialTheme.typography.bodyMedium
+                        DetailFieldRow(
+                            label = stringResource(R.string.amount_label, "").trimEnd(),
+                            value = formatAmountWithCurrency(
+                                LocalContext.current,
+                                invoice.amount,
+                                invoice.amountCurrency
+                            )
                         )
 
                         Spacer(modifier = Modifier.padding(top = 4.dp))
@@ -147,21 +151,11 @@ fun InvoiceDetailsScreen(
                             PaymentStatus.PAID -> stringResource(R.string.paid)
                             PaymentStatus.NOT_PAID -> stringResource(R.string.not_paid)
                         }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.status),
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(end = 4.dp)
-                            )
-                            Text(
-                                text = statusText,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = invoice.paymentStatus.toDisplayColor()
-                            )
-                        }
+                        DetailFieldRow(
+                            label = stringResource(R.string.status),
+                            value = statusText,
+                            valueColor = invoice.paymentStatus.toDisplayColor()
+                        )
 
                         // Payment details (shown only when present)
                         invoice.paymentMethod?.takeIf { it.isNotBlank() }?.let { methodValue ->
@@ -175,49 +169,49 @@ fun InvoiceDetailsScreen(
                                 else -> methodValue
                             }
                             Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.payment_method_label, methodLabel),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.payment_method_label, "").trimEnd(),
+                                value = methodLabel
                             )
                         }
 
                         invoice.numberOfPayments?.takeIf { it.isNotBlank() }?.let { count ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.number_of_payments_label, count),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.number_of_payments_label, "").trimEnd(),
+                                value = count
                             )
                         }
 
                         invoice.confirmationNumber?.takeIf { it.isNotBlank() }?.let { confirmation ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.confirmation_number_label, confirmation),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.confirmation_number_label, "").trimEnd(),
+                                value = confirmation
                             )
                         }
 
                         invoice.issueDateText?.let { issue ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.issue_date_label, issue),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.issue_date_label, "").trimEnd(),
+                                value = issue
                             )
                         }
 
                         invoice.dueDateText?.let { due ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.due_date_label, due),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.due_date_label, "").trimEnd(),
+                                value = due
                             )
                         }
 
                         invoice.paymentDateText?.let { paid ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.paid_date_label, paid),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.paid_date_label, "").trimEnd(),
+                                value = paid
                             )
                         }
 
@@ -228,9 +222,9 @@ fun InvoiceDetailsScreen(
                             currentLocale
                         )?.let { formattedPeriod ->
                             Spacer(modifier = Modifier.padding(top = 4.dp))
-                            Text(
-                                text = stringResource(R.string.service_period_label, formattedPeriod),
-                                style = MaterialTheme.typography.bodyMedium
+                            DetailFieldRow(
+                                label = stringResource(R.string.service_period_label, "").trimEnd(),
+                                value = formattedPeriod
                             )
                         }
 
@@ -239,7 +233,7 @@ fun InvoiceDetailsScreen(
                             Text(
                                 text = stringResource(R.string.notes_label),
                                 style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.Medium
                             )
                             Spacer(modifier = Modifier.padding(top = 2.dp))
                             Text(
@@ -252,16 +246,10 @@ fun InvoiceDetailsScreen(
                         if (categoryCustomFieldTitles.isNotEmpty() && invoice.customFieldValues.isNotEmpty()) {
                             categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
                                 invoice.customFieldValues.getOrNull(index)?.takeIf { it.isNotBlank() }?.let { value ->
-                                    Spacer(modifier = Modifier.padding(top = 8.dp))
-                                    Text(
-                                        text = "$fieldTitle:",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Spacer(modifier = Modifier.padding(top = 2.dp))
-                                    Text(
-                                        text = value,
-                                        style = MaterialTheme.typography.bodyMedium
+                                    Spacer(modifier = Modifier.padding(top = 4.dp))
+                                    DetailFieldRow(
+                                        label = "$fieldTitle:",
+                                        value = value
                                     )
                                 }
                             }
@@ -270,6 +258,35 @@ fun InvoiceDetailsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun DetailFieldRow(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color = Color.Unspecified,
+    valueFontWeight: FontWeight = FontWeight.Normal
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = valueFontWeight,
+            color = if (valueColor != Color.Unspecified) valueColor else LocalContentColor.current,
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .padding(start = 4.dp)
+        )
     }
 }
 

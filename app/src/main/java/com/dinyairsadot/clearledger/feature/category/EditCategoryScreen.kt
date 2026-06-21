@@ -31,6 +31,8 @@ import androidx.compose.ui.res.stringResource
 import com.dinyairsadot.clearledger.core.ui.SwipeDismissSnackbarHost
 import com.dinyairsadot.clearledger.core.ui.categoryTopAppBarColors
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -322,7 +324,12 @@ fun EditCategoryScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = ::onSaveClicked) {
+                    TextButton(
+                        onClick = ::onSaveClicked,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = LocalContentColor.current
+                        )
+                    ) {
                         Text(text = stringResource(R.string.save))
                     }
                 }
