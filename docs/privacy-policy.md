@@ -103,7 +103,7 @@ If the app's data practices change in a future version, this policy will be upda
 
 For questions about this privacy policy, contact:
 
-**[Developer contact email — to be added before Play Store submission]**
+**dinsadot@gmail.com**
 
 ---
 
@@ -111,4 +111,4 @@ For questions about this privacy policy, contact:
 
 This policy will be published at a stable public URL before Play Store submission. The URL will be linked from the Play Store listing.
 
-**[Privacy policy hosted URL — to be added before Play Store submission]**
+**https://dinsangun.github.io/clear-ledger/privacy-policy**
