@@ -228,6 +228,19 @@ fun InvoiceDetailsScreen(
                             )
                         }
 
+                        // Custom fields
+                        if (categoryCustomFieldTitles.isNotEmpty() && invoice.customFieldValues.isNotEmpty()) {
+                            categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
+                                invoice.customFieldValues.getOrNull(index)?.takeIf { it.isNotBlank() }?.let { value ->
+                                    Spacer(modifier = Modifier.padding(top = 4.dp))
+                                    DetailFieldRow(
+                                        label = "$fieldTitle:",
+                                        value = value
+                                    )
+                                }
+                            }
+                        }
+
                         invoice.notes?.takeIf { it.isNotBlank() }?.let { notes ->
                             Spacer(modifier = Modifier.padding(top = 8.dp))
                             Text(
@@ -240,19 +253,6 @@ fun InvoiceDetailsScreen(
                                 text = notes,
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                        }
-
-                        // Custom fields
-                        if (categoryCustomFieldTitles.isNotEmpty() && invoice.customFieldValues.isNotEmpty()) {
-                            categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
-                                invoice.customFieldValues.getOrNull(index)?.takeIf { it.isNotBlank() }?.let { value ->
-                                    Spacer(modifier = Modifier.padding(top = 4.dp))
-                                    DetailFieldRow(
-                                        label = "$fieldTitle:",
-                                        value = value
-                                    )
-                                }
-                            }
                         }
                     }
                 }
