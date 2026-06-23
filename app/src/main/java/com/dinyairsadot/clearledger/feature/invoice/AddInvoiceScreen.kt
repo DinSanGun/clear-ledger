@@ -467,13 +467,19 @@ fun AddInvoiceScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                TextButton(onClick = { servicePeriodMode = ServicePeriodMode.MONTH }) {
+                TextButton(
+                    onClick = { servicePeriodMode = ServicePeriodMode.MONTH },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+                ) {
                     Text(
                         stringResource(R.string.service_period_mode_month),
                         fontWeight = if (servicePeriodMode == ServicePeriodMode.MONTH) FontWeight.Bold else FontWeight.Normal
                     )
                 }
-                TextButton(onClick = { servicePeriodMode = ServicePeriodMode.DATE }) {
+                TextButton(
+                    onClick = { servicePeriodMode = ServicePeriodMode.DATE },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+                ) {
                     Text(
                         stringResource(R.string.service_period_mode_dates),
                         fontWeight = if (servicePeriodMode == ServicePeriodMode.DATE) FontWeight.Bold else FontWeight.Normal
@@ -806,7 +812,8 @@ fun PaymentStatusSelector(
         Row(modifier = Modifier.weight(1f)) {
             TextButton(
                 onClick = { onSelectedChange(PaymentStatus.NOT_PAID) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) {
                 Text(
                     text = stringResource(R.string.not_paid),
@@ -815,7 +822,8 @@ fun PaymentStatusSelector(
             }
             TextButton(
                 onClick = { onSelectedChange(PaymentStatus.PAID) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) {
                 Text(
                     text = stringResource(R.string.paid),

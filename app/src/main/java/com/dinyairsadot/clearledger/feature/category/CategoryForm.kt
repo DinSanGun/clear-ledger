@@ -288,7 +288,8 @@ fun CategoryForm(
         if (canAddMoreCustomFields) {
             TextButton(
                 onClick = callbacks.onShowPendingNewFieldClick,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) {
                 Text(stringResource(R.string.add_custom_field))
             }
