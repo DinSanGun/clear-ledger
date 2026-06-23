@@ -287,6 +287,10 @@ class CategoryListViewModel(
         backupRestoreRepository.restoreFromBackup(payload)
     }
 
+    suspend fun performReset() {
+        backupRestoreRepository.resetAllData(context)
+    }
+
     private suspend fun buildUiCategories(categories: List<Category>): List<CategoryUi> {
         return categories.map { category ->
             val invoices = invoiceRepository.getInvoicesForCategory(category.id)

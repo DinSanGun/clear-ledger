@@ -19,12 +19,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.navigation.compose.rememberNavController
+import com.dinyairsadot.clearledger.core.data.DefaultCategorySeeder
 import com.dinyairsadot.clearledger.core.data.LanguagePreferenceManager
 import com.dinyairsadot.clearledger.core.data.SeedingPreferenceManager
 import com.dinyairsadot.clearledger.core.data.ClearLedgerDatabase
 import com.dinyairsadot.clearledger.core.data.repositories.RoomCategoryRepository
 import com.dinyairsadot.clearledger.core.data.repositories.RoomInvoiceRepository
-import com.dinyairsadot.clearledger.core.domain.Category
 import com.dinyairsadot.clearledger.core.ui.LoadingScreen
 import com.dinyairsadot.clearledger.core.ui.ClearLedgerNavHost
 import com.dinyairsadot.clearledger.ui.theme.ClearLedgerTheme
@@ -153,105 +153,7 @@ class MainActivity : ComponentActivity() {
         
         // Only seed if database is empty AND flag indicates seeding hasn't been done
         if (categories.isEmpty()) {
-            // Seed 8 default categories with minimal custom fields
-            val defaultCategories = listOf(
-                // Arnona
-                Category(
-                    id = 0, // Room will auto-generate
-                    name = getString(R.string.default_category_arnona),
-                    colorHex = "#4CAF50",
-                    description = getString(R.string.default_category_arnona_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap(),
-                    seedKey = "arnona",
-                    userEdited = false,
-                    orderIndex = 0
-                ),
-                // Electricity
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_electricity),
-                    colorHex = "#FF9800",
-                    description = getString(R.string.default_category_electricity_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap(),
-                    seedKey = "electricity",
-                    userEdited = false,
-                    orderIndex = 1
-                ),
-                // Water
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_water),
-                    colorHex = "#2196F3",
-                    description = getString(R.string.default_category_water_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap(),
-                    seedKey = "water",
-                    userEdited = false,
-                    orderIndex = 2
-                ),
-                // Gas
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_gas),
-                    colorHex = "#9C27B0",
-                    description = getString(R.string.default_category_gas_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap(),
-                    seedKey = "gas",
-                    userEdited = false,
-                    orderIndex = 3
-                ),
-                // Phone/Internet
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_phone_internet),
-                    colorHex = "#00BCD4",
-                    description = getString(R.string.default_category_phone_internet_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap(),
-                    seedKey = "phone_internet",
-                    userEdited = false,
-                    orderIndex = 4
-                ),
-                // National Insurance
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_national_insurance),
-                    colorHex = "#795548",
-                    description = getString(R.string.default_category_national_insurance_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap(),
-                    seedKey = "national_insurance",
-                    userEdited = false,
-                    orderIndex = 5
-                ),
-                // Health Fund
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_health_fund),
-                    colorHex = "#3F51B5",
-                    description = getString(R.string.default_category_health_fund_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap(),
-                    seedKey = "health_fund",
-                    userEdited = false,
-                    orderIndex = 6
-                ),
-                // Car Insurance
-                Category(
-                    id = 0,
-                    name = getString(R.string.default_category_car_insurance),
-                    colorHex = "#FF5722",
-                    description = getString(R.string.default_category_car_insurance_description),
-                    customFieldTitles = emptyList(),
-                    pinnedDefaults = emptyMap(),
-                    seedKey = "car_insurance",
-                    userEdited = false,
-                    orderIndex = 7
-                )
-            )
+            val defaultCategories = DefaultCategorySeeder.buildDomainCategories(this@MainActivity)
             
             defaultCategories.forEach { category ->
                 categoryRepository.addCategory(category)

@@ -1,6 +1,8 @@
 package com.dinyairsadot.clearledger.core.data.repositories
 
+import android.content.Context
 import androidx.room.withTransaction
+import com.dinyairsadot.clearledger.core.data.DefaultCategorySeeder
 import com.dinyairsadot.clearledger.core.data.SeedingPreferenceManager
 import com.dinyairsadot.clearledger.core.data.ClearLedgerDatabase
 import com.dinyairsadot.clearledger.core.data.entities.CategoryEntity
@@ -27,6 +29,20 @@ class RoomBackupRestoreRepository(
             database.categoryDao().deleteAll()
             database.categoryDao().insertAll(categoryEntities)
             database.invoiceDao().insertAll(invoiceEntities)
+        }
+
+        seedingPreferenceManager.setHasSeededDefaultCategories(true)
+        seedingPreferenceManager.setHasClearedSeededCustomFields(true)
+    }
+
+    override suspend fun resetAllData(context: Context) {
+        val defaultEntities = DefaultCategorySeeder.buildDomainCategories(context)
+            .map { CategoryEntity.fromDomain(it) }
+
+        database.withTransaction {
+            database.invoiceDao().deleteAll()
+            database.categoryDao().deleteAll()
+            database.categoryDao().insertAll(defaultEntities)
         }
 
         seedingPreferenceManager.setHasSeededDefaultCategories(true)

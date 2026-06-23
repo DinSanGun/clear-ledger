@@ -109,6 +109,7 @@ fun CategoryListScreen(
 ) {
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
     var pendingRestorePayload by remember { mutableStateOf<BackupPayload?>(null) }
+    var showResetConfirmDialog by remember { mutableStateOf(false) }
     var isFileOperationInProgress by remember { mutableStateOf(false) }
     var isOverflowMenuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -143,6 +144,12 @@ fun CategoryListScreen(
     val restoreFailedMessage = stringResource(R.string.restore_failed)
     val restoreInvalidBackupMessage = stringResource(R.string.restore_invalid_backup)
     val restoreUnsupportedVersionMessage = stringResource(R.string.restore_unsupported_version)
+    val resetAllDataMessage = stringResource(R.string.reset_all_data)
+    val resetAllDataDialogTitle = stringResource(R.string.reset_all_data_dialog_title)
+    val resetAllDataDialogMessage = stringResource(R.string.reset_all_data_dialog_message)
+    val resetButtonLabel = stringResource(R.string.reset)
+    val dataResetCompleteMessage = stringResource(R.string.data_reset_complete)
+    val resetFailedMessage = stringResource(R.string.reset_failed)
 
     LaunchedEffect(showCategoryAddedMessage) {
         if (showCategoryAddedMessage) {
@@ -324,6 +331,19 @@ fun CategoryListScreen(
                                     restoreLauncher.launch(arrayOf("application/zip"))
                                 }
                             )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = resetAllDataMessage,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                enabled = !isFileOperationInProgress,
+                                onClick = {
+                                    isOverflowMenuExpanded = false
+                                    showResetConfirmDialog = true
+                                }
+                            )
                         }
                     }
                 }
@@ -432,6 +452,43 @@ fun CategoryListScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { pendingRestorePayload = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
+        }
+
+        if (showResetConfirmDialog) {
+            AlertDialog(
+                onDismissRequest = { showResetConfirmDialog = false },
+                title = { Text(resetAllDataDialogTitle) },
+                text = { Text(resetAllDataDialogMessage) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showResetConfirmDialog = false
+                            coroutineScope.launch {
+                                isFileOperationInProgress = true
+                                try {
+                                    viewModel.performReset()
+                                    viewModel.refresh()
+                                    snackbarHostState.showSnackbar(dataResetCompleteMessage)
+                                } catch (_: Exception) {
+                                    snackbarHostState.showSnackbar(resetFailedMessage)
+                                } finally {
+                                    isFileOperationInProgress = false
+                                }
+                            }
+                        }
+                    ) {
+                        Text(
+                            text = resetButtonLabel,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showResetConfirmDialog = false }) {
                         Text(stringResource(R.string.cancel))
                     }
                 }
