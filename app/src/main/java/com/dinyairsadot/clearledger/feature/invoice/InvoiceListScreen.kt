@@ -145,7 +145,8 @@ fun InvoiceListScreen(
     onServicePeriodEndFilterChange: (LocalDate?) -> Unit,
     onStatusFilterChange: (PaymentStatus?) -> Unit,
     onClearFilters: () -> Unit,
-    onBuildCsvContent: (InvoiceCsvExportLabels) -> String
+    onBuildCsvContent: (InvoiceCsvExportLabels) -> String,
+    onEditCategoryClick: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -332,6 +333,13 @@ fun InvoiceListScreen(
                                             "clear_ledger_export_${LocalDate.now()}.csv"
                                         )
                                     }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.edit_category)) },
+                                onClick = {
+                                    overflowMenuExpanded = false
+                                    onEditCategoryClick()
                                 }
                             )
                         }

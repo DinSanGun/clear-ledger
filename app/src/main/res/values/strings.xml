@@ -52,7 +52,7 @@
     <string name="field_title">Field %1$d title</string>
     <string name="field_number">Field %1$d</string>
     <string name="add_custom_field">Add custom field</string>
-    <string name="add_custom_fields_section_title">Add custom fields</string>
+    <string name="add_custom_fields_section_title">Custom fields</string>
     <string name="remove_field">Remove field</string>
     <string name="remove_custom_field">Remove custom field?</string>
     <string name="remove_custom_field_confirmation">Removing \"%1$s\" will delete any information stored in invoices for this field. Are you sure you want to remove it?</string>

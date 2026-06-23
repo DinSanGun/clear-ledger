@@ -1,6 +1,7 @@
 package com.dinyairsadot.clearledger.core.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -279,6 +283,17 @@ fun ClearLedgerNavHost(
                 viewModel.loadInvoices(categoryId)
             }
 
+            val lifecycleOwner = LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner, categoryId) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        viewModel.loadCategoryHeader(categoryId)
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+            }
+
             InvoiceListScreen(
                 categoryId = categoryId,
                 uiState = uiState,
@@ -316,7 +331,10 @@ fun ClearLedgerNavHost(
                 onClearFilters = {
                     viewModel.clearFilters()
                 },
-                onBuildCsvContent = { labels -> viewModel.buildCsvContent(labels) }
+                onBuildCsvContent = { labels -> viewModel.buildCsvContent(labels) },
+                onEditCategoryClick = {
+                    navController.navigate(Screen.EditCategory.routeWithId(categoryId))
+                }
             )
         }
         // -------------------------
