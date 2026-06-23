@@ -60,6 +60,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.runtime.LaunchedEffect
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
@@ -157,6 +158,10 @@ fun CategoryListScreen(
 
     DisposableEffect(Unit) {
         onDispose { snackbarHostState.currentSnackbarData?.dismiss() }
+    }
+
+    BackHandler(enabled = isReorderMode) {
+        onExitReorderMode()
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
