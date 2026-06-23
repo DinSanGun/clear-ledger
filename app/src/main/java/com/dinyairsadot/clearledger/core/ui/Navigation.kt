@@ -121,7 +121,14 @@ fun ClearLedgerNavHost(
                     navController.navigate(Screen.AddCategory.route)
                 },
                 onCategoryClick = { id ->
-                    navController.navigate(Screen.InvoiceList.routeWithCategoryId(id))
+                    // Guard: block navigation if an invoice list destination is still visible
+                    // in the NavHost (i.e. animating in or out). Firing navigate() during
+                    // an ongoing exit animation creates a 3-way transition that can crash.
+                    val invoiceListIsVisible = navController.visibleEntries.value
+                        .any { it.destination.route == Screen.InvoiceList.route }
+                    if (!invoiceListIsVisible) {
+                        navController.navigate(Screen.InvoiceList.routeWithCategoryId(id))
+                    }
                 },
                 onEditCategoryClick = { id ->
                     navController.navigate(Screen.EditCategory.routeWithId(id))
@@ -324,7 +331,14 @@ fun ClearLedgerNavHost(
             // We don't need uiState here, just the ability to add an invoice.
             val context = LocalContext.current
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Screen.InvoiceList.route)
+                navController.currentBackStack.value
+                    .lastOrNull { it.destination.route == Screen.InvoiceList.route }
+            }
+            if (parentEntry == null) {
+                // InvoiceList is no longer on the back stack (rapid navigation race).
+                // Pop back safely rather than crashing on getBackStackEntry.
+                LaunchedEffect(Unit) { navController.popBackStack() }
+                return@composable
             }
             val viewModel: InvoiceListViewModel = viewModel(
                 parentEntry,
@@ -374,7 +388,14 @@ fun ClearLedgerNavHost(
             // just like you share CategoryListViewModel across screens.
             val context = LocalContext.current
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Screen.InvoiceList.route)
+                navController.currentBackStack.value
+                    .lastOrNull { it.destination.route == Screen.InvoiceList.route }
+            }
+            if (parentEntry == null) {
+                // InvoiceList is no longer on the back stack (rapid navigation race).
+                // Pop back safely rather than crashing on getBackStackEntry.
+                LaunchedEffect(Unit) { navController.popBackStack() }
+                return@composable
             }
             val viewModel: InvoiceListViewModel = viewModel(
                 parentEntry,
@@ -435,7 +456,14 @@ fun ClearLedgerNavHost(
             // Share the same InvoiceListViewModel as list/details
             val context = LocalContext.current
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Screen.InvoiceList.route)
+                navController.currentBackStack.value
+                    .lastOrNull { it.destination.route == Screen.InvoiceList.route }
+            }
+            if (parentEntry == null) {
+                // InvoiceList is no longer on the back stack (rapid navigation race).
+                // Pop back safely rather than crashing on getBackStackEntry.
+                LaunchedEffect(Unit) { navController.popBackStack() }
+                return@composable
             }
             val viewModel: InvoiceListViewModel = viewModel(
                 parentEntry,
