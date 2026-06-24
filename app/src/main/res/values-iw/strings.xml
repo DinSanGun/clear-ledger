@@ -68,6 +68,7 @@
     <string name="amount_highest_first">סכום (הגבוה ביותר ראשון)</string>
     <string name="amount_lowest_first">סכום (הנמוך ביותר ראשון)</string>
     <string name="delete_invoice">למחוק חשבונית?</string>
+    <string name="delete_invoice_action">מחק חשבונית</string>
     <string name="delete_invoice_confirmation">האם אתה בטוח שברצונך למחוק חשבונית זו? פעולה זו לא ניתנת לביטול.</string>
     <string name="invoice_deleted">חשבונית נמחקה</string>
     <string name="export">ייצוא</string>

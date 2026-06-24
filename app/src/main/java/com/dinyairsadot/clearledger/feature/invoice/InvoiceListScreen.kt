@@ -136,6 +136,7 @@ fun InvoiceListScreen(
     onBackClick: () -> Unit,
     onAddInvoiceClick: () -> Unit,
     onInvoiceClick: (Long) -> Unit,
+    onEditInvoiceClick: (Long) -> Unit,
     onDeleteInvoice: (Long) -> Unit,
     categoryColorHex: String?,
     onSortOptionChange: (SortOption) -> Unit,
@@ -409,6 +410,7 @@ fun InvoiceListScreen(
                                 invoices = uiState.visibleInvoices,
                                 modifier = Modifier.weight(1f),
                                 onInvoiceClick = onInvoiceClick,
+                                onEditInvoiceClick = onEditInvoiceClick,
                                 onRequestDeleteInvoice = { id -> pendingDeleteInvoiceId = id }
                             )
                         }
@@ -991,6 +993,7 @@ private fun InvoiceListContent(
     invoices: List<InvoiceUi>,
     modifier: Modifier = Modifier,
     onInvoiceClick: (Long) -> Unit,
+    onEditInvoiceClick: (Long) -> Unit,
     onRequestDeleteInvoice: (Long) -> Unit
 ) {
     val context = LocalContext.current
@@ -1002,6 +1005,7 @@ private fun InvoiceListContent(
                 InvoiceItem(
                     invoice = invoice,
                     onClick = { onInvoiceClick(invoice.id) },
+                    onEditClick = { onEditInvoiceClick(invoice.id) },
                     onDeleteClick = { onRequestDeleteInvoice(invoice.id) },
                     context = context
                 )
@@ -1014,25 +1018,23 @@ private fun InvoiceItem(
     invoice: InvoiceUi,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     context: android.content.Context
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Invoice data block
             Column(
                 modifier = Modifier
                     .weight(1f)
+                    .clickable(onClick = onClick)
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
             ) {
                 val invoiceNumberText = invoice.invoiceNumber.ifBlank {
                     stringResource(R.string.invoice_number_fallback, invoice.id)
@@ -1107,12 +1109,42 @@ private fun InvoiceItem(
                 }
             }
 
-            IconButton(onClick = onDeleteClick) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.delete_invoice),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            var isMenuExpanded by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(end = 4.dp)
+            ) {
+                IconButton(onClick = { isMenuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(R.string.more_options)
+                    )
+                }
+                DropdownMenu(
+                    expanded = isMenuExpanded,
+                    onDismissRequest = { isMenuExpanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.edit_invoice)) },
+                        onClick = {
+                            isMenuExpanded = false
+                            onEditClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(R.string.delete_invoice_action),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        onClick = {
+                            isMenuExpanded = false
+                            onDeleteClick()
+                        }
+                    )
+                }
             }
         }
     }

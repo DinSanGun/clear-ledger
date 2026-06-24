@@ -306,6 +306,11 @@ fun ClearLedgerNavHost(
                         Screen.InvoiceDetails.routeWithId(invoiceId)
                     )
                 },
+                onEditInvoiceClick = { invoiceId ->
+                    navController.navigate(
+                        Screen.EditInvoice.routeWithId(invoiceId)
+                    )
+                },
                 onDeleteInvoice = { invoiceId ->
                     viewModel.deleteInvoice(invoiceId = invoiceId, categoryId = categoryId)
                 },
