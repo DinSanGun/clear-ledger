@@ -354,8 +354,11 @@ fun ClearLedgerNavHost(
             // We don't need uiState here, just the ability to add an invoice.
             val context = LocalContext.current
             val parentEntry = remember(backStackEntry) {
-                navController.currentBackStack.value
-                    .lastOrNull { it.destination.route == Screen.InvoiceList.route }
+                try {
+                    navController.getBackStackEntry(Screen.InvoiceList.route)
+                } catch (_: IllegalArgumentException) {
+                    null
+                }
             }
             if (parentEntry == null) {
                 // InvoiceList is no longer on the back stack (rapid navigation race).
@@ -411,8 +414,11 @@ fun ClearLedgerNavHost(
             // just like you share CategoryListViewModel across screens.
             val context = LocalContext.current
             val parentEntry = remember(backStackEntry) {
-                navController.currentBackStack.value
-                    .lastOrNull { it.destination.route == Screen.InvoiceList.route }
+                try {
+                    navController.getBackStackEntry(Screen.InvoiceList.route)
+                } catch (_: IllegalArgumentException) {
+                    null
+                }
             }
             if (parentEntry == null) {
                 // InvoiceList is no longer on the back stack (rapid navigation race).
@@ -479,8 +485,11 @@ fun ClearLedgerNavHost(
             // Share the same InvoiceListViewModel as list/details
             val context = LocalContext.current
             val parentEntry = remember(backStackEntry) {
-                navController.currentBackStack.value
-                    .lastOrNull { it.destination.route == Screen.InvoiceList.route }
+                try {
+                    navController.getBackStackEntry(Screen.InvoiceList.route)
+                } catch (_: IllegalArgumentException) {
+                    null
+                }
             }
             if (parentEntry == null) {
                 // InvoiceList is no longer on the back stack (rapid navigation race).
@@ -565,14 +574,16 @@ fun ClearLedgerNavHost(
 /**
  * Safe alternative to [NavHostController.popBackStack].
  *
- * Pops the back stack only when there is at least one entry above the start
- * destination, i.e. [currentBackStack] contains more than the synthetic
- * NavGraph root entry plus CategoryList ([size] > 2).
+ * Pops the back stack only when [previousBackStackEntry] is non-null, meaning
+ * there is at least one user-visible destination below the current one.
+ * When the current destination is the start destination (CategoryList),
+ * [previousBackStackEntry] is null and no pop is attempted, so the NavHost
+ * can never be left with an empty back stack showing a blank screen.
  *
- * [currentBackStack].value is backed by an atomic [StateFlow] that is updated
- * synchronously inside [popBackStack], so back-to-back rapid calls each see
- * the already-decremented size and the root destination can never be popped
- * accidentally.
+ * [previousBackStackEntry] is a computed public property that reads the
+ * NavController's internal back queue synchronously, so back-to-back rapid
+ * calls (e.g. double-tapping a toolbar back arrow during an animation) each
+ * observe the already-decremented state and will stop safely at root.
  */
 private fun NavHostController.popIfSafe(): Boolean =
-    if (currentBackStack.value.size > 2) popBackStack() else false
+    if (previousBackStackEntry != null) popBackStack() else false
