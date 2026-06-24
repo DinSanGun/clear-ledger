@@ -134,7 +134,18 @@ fun InvoiceDetailsScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.padding(top = 8.dp))
+                        Spacer(
+                            modifier = Modifier.padding(
+                                top = if (
+                                    invoice.documentType != null ||
+                                    !invoice.vendorName.isNullOrBlank()
+                                ) {
+                                    4.dp
+                                } else {
+                                    8.dp
+                                }
+                            )
+                        )
 
                         DetailFieldRow(
                             label = stringResource(R.string.amount_label, "").trimEnd(),

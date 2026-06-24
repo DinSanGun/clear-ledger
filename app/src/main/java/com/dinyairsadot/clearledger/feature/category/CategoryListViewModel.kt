@@ -18,7 +18,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.content.Context
+import android.content.res.Configuration
 import com.dinyairsadot.clearledger.R
+import com.dinyairsadot.clearledger.core.data.LanguagePreferenceManager
 
 data class CategoryUi(
     val id: Long,
@@ -47,8 +49,25 @@ class CategoryListViewModel(
     private val backupRestoreRepository: BackupRestoreRepository
 ) : ViewModel() {
 
+    private val languageManager = LanguagePreferenceManager(context)
+
     private val _uiState = MutableStateFlow(CategoryListUiState(isLoading = true))
     val uiState: StateFlow<CategoryListUiState> = _uiState.asStateFlow()
+
+    /**
+     * Builds a context whose locale is read directly from the saved language preference.
+     * This is more reliable than the ViewModel's stored context, which comes from
+     * LocalContext.current and may not reflect the attachBaseContext locale override in all
+     * configurations. Using the saved preference guarantees the correct locale is applied
+     * for string-resource resolution in DefaultCategorySeeder and updateLocalizedSeededCategories.
+     */
+    private fun buildSavedLocaleContext(): Context {
+        val locale = languageManager.getSavedLocale()
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+        config.setLayoutDirection(locale)
+        return context.createConfigurationContext(config)
+    }
 
     init {
         loadInitialCategories()
@@ -285,10 +304,24 @@ class CategoryListViewModel(
 
     suspend fun performRestore(payload: BackupPayload) {
         backupRestoreRepository.restoreFromBackup(payload)
+        // Prevent MainActivity's LaunchedEffect from re-localizing restored backup category names
+        // on the very next activity recreate. Backup contents must be preserved exactly.
+        // Future explicit language switches will still relocalize only unedited seeded categories.
+        languageManager.setLastAppliedLanguage(languageManager.getCurrentLanguage())
     }
 
     suspend fun performReset() {
-        backupRestoreRepository.resetAllData(context)
+        // Use a context whose locale is derived from the saved language preference rather than
+        // the ViewModel's stored LocalContext, which may not reflect attachBaseContext's locale
+        // override in all configurations.
+        val localizedCtx = buildSavedLocaleContext()
+        backupRestoreRepository.resetAllData(localizedCtx)
+        // Re-apply the locale to all freshly seeded unedited categories as a safety net.
+        // This corrects any string-resource mismatch that may have occurred during resetAllData.
+        categoryRepository.updateLocalizedSeededCategories(localizedCtx)
+        // Record that seeded categories are now in the current language so MainActivity's
+        // LaunchedEffect does not trigger a redundant re-localization on the next recreate.
+        languageManager.setLastAppliedLanguage(languageManager.getCurrentLanguage())
     }
 
     private suspend fun buildUiCategories(categories: List<Category>): List<CategoryUi> {
