@@ -29,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import com.dinyairsadot.clearledger.core.domain.Category
 import com.dinyairsadot.clearledger.core.ui.SwipeDismissSnackbarHost
@@ -262,15 +264,25 @@ fun AddCategoryScreen(
                     )
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        removeCustomFieldAt(fieldIndex)
-                        pendingRemoveFieldIndex = null
-                    }) {
+                    TextButton(
+                        onClick = {
+                            removeCustomFieldAt(fieldIndex)
+                            pendingRemoveFieldIndex = null
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
                         Text(stringResource(R.string.remove))
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { pendingRemoveFieldIndex = null }) {
+                    TextButton(
+                        onClick = { pendingRemoveFieldIndex = null },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
                         Text(stringResource(R.string.cancel))
                     }
                 }

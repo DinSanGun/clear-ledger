@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -442,16 +443,21 @@ fun CategoryListScreen(
                                     isFileOperationInProgress = false
                                 }
                             }
-                        }
-                    ) {
-                        Text(
-                            text = restoreButtonLabel,
-                            color = MaterialTheme.colorScheme.error
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
                         )
+                    ) {
+                        Text(text = restoreButtonLabel)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { pendingRestorePayload = null }) {
+                    TextButton(
+                        onClick = { pendingRestorePayload = null },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
                         Text(stringResource(R.string.cancel))
                     }
                 }
@@ -479,16 +485,21 @@ fun CategoryListScreen(
                                     isFileOperationInProgress = false
                                 }
                             }
-                        }
-                    ) {
-                        Text(
-                            text = resetButtonLabel,
-                            color = MaterialTheme.colorScheme.error
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
                         )
+                    ) {
+                        Text(text = resetButtonLabel)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showResetConfirmDialog = false }) {
+                    TextButton(
+                        onClick = { showResetConfirmDialog = false },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
                         Text(stringResource(R.string.cancel))
                     }
                 }
@@ -512,13 +523,21 @@ fun CategoryListScreen(
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(categoryDeletedMessage)
                             }
-                        }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
                     ) {
                         Text(stringResource(R.string.delete))
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { pendingDeleteId = null }) {
+                    TextButton(
+                        onClick = { pendingDeleteId = null },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
                         Text(stringResource(R.string.cancel))
                     }
                 }

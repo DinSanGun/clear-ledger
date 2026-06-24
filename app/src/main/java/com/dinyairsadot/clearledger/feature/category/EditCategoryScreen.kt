@@ -33,6 +33,7 @@ import com.dinyairsadot.clearledger.core.ui.categoryTopAppBarColors
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -346,13 +347,21 @@ fun EditCategoryScreen(
                         onClick = {
                             showDiscardChangesDialog = false
                             onNavigateBack()
-                        }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
                     ) {
                         Text(stringResource(R.string.discard))
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDiscardChangesDialog = false }) {
+                    TextButton(
+                        onClick = { showDiscardChangesDialog = false },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
                         Text(stringResource(R.string.keep_editing))
                     }
                 }
@@ -370,15 +379,25 @@ fun EditCategoryScreen(
                     Text(context.getString(R.string.remove_custom_field_confirmation, fieldTitle))
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        removeCustomFieldAt(fieldIndex)
-                        pendingRemoveFieldIndex = null
-                    }) {
+                    TextButton(
+                        onClick = {
+                            removeCustomFieldAt(fieldIndex)
+                            pendingRemoveFieldIndex = null
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
                         Text(stringResource(R.string.remove))
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { pendingRemoveFieldIndex = null }) {
+                    TextButton(
+                        onClick = { pendingRemoveFieldIndex = null },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
                         Text(stringResource(R.string.cancel))
                     }
                 }
