@@ -218,7 +218,7 @@
     <string name="field_billing_period_end">Billing Period End</string>
     
     <!-- Invoice Fields -->
-    <string name="vendor_name">Vendor/Body Name</string>
+    <string name="vendor_name">Provider</string>
     <string name="issue_date_dd_mm_yyyy">Issue Date (DD/MM/YYYY)</string>
     <string name="paid_date_dd_mm_yyyy">Payment date (actual)</string>
     <string name="service_period_start">Service Period Start (DD/MM/YYYY)</string>
@@ -227,7 +227,7 @@
     <string name="paid_date_label">Actual payment date: %1$s</string>
     <string name="due_date_label">Payment deadline: %1$s</string>
     <string name="service_period_label">Service Period: %1$s</string>
-    <string name="vendor_name_label">Vendor: %1$s</string>
+    <string name="vendor_name_label">Provider: %1$s</string>
 
     <!-- Service Period hybrid input -->
     <string name="service_period">Service Period</string>
