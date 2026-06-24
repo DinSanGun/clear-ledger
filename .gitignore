@@ -50,7 +50,10 @@ Thumbs.db
 *.tmp
 *.temp
 
+# Project snapshots
+*_snapshot*.zip
+Project_snapshot.zip
+
 # Cursor
-tatus
 .private_notes/
 .cursor/
