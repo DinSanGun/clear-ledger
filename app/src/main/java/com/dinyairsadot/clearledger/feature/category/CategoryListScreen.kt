@@ -168,8 +168,15 @@ fun CategoryListScreen(
         onDispose { snackbarHostState.currentSnackbarData?.dismiss() }
     }
 
-    BackHandler(enabled = isReorderMode) {
-        onExitReorderMode()
+    // Always intercept Back at the root (start) destination.
+    // Reorder mode: cancel reorder mode and stay on screen (existing behavior).
+    // Normal mode: silently consume the press. This prevents NavController's
+    // OnBackPressedCallback from firing on a rapid second press during a pop
+    // animation, which would pop the start destination and blank the NavHost.
+    BackHandler(enabled = true) {
+        if (isReorderMode) {
+            onExitReorderMode()
+        }
     }
 
     val exportLauncher = rememberLauncherForActivityResult(

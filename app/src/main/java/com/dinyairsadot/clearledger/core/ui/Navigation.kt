@@ -170,7 +170,7 @@ fun ClearLedgerNavHost(
 
             AddCategoryScreen(
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.popIfSafe()
                 },
                 onSaveCategory = { name, colorHex, description, customFieldTitles ->
                     viewModel.addCategory(name, colorHex, description, customFieldTitles)
@@ -215,7 +215,7 @@ fun ClearLedgerNavHost(
             val categoryUi = uiState.categories.firstOrNull { it.id == categoryId }
             if (categoryUi == null) {
                 // If category is missing (e.g. deleted), go back
-                navController.popBackStack()
+                navController.popIfSafe()
                 return@composable
             }
 
@@ -247,7 +247,7 @@ fun ClearLedgerNavHost(
                 initialCustomFieldTitles = category.customFieldTitles,
                 otherNamesLower = otherNamesLower,
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.popIfSafe()
                 },
                 onSaveCategory = { name, colorHex, description, customFieldTitles ->
                     viewModel.updateCategory(
@@ -297,7 +297,7 @@ fun ClearLedgerNavHost(
             InvoiceListScreen(
                 categoryId = categoryId,
                 uiState = uiState,
-                onBackClick = { navController.popBackStack() },
+                onBackClick = { navController.popIfSafe() },
                 onAddInvoiceClick = {
                     navController.navigate(Screen.AddInvoice.routeWithCategoryId(categoryId))
                 },
@@ -395,7 +395,7 @@ fun ClearLedgerNavHost(
                     )
                     // AddInvoiceScreen will also call onNavigateBack() after this
                 },
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popIfSafe() }
             )
         }
         // -------------------------
@@ -434,7 +434,7 @@ fun ClearLedgerNavHost(
                         TopAppBar(
                             title = { Text(stringResource(R.string.invoice_not_found)) },
                             navigationIcon = {
-                                IconButton(onClick = { navController.popBackStack() }) {
+                                IconButton(onClick = { navController.popIfSafe() }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                         contentDescription = stringResource(R.string.back)
@@ -457,7 +457,7 @@ fun ClearLedgerNavHost(
                 InvoiceDetailsScreen(
                     invoice = invoice,
                     categoryCustomFieldTitles = uiState.categoryCustomFieldTitles,
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = { navController.popIfSafe() },
                     onEditClick = {
                         navController.navigate(
                             Screen.EditInvoice.routeWithId(invoice.id)
@@ -523,7 +523,7 @@ fun ClearLedgerNavHost(
                 initialNotes = invoiceUi.notes ?: "",
                 initialCustomFieldValues = invoiceUi.customFieldValues,
                 initialAmountCurrency = invoiceUi.amountCurrency,
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { navController.popIfSafe() },
                 onSaveInvoice = { documentNumber, amountDue, paymentStatus, servicePeriodStartText, servicePeriodEndText, servicePeriodMode, paymentDate, dueDate, paymentMethod, numberOfPayments, confirmationNumber, vendorName, notes, customFieldValues, amountCurrency ->
                     viewModel.updateInvoice(
                         invoiceId = invoiceUi.id,
@@ -555,9 +555,24 @@ fun ClearLedgerNavHost(
             val activity = context as? ComponentActivity
             
             LanguageSettingsScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { navController.popIfSafe() },
                 activity = activity
             )
         }
     }
 }
+
+/**
+ * Safe alternative to [NavHostController.popBackStack].
+ *
+ * Pops the back stack only when there is at least one entry above the start
+ * destination, i.e. [currentBackStack] contains more than the synthetic
+ * NavGraph root entry plus CategoryList ([size] > 2).
+ *
+ * [currentBackStack].value is backed by an atomic [StateFlow] that is updated
+ * synchronously inside [popBackStack], so back-to-back rapid calls each see
+ * the already-decremented size and the root destination can never be popped
+ * accidentally.
+ */
+private fun NavHostController.popIfSafe(): Boolean =
+    if (currentBackStack.value.size > 2) popBackStack() else false
