@@ -21,7 +21,7 @@ The app targets real-world billing and tax workflows, including Israel-specific 
 
 ## Screenshots
 
-*Screenshots coming before Play Store release (S14).*
+7 screenshots captured at `docs/assets/screenshots/play-store/` (EN × 6, HE × 1) — pending upload to Play Console.
 
 ---
 
@@ -62,6 +62,9 @@ The app targets real-world billing and tax workflows, including Israel-specific 
 - Consistent invoice and category card layouts
 - Edit Category top-bar Save action with discard warning for unsaved changes
 - Invoice list active filter indication and clear-filters action
+- Consistent dialog action color semantics: destructive actions (Delete/Reset/Restore/Remove/Discard) in error red; cancel/dismiss neutral; positive actions in primary
+- Rapid repeated toolbar or system back presses handled safely — guarded navigation prevents popping the start destination and leaving a blank screen
+- "Add custom field" in category forms uses an outlined button with + icon; invoice custom fields visually match standard form fields
 - Portrait-optimized layout
 
 ### Data Portability
@@ -73,7 +76,7 @@ The app offers three distinct data portability features. **Do not confuse them:*
 | **Export** (invoice list) | Invoice overflow → Export | Localized CSV | Human-readable spreadsheet of currently visible invoices |
 | **Export all data** | Category overflow → Export all data | ZIP with CSV files | Human-readable archive for review, accountants, or records |
 | **Backup** | Category overflow → Create backup | ZIP with `backup.json` | Restore-ready app data snapshot |
-| **Restore** | Category overflow → Restore backup | Reads backup ZIP | Full replacement of local app data from a backup |
+| **Restore** | Category overflow → Restore from backup | Reads backup ZIP | Full replacement of local app data from a backup |
 
 #### Export (human-readable)
 - **Invoice list:** exports currently visible invoices (after search, filter, and sort) to localized CSV via Storage Access Framework (SAF)
@@ -89,6 +92,7 @@ The app offers three distinct data portability features. **Do not confuse them:*
 - Validation runs **before** any data is deleted; if validation fails, current data stays unchanged
 - Restore uses a Room transaction (delete + insert) and preserves original category and invoice IDs
 - After a successful restore, seeding flags are updated so first-run default seeding does not duplicate restored data
+- After restore, `last_applied_language` is updated to prevent the next launch from re-localizing seeded backup category names
 - Language preference is **not** restored or modified
 - Backup files are **plaintext JSON** and contain sensitive financial/user data — treat them like private documents
 
@@ -167,7 +171,7 @@ Clear Ledger is **feature-complete** for MVP and in late pre-release preparation
 | S10 — GitHub Actions CI | Done |
 | S11 — Release polish | Done |
 | S12 — Project documentation & release identity (S12A–C) | Done |
-| **S14 — Privacy policy & Play Store materials** | **Next** |
+| **S14 — Privacy policy & Play Store materials** | **In progress** |
 | S15 — Internal Play Store testing (signing + upload) | Pending |
 | S16 — Launch blocker fixes | Pending |
 | S17 — Production release | Pending |

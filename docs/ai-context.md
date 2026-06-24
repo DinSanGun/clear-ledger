@@ -1,6 +1,6 @@
 # Clear Ledger (Android) — AI Context (Cursor)
 
-_Last updated: 2026-06-18_
+_Last updated: 2026-06-24_
 
 Concise working context for AI-assisted development. For the full overview see `docs/PROJECT_OVERVIEW.md`; for architecture patterns see `docs/ARCHITECTURE.md`; for release planning see `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.
 
@@ -84,6 +84,7 @@ Compose screens render immutable UI state and forward intents. ViewModels own st
 ### Seeded categories
 - `seedKey` identifies built-in categories; `userEdited` blocks locale overwrite
 - After restore, seeding flags are set so first-run seeding does not duplicate restored data
+- After restore, `last_applied_language` is set to the current locale so backup category names are not overwritten by re-localization on the next launch
 
 ### Localization / RTL
 - Language preference persisted; locale applied in `attachBaseContext`
@@ -91,6 +92,7 @@ Compose screens render immutable UI state and forward intents. ViewModels own st
 - Read locale via **`LocalConfiguration.current`**, not `LocalContext.current.resources.configuration`
 - Export headers follow **app locale only** (English or Hebrew) — **no bilingual headers**, no encoding hacks
 - Restore does **not** modify language preference
+- Reset all data uses `buildSavedLocaleContext()` (reads `LanguagePreferenceManager`, constructs a `Configuration`-wrapped context) so seeding always uses the correct locale regardless of what `LocalContext.current` resolved at ViewModel creation
 
 ### Export vs backup vs restore
 - **Export** = localized CSV/ZIP for humans/spreadsheets — **not for restore**
@@ -145,12 +147,12 @@ Invoice CSV export uses **`visibleInvoices`** (and category name/titles from UiS
 - Stores raw enum names, ISO dates, explicit nulls, IDs, order, custom fields — **not** localized display strings
 
 ### Restore backup (`CategoryListScreen`)
-- Overflow → Restore backup; SAF `OpenDocument` for `application/zip`
+- Overflow → Restore from backup; SAF `OpenDocument` for `application/zip`
 - `CategoryListViewModel.validateAndParseBackup(uri)` → `BackupZipImporter` + `BackupValidator`
 - If valid: show destructive confirmation dialog; on confirm → `performRestore()` → `RoomBackupRestoreRepository.restoreFromBackup()`
 - **Full replace only** — not merge; validation before delete; transaction rolls back on failure
 - Preserves original category and invoice IDs
-- Sets seeding flags after success; does not touch language preference
+- Sets seeding flags after success; sets `last_applied_language` to current locale to prevent re-localization of backup category names on next launch; does not touch language preference
 - **CSV/ZIP exports are rejected** — only backup ZIPs with `backup.json`
 
 ---
@@ -167,6 +169,7 @@ Invoice CSV export uses **`visibleInvoices`** (and category name/titles from UiS
 | **Export scope & format** | Invoice export = visible only; ZIP skips empty invoice CSVs |
 | **Backup format / restore semantics** | Full replace; validate before delete; preserve IDs |
 | **Localization** | Both `values/` and `values-iw/` |
+| **Back navigation (`popIfSafe` + BackHandler)** | `popIfSafe()` in Navigation.kt and `BackHandler(enabled = true)` at CategoryList root must stay; removing either re-exposes the blank-screen bug on rapid back presses |
 
 Ask before: DB migrations, conflating export with backup, allowing CSV restore, bilingual CSV headers, changing restore to merge mode.
 
@@ -184,11 +187,13 @@ Ask before: DB migrations, conflating export with backup, allowing CSV restore, 
 
 **Restore** (`73b7bd6`): full-replace restore with validation, transaction, ID preservation, seeding flag handling.
 
+**Pre-release polish (Jun 2026):** dialog action color semantics (error/onSurface/primary per button role across all 7 dialogs); rapid-back blank-screen fix (`popIfSafe()` in Navigation.kt + `BackHandler(enabled = true)` at CategoryList root, public APIs only, lint passes); custom field UI clarity (OutlinedButton + icon in category form; invoice custom fields use standard floating label consistent with other fields); locale/seeding fix (reset uses `buildSavedLocaleContext()`; restore sets `last_applied_language` to block re-localization of backup names). 7 Play Store screenshots captured.
+
 ---
 
 ## 11) Project status (Jun 2026)
 
-**Done:** Room, bilingual UI, custom fields, search/filter/sort, service period, category reorder, UI polish, pre-launch refactor, user-facing export (CSV + ZIP), backup creation, full-replace restore, targeted unit tests (S9), GitHub Actions CI (S10), release polish (S11), documentation polish (S12), release identity (S13 — `com.dinyairsadot.clearledger`, v1.0.0).
+**Done:** Room, bilingual UI, custom fields, search/filter/sort, service period, category reorder, UI polish, pre-launch refactor, user-facing export (CSV + ZIP), backup creation, full-replace restore, targeted unit tests (S9), GitHub Actions CI (S10), release polish (S11), documentation polish (S12), release identity (S13 — `com.dinyairsadot.clearledger`, v1.0.0), pre-release polish pass (dialog colors, navigation fix, custom field UI, locale/seeding fixes).
 
 **Pre-release (priority order — see `LAUNCH_PLAN` S9–S17):**
 1. **S9** — Targeted test hardening — **Done**
@@ -196,7 +201,7 @@ Ask before: DB migrations, conflating export with backup, allowing CSV restore, 
 3. **S11** — Release polish — **Done**
 4. **S12** — Project docs — **Done**
 5. **S13** — Release identity — **Done**
-6. **S14** — Privacy policy and Play Store materials — **Next**
+6. **S14** — Privacy policy and Play Store materials — **In progress** (screenshots done; remaining: host policy URL, complete Play Console forms)
 7. **S15** — Internal Play testing (signing deferred here)
 8. **S16** — Launch blocker fixes only
 9. **S17** — Production release + GitHub/interview presentation

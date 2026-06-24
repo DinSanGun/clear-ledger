@@ -3,7 +3,7 @@
 Practical checklist for building, testing, and publishing to Google Play.  
 Execution order and step IDs follow `docs/LAUNCH_PLAN.md` (S9–S17).
 
-_Last updated: 2026-06-18_
+_Last updated: 2026-06-24_
 
 ---
 
@@ -143,7 +143,7 @@ See `docs/PRIVACY_POLICY.md` for the full policy and `docs/PLAY_STORE_MATERIALS.
 
 - [ ] Publish privacy policy at a stable URL
 - [ ] Finalize and enter Play **short description** and **full description** in Play Console
-- [ ] Capture phone screenshots (EN; HE if feasible)
+- [x] Phone screenshots captured (7 total: EN × 6, HE × 1) — `docs/assets/screenshots/play-store/`
 - [ ] Optional demo video or GIF
 - [ ] **Data Safety** form completed in Play Console — verify against final AAB before submitting
 - [ ] **Content rating** questionnaire completed in Play Console
@@ -171,6 +171,7 @@ Document keystore location and signing config in a **private** secure note — n
 - [ ] Create backup; restore backup (round-trip)
 - [ ] Invalid restore (non-ZIP, wrong ZIP, CSV export, unsupported format version)
 - [ ] Hebrew and English UI and export
+- [ ] Rapid back press from invoice list to category list — no blank screen
 - [ ] Upgrade from previous internal version
 
 ---

@@ -19,7 +19,7 @@ For the pre-release execution plan, see `docs/LAUNCH_PLAN.md`. For architecture 
    - Language settings (Hebrew / English)
    - **Export all data** → ZIP via Storage Access Framework (`categories.csv` + invoice CSVs per category with invoices) — human-readable, not for restore
    - **Create backup** → ZIP via SAF containing `backup.json` — restore-ready app data
-   - **Restore backup** → pick backup ZIP, validate, confirm, full replace of local data
+   - **Restore from backup** → pick backup ZIP, validate, confirm, full replace of local data
 
 2. **Invoice management**
    - Select category → invoice list (search, filter, sort)
@@ -117,6 +117,8 @@ com.dinyairsadot.clearledger/
 | `language_settings` | Manual language switch |
 
 **ViewModel sharing:** Child screens resolve the parent back-stack entry (e.g. `invoice_list/{categoryId}`) and reuse the same ViewModel instance.
+
+**Back navigation safety:** All toolbar and programmatic back actions use `popIfSafe()` (Navigation.kt), which checks `previousBackStackEntry != null` before calling `popBackStack()`. `CategoryList` also registers `BackHandler(enabled = true)` to absorb rapid system back presses. Together these prevent the start destination from being popped and the NavHost from going blank.
 
 **Snackbar feedback:** One-shot flags via `savedStateHandle` (e.g. `"category_added"`).
 
@@ -218,6 +220,7 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 ### Dialogs
 - Confirmation before delete (category or invoice)
 - Warning when removing custom field definitions
+- Action color semantics: destructive confirms (Delete/Reset/Restore/Remove/Discard) use `MaterialTheme.colorScheme.error`; cancel/dismiss use `onSurface`; positive confirms use default primary
 
 ---
 
@@ -227,6 +230,8 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 - Locale applied in `attachBaseContext`; Compose uses `LocalLayoutDirection`
 - String resources: `values/` (English), `values-iw/` (Hebrew)
 - Seeded categories re-localize on language change unless `userEdited == true`
+- Reset all data builds a locale-correct context from the saved language preference to ensure seeded categories are inserted in the correct language
+- After restore, `last_applied_language` is set to the current language to prevent `MainActivity` from re-localizing seeded backup category names on the next launch
 
 ---
 
@@ -307,6 +312,7 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 - **Backup and restore:** create backup + full-replace restore (Jun 2026)
 - **Targeted unit tests** (S9), **GitHub Actions CI** (S10), **release polish** (S11)
 - **Release identity** (`com.dinyairsadot.clearledger`, v1.0.0, launcher icon) and **documentation polish** (S12)
+- **Pre-release polish pass (Jun 2026):** dialog action color semantics, rapid-back navigation fix, custom field UI improvements, locale/seeding correctness fixes
 
 **Not yet implemented:**
 - Play Store production release
@@ -329,4 +335,4 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 
 ## Summary
 
-Clear Ledger is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** S14 privacy policy and Play Store materials, then S15 internal Play testing (signing). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.
+Clear Ledger is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** S14 remaining items (host privacy policy URL, complete Play Console forms), then S15 internal Play testing (signing). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.

@@ -3,7 +3,7 @@
 Concise architecture reference for developers, code review, and interview prep.  
 For user flows and package layout detail, see `docs/PROJECT_OVERVIEW.md`. For release planning, see `docs/LAUNCH_PLAN.md`.
 
-_Last updated: 2026-06-18_
+_Last updated: 2026-06-24_
 
 ---
 
@@ -73,6 +73,8 @@ Routes are defined in `core/ui/Navigation.kt` (`Screen` sealed class). Category 
 
 One-shot snackbar feedback uses `savedStateHandle` flags (e.g. after add/delete).
 
+Back navigation uses a `popIfSafe()` helper (Navigation.kt) that checks `previousBackStackEntry != null` (a public API) before calling `popBackStack()`. All toolbar and programmatic back actions go through this helper. `CategoryList` also registers `BackHandler(enabled = true)` to absorb rapid system back presses. Together these ensure the start destination is never popped and the NavHost cannot be left blank.
+
 ---
 
 ## Export (human-readable)
@@ -102,7 +104,7 @@ One-shot snackbar feedback uses `savedStateHandle` flags (e.g. after add/delete)
 | Validate | `BackupZipImporter` + `BackupValidator` — **before** any DB mutation |
 | Confirm | Destructive dialog (EN + HE) only after validation succeeds |
 | Apply | `RoomBackupRestoreRepository` — `withTransaction` delete all + insert; preserves original IDs |
-| Post-restore | Seeding flags updated; language preference unchanged |
+| Post-restore | Seeding flags updated; `last_applied_language` set to current locale to prevent re-localization of restored category names on next launch; language preference unchanged |
 
 CSV/ZIP exports are **rejected** at validation. Plaintext backup files contain sensitive data — user must store them securely.
 
@@ -116,6 +118,7 @@ Pure Kotlin utilities live in `core/util/backup/`.
 - Locale applied in `attachBaseContext`; Compose respects RTL/LTR via `LocalLayoutDirection`
 - Resources: `values/` (English), `values-iw/` (Hebrew)
 - Seeded categories re-localize on language change unless `userEdited == true`
+- Reset all data seeds default categories using a locale-correct context built from the saved language preference, ensuring the correct locale is applied regardless of how the Compose context was captured
 - Export headers and display values follow active app locale
 
 ---

@@ -1,6 +1,6 @@
 # Clear Ledger – Play Store Materials
 
-_Last updated: 2026-06-18_
+_Last updated: 2026-06-24_
 
 Drafts for the Google Play Store listing, Data Safety form, content rating, and asset checklist.  
 All sections marked **[DRAFT]** must be reviewed and verified in Play Console before submission.
@@ -191,7 +191,7 @@ Complete the questionnaire in Play Console — do not self-assign the rating.
 ### Required by Play Console
 
 - [ ] **Hi-res icon** — 512×512 PNG, 32-bit, no alpha required by Play (check dimensions of existing `app/src/main/ic_launcher-playstore.png` — file is present; verify it is exactly 512×512 before upload)
-- [ ] **Phone screenshots** — minimum 2, maximum 8; minimum 320px on shortest side; PNG or JPEG
+- [x] **Phone screenshots** — 7 captured (EN × 6, HE × 1); files at `docs/assets/screenshots/play-store/` (screens 01–07; suggested screen 8 not captured)
 
 ### Suggested screenshot flow
 

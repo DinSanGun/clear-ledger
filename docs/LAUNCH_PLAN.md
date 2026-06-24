@@ -337,7 +337,7 @@ Signing is deferred to **S15** (internal testing setup).
 - [x] `docs/PLAY_STORE_MATERIALS.md` created (Data Safety draft, store listing, asset checklist)
 - [ ] Privacy policy published at a stable URL (required before Play submission)
 - [ ] Play **short description** and **full description** finalized in Play Console
-- [ ] Phone screenshots captured (EN; HE if feasible)
+- [x] Phone screenshots captured (7 total: EN × 6, HE × 1) — `docs/assets/screenshots/play-store/`
 - [ ] Optional short demo video or GIF
 - [ ] **Data Safety** form completed in Play Console (verify against final AAB before submitting)
 - [ ] **Content rating** questionnaire completed in Play Console
@@ -439,6 +439,7 @@ Signing is deferred to **S15** (internal testing setup).
 - **2026-06-18:** S12C release build preparation complete. Identity confirmed (`com.dinyairsadot.clearledger`), `versionCode = 1`, `versionName = "1.0.0"`, `isMinifyEnabled = false`. Unsigned `bundleRelease` documented; signing deferred to S15.
 - **2026-06-18:** S12D documentation polish complete. README CI badge, architecture/release doc updates, roadmap synced. **Next: S14 privacy policy and Play Store materials.**
 - **2026-06-18:** S14 in progress. `docs/PRIVACY_POLICY.md` and `docs/PLAY_STORE_MATERIALS.md` created (store listing draft, Data Safety draft, asset checklist). Privacy claims verified against codebase — no INTERNET permission, no analytics SDK. Remaining: host policy URL, capture screenshots, complete Play Console forms.
+- **2026-06-24:** Pre-release polish complete: dialog action color semantics (destructive=error, cancel=onSurface, positive=primary across all 7 dialogs); rapid-back blank-screen fix (`popIfSafe()` guard in Navigation.kt + BackHandler always enabled at CategoryList root, public APIs, lint passes); custom field UI clarity (OutlinedButton + icon in category form; invoice custom fields use standard floating label matching other fields); locale/seeding fixes (reset uses saved locale context; restore sets `last_applied_language` to prevent re-localization of backup names). 7 Play Store screenshots captured. Docs updated. **Next: S14 remaining — host privacy policy URL, complete Play Console forms.**
 
 ---
 
