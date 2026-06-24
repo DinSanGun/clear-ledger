@@ -150,6 +150,9 @@
     <string name="pick_date">Pick date</string>
     <string name="notes">Notes</string>
     <string name="save_invoice">Save invoice</string>
+    <string name="invoice_form_section_basic_details">Basic details</string>
+    <string name="invoice_form_section_payment">Payment details</string>
+    <string name="invoice_form_section_additional_details">Additional details</string>
     <string name="status">Status:</string>
     <string name="paid">Paid</string>
     <string name="paid_full">Paid full</string>

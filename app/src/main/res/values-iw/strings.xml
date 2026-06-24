@@ -150,6 +150,9 @@
     <string name="pick_date">בחר תאריך</string>
     <string name="notes">הערות</string>
     <string name="save_invoice">שמור חשבונית</string>
+    <string name="invoice_form_section_basic_details">פרטים בסיסיים</string>
+    <string name="invoice_form_section_payment">פרטי תשלום</string>
+    <string name="invoice_form_section_additional_details">פרטים נוספים</string>
     <string name="status">סטטוס:</string>
     <string name="paid">שולם</string>
     <string name="paid_full">שולם במלואו</string>

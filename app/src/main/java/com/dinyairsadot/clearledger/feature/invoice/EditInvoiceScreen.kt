@@ -391,7 +391,11 @@ fun EditInvoiceScreen(
         ) {
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
-            // Main section
+            InvoiceFormSectionHeader(
+                title = stringResource(R.string.invoice_form_section_basic_details),
+                isFirstSection = true
+            )
+
             OutlinedTextField(
                 value = documentNumberText,
                 onValueChange = {
@@ -493,7 +497,10 @@ fun EditInvoiceScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.padding(top = 8.dp))
+            InvoiceFormSectionHeader(
+                title = stringResource(R.string.service_period),
+                isFirstSection = false
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -571,7 +578,10 @@ fun EditInvoiceScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.padding(top = 8.dp))
+            InvoiceFormSectionHeader(
+                title = stringResource(R.string.invoice_form_section_payment),
+                isFirstSection = false
+            )
 
             PaymentStatusSelector(
                 selected = paymentStatus,
@@ -659,7 +669,29 @@ fun EditInvoiceScreen(
                 Spacer(modifier = Modifier.padding(top = 8.dp))
             }
 
-            // Custom fields
+            InvoiceFormSectionHeader(
+                title = stringResource(R.string.invoice_form_section_additional_details),
+                isFirstSection = false
+            )
+
+            val vendorBringIntoViewRequester = remember { BringIntoViewRequester() }
+            OutlinedTextField(
+                value = vendorName,
+                onValueChange = { vendorName = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(vendorBringIntoViewRequester)
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            coroutineScope.launch {
+                                delay(250)
+                                vendorBringIntoViewRequester.bringIntoView()
+                            }
+                        }
+                    },
+                label = { Text(stringResource(R.string.vendor_name)) }
+            )
+
             if (categoryCustomFieldTitles.isNotEmpty()) {
                 categoryCustomFieldTitles.forEachIndexed { index, fieldTitle ->
                     Spacer(modifier = Modifier.padding(top = 8.dp))
@@ -686,27 +718,7 @@ fun EditInvoiceScreen(
                         label = { Text(fieldTitle) }
                     )
                 }
-                Spacer(modifier = Modifier.padding(top = 8.dp))
             }
-
-            // Bottom optional fields
-            val vendorBringIntoViewRequester = remember { BringIntoViewRequester() }
-            OutlinedTextField(
-                value = vendorName,
-                onValueChange = { vendorName = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .bringIntoViewRequester(vendorBringIntoViewRequester)
-                    .onFocusChanged { focusState ->
-                        if (focusState.isFocused) {
-                            coroutineScope.launch {
-                                delay(250)
-                                vendorBringIntoViewRequester.bringIntoView()
-                            }
-                        }
-                    },
-                label = { Text(stringResource(R.string.vendor_name)) }
-            )
 
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
