@@ -9,7 +9,7 @@ _Last updated: 2026-06-24_
 
 ## Overview
 
-Clear Ledger is a **local-first** Android app: categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. Data never leaves the device unless the user explicitly exports or backs up via Storage Access Framework (SAF).
+Clear Ledger is a **local-first** Android app: categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. Clear Ledger does not send your data to the developer or operate its own cloud service; data is stored locally. User-initiated export and manual backup use Storage Access Framework (SAF). Android system backup may apply per device settings.
 
 **Stack:** Kotlin · Jetpack Compose (Material 3) · Navigation Compose · Room v14 · MVVM-style separation
 
@@ -17,8 +17,9 @@ Clear Ledger is a **local-first** Android app: categories define optional custom
 
 ## Privacy and local-first design
 
-- No account, cloud sync, backend, or analytics — all app data in local Room storage
-- Export and backup are **user-initiated** via Storage Access Framework; the app never uploads data automatically
+- No account, developer cloud sync, backend, or analytics — app data in local Room storage
+- Clear Ledger does not transmit data to the developer; Android system backup may apply per device settings
+- Manual export and backup are **user-initiated** via Storage Access Framework
 - Backup ZIPs contain **plaintext JSON** with sensitive financial data — users must store them securely
 - Restore is full replace only; validation runs before any data is deleted
 

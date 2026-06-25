@@ -329,12 +329,13 @@ Signing is deferred to **S15** (internal testing setup).
 - No `INTERNET` permission — app is incapable of network requests
 - No analytics, crash-reporting, or advertising SDK
 - No backend, cloud sync, or developer data collection
-- Export and backup files are **user-initiated** and **user-controlled** via Storage Access Framework
-- Note: Android Auto Backup (`allowBackup=true`) may back up app data to the user's own Google Account — this is OS-level, not developer-initiated
+- Export and manual backup files are **user-initiated** and **user-controlled** via Storage Access Framework
+- **Android system backup enabled (v1.0.0):** `allowBackup=true` with explicit rules for Room database and SharedPreferences; Android/Google may back up or transfer per device settings — OS-level, not developer-initiated; developer has no access
 
 ## Checklist
 - [x] `docs/privacy-policy.md` created (canonical URL: `https://dinsangun.github.io/clear-ledger/privacy-policy`)
 - [x] `docs/PLAY_STORE_MATERIALS.md` created (store listing copy, Data Safety guidance, asset checklist)
+- [x] Android system backup rules configured (`backup_rules.xml`, `data_extraction_rules.xml`)
 - [ ] Verify hosted privacy policy URL is live before Play submission
 - [ ] Enter Play **short description** and **full description** in Play Console (copy in `docs/PLAY_STORE_MATERIALS.md`)
 - [x] Phone screenshots captured (7 total: EN × 6, HE × 1) — `docs/assets/screenshots/play-store/`

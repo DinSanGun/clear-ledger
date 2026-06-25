@@ -1,6 +1,6 @@
 # Clear Ledger – Play Store Materials
 
-_Last updated: 2026-06-24_
+_Last updated: 2026-06-25_
 
 Store listing copy, Data Safety guidance, content rating notes, and asset checklist for Google Play submission.
 Sections marked **[PLAY CONSOLE]** must be entered and verified in Play Console before submission.
@@ -27,13 +27,15 @@ Character count: 59 — within limit.
 
 ```
 Clear Ledger helps you track bills, invoices, and tax-related expenses — organized
-by category, searchable, and ready to export. All data stays on your device.
-No account required. No cloud sync. No ads.
+by category, searchable, and ready to export. Local-first design. No account required.
+No developer cloud sync. No ads.
 
 PRIVACY-FIRST DESIGN
-Your financial data never leaves your device unless you explicitly export or back
-it up yourself. Clear Ledger has no backend server and no analytics. Everything is
-stored locally in a private SQLite database.
+Clear Ledger does not send your data to the developer or operate its own cloud service.
+Your records are stored locally on your device. If Android system backup is enabled on
+your device, Android/Google may back up app data according to your device settings.
+You can also export records or create manual backups you control. No backend server.
+No analytics.
 
 ORGANIZE BY CATEGORY
 Create categories for your recurring bills: electricity, water, municipal tax,
@@ -77,7 +79,8 @@ SUITABLE FOR:
 - Small businesses tracking payments and tax documents
 - Anyone who wants structured, private, local financial records
 
-No account. No ads. No developer cloud sync. Your records stay on your device unless you choose to export or back them up.
+No account. No ads. No developer cloud sync. Local storage with optional Android
+system backup (per your device settings) and manual export/backup you control.
 ```
 
 ### Category
@@ -109,7 +112,7 @@ invoice tracker, bill tracker, tax invoice, expense tracker, local-first, no clo
 Technical basis:
 - No `INTERNET` permission declared in `AndroidManifest.xml`
 - No analytics, advertising, or data-collection SDK included
-- All app data (categories, invoices, preferences) is stored locally on the device only
+- All app data (categories, invoices, preferences) is stored locally on the device; the developer does not receive it
 
 ### Is all user data collected by your app encrypted in transit?
 
@@ -126,7 +129,7 @@ Technical basis:
 | Data type | Collected by developer? | Shared with third parties? | Notes |
 |-----------|------------------------|---------------------------|-------|
 | Personal information (name, email, etc.) | No | No | Not entered or stored |
-| Financial info | No | No | Stored locally on device; not transmitted |
+| Financial info | No | No | Stored locally on device; not sent to developer |
 | Location | No | No | Not accessed |
 | Contacts | No | No | Not accessed |
 | Device identifiers | No | No | Not accessed |
@@ -134,16 +137,24 @@ Technical basis:
 | Crash logs | No | No | No crash reporting SDK |
 | App activity | No | No | No telemetry |
 
-### Android Auto Backup
+### Android system backup
 
-Clear Ledger uses `android:allowBackup="true"`. Android's Auto Backup feature may back up app data (the local database) to the **user's own Google Account** if the user has Android backup enabled on their device.
+Clear Ledger uses `android:allowBackup="true"`. Android system backup is **enabled for v1.0.0**.
+
+Backup rules intentionally include:
+
+- Room database (`clear_ledger_database` and WAL files)
+- SharedPreferences for language and seeding flags (`language_prefs`, `seeding_prefs`)
+
+Cache and other non-listed app data are not included.
+
+If the user has Android backup enabled, Android/Google may back up or transfer this data to the **user's own Google Account** or during device transfer — not to the developer.
 
 For Play Data Safety purposes:
+
 - This data is backed up to the **user's own storage** (Google Account), not to the developer
 - The developer has no access to this backup data
-- Consult Play Console guidance on how to declare Auto Backup in the Data Safety form
-
-> Note: Backup policy is not finalized. `data_extraction_rules.xml` currently uses default cloud-backup rules with no explicit `<include>` or `<exclude>` entries. Review before Play submission if you want to restrict Android Auto Backup.
+- Consult Play Console guidance on how to declare Android system backup in the Data Safety form
 
 ### Data Safety form answers (Play Console UI) — expected responses
 

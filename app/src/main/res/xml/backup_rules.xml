@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Full-backup rules for Android Auto Backup (API < 31).
-   See https://developer.android.com/guide/topics/data/autobackup
-   With an empty <full-backup-content>, all app data eligible for backup is included.
-   Customize with <include> and <exclude> when backup policy is finalized.
-   Note: Ignored on API 31+; see data_extraction_rules.xml.
--->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android Auto Backup rules (API levels below 31). Only listed data is included. -->
 <full-backup-content>
+    <include domain="database" path="clear_ledger_database" />
+    <include domain="database" path="clear_ledger_database-shm" />
+    <include domain="database" path="clear_ledger_database-wal" />
+    <include domain="sharedpref" path="language_prefs" />
+    <include domain="sharedpref" path="seeding_prefs" />
 </full-backup-content>

@@ -128,9 +128,9 @@ Signing is configured in **S15** (internal testing setup), not here.
 - **No `INTERNET` permission** — app is technically incapable of outbound network requests
 - No analytics, crash-reporting, or advertising SDK included
 - No developer-initiated data collection; no backend server
-- All app data stored locally on device (Room / SQLite)
-- Export and backup are user-initiated; files go only where the user saves them via SAF
-- **Android Auto Backup note:** `allowBackup=true` — Android may back up app data to the user's own Google Account via the OS backup feature; this is not developer-initiated and the developer has no access to that backup
+- All app data stored locally on device (Room / SQLite + SharedPreferences)
+- Export and manual backup are user-initiated; files go only where the user saves them via SAF
+- **Android system backup (v1.0.0):** `allowBackup=true` with explicit rules — Room database (`clear_ledger_database`) and SharedPreferences (`language_prefs`, `seeding_prefs`) included; cache excluded. Android/Google may back up or transfer this data per the user's device and Google Account settings — not developer-initiated; developer has no access
 
 See [`docs/privacy-policy.md`](privacy-policy.md) for the full policy (hosted at `https://dinsangun.github.io/clear-ledger/privacy-policy`) and [`docs/PLAY_STORE_MATERIALS.md`](PLAY_STORE_MATERIALS.md) for store listing copy and Data Safety guidance.
 

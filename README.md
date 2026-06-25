@@ -12,9 +12,10 @@ The app targets real-world billing and tax workflows, including Israel-specific 
 
 ## Privacy-first / local-first
 
-- **No account, no cloud sync, no backend** — all data stays on the device in a Room (SQLite) database
-- **No analytics or automatic upload** — nothing leaves the device unless the user explicitly chooses a destination
-- **Export and backup via Storage Access Framework (SAF)** — files go only where the user saves them
+- **No account, no developer cloud sync, no backend** — categories and invoices are stored locally in a Room (SQLite) database
+- **Clear Ledger does not send your data to the developer** — no analytics or developer-operated upload
+- **Android system backup** — if enabled on your device, Android/Google may back up app data per your device and Google Account settings (see `docs/privacy-policy.md`)
+- **Manual export and backup via Storage Access Framework (SAF)** — files go only where you save them
 - **Backup files are plaintext JSON** — treat them like private financial documents
 
 ---
