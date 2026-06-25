@@ -7,6 +7,7 @@ Clear Ledger is a privacy-first Android app for tracking bills, invoices, and ta
 ## Links
 
 - [Privacy Policy](privacy-policy) — hosted at `https://dinsangun.github.io/clear-ledger/privacy-policy`
+- [מדיניות פרטיות](privacy-policy-he) — hosted at `https://dinsangun.github.io/clear-ledger/privacy-policy-he`
 - [GitHub Repository](https://github.com/DinSanGun/clear-ledger)
 
 ## Privacy-first

@@ -334,9 +334,10 @@ Signing is deferred to **S15** (internal testing setup).
 
 ## Checklist
 - [x] `docs/privacy-policy.md` created (canonical URL: `https://dinsangun.github.io/clear-ledger/privacy-policy`)
+- [x] `docs/privacy-policy-he.md` created (Hebrew: `https://dinsangun.github.io/clear-ledger/privacy-policy-he`; About opens language-appropriate URL; Play Console canonical URL remains English)
 - [x] `docs/PLAY_STORE_MATERIALS.md` created (store listing copy, Data Safety guidance, asset checklist)
 - [x] Android system backup rules configured (`backup_rules.xml`, `data_extraction_rules.xml`)
-- [ ] Verify hosted privacy policy URL is live before Play submission
+- [ ] Verify hosted privacy policy URLs are live before Play submission (English + Hebrew)
 - [ ] Enter Play **short description** and **full description** in Play Console (copy in `docs/PLAY_STORE_MATERIALS.md`)
 - [x] Phone screenshots captured (7 total: EN × 6, HE × 1) — `docs/assets/screenshots/play-store/`
 - [ ] Optional short demo video or GIF

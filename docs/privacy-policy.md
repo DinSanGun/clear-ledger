@@ -1,5 +1,9 @@
 # Clear Ledger – Privacy Policy
 
+English | [עברית](privacy-policy-he)
+
+_Simple Bill & Tax Tracker_
+
 _Last updated: 2026-06-25_
 
 This privacy policy describes how Clear Ledger handles your data. It applies to the Android app published by the developer under the package `com.dinyairsadot.clearledger`.
@@ -129,8 +133,10 @@ Canonical public URL (Play Store listing and external references):
 
 **https://dinsangun.github.io/clear-ledger/privacy-policy**
 
-In the app, the same URL opens from **About** (category list overflow menu → About → Privacy Policy).
+Hebrew version: **https://dinsangun.github.io/clear-ledger/privacy-policy-he**
 
-Source of truth in this repository: [`docs/privacy-policy.md`](privacy-policy.md).
+In the app, the language-appropriate URL opens from **About** (category list overflow menu → About → Privacy Policy): English UI → English policy; Hebrew UI → Hebrew policy.
+
+Source of truth in this repository: [`docs/privacy-policy.md`](privacy-policy.md) (English), [`docs/privacy-policy-he.md`](privacy-policy-he.md) (Hebrew).
 
 > **Verify before Play submission:** confirm the hosted URL is live and shows the current policy text.

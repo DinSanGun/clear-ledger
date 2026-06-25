@@ -98,7 +98,9 @@ invoice tracker, bill tracker, tax invoice, expense tracker, local-first, no clo
 
 ### Privacy policy URL
 
-**https://dinsangun.github.io/clear-ledger/privacy-policy**
+**https://dinsangun.github.io/clear-ledger/privacy-policy** (canonical — use in Play Console)
+
+Hebrew version (in-app and hosted): **https://dinsangun.github.io/clear-ledger/privacy-policy-he** — source: `docs/privacy-policy-he.md`. The About screen opens the language-appropriate URL; Play Console listing uses the English canonical URL above.
 
 ---
 
@@ -233,7 +235,7 @@ Phone screenshots are captured. Remaining assets are optional or need verificati
 
 Final gate before submitting to Play Console internal testing (S15):
 
-- [ ] **Verify hosted privacy policy URL is live** — `https://dinsangun.github.io/clear-ledger/privacy-policy` (source: `docs/privacy-policy.md`)
+- [ ] **Verify hosted privacy policy URL is live** — `https://dinsangun.github.io/clear-ledger/privacy-policy` (source: `docs/privacy-policy.md`); also verify Hebrew page at `https://dinsangun.github.io/clear-ledger/privacy-policy-he` (`docs/privacy-policy-he.md`)
 - [ ] Privacy policy URL added to Play Console listing
 - [ ] Short description finalized (within 80 chars)
 - [ ] Full description finalized
@@ -251,7 +253,8 @@ Final gate before submitting to Play Console internal testing (S15):
 
 | File | Purpose |
 |------|---------|
-| `docs/privacy-policy.md` | Full privacy policy text (hosted at `https://dinsangun.github.io/clear-ledger/privacy-policy`) |
+| `docs/privacy-policy.md` | Privacy policy — English (canonical Play Store URL: `https://dinsangun.github.io/clear-ledger/privacy-policy`) |
+| `docs/privacy-policy-he.md` | Privacy policy — Hebrew (`https://dinsangun.github.io/clear-ledger/privacy-policy-he`; opened from About in Hebrew UI) |
 | `docs/RELEASE.md` | Build and release checklist |
 | `docs/LAUNCH_PLAN.md` | Pre-release execution plan |
 | `docs/ARCHITECTURE.md` | Technical architecture for Data Safety reference |

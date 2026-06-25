@@ -32,11 +32,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dinyairsadot.clearledger.R
+import com.dinyairsadot.clearledger.core.data.LanguagePreferenceManager
 import com.dinyairsadot.clearledger.core.ui.AppSnackbar
 import com.dinyairsadot.clearledger.core.ui.SwipeDismissSnackbarHost
 import kotlinx.coroutines.launch
 
-private const val PRIVACY_POLICY_URL = "https://dinsangun.github.io/clear-ledger/privacy-policy"
+private const val PRIVACY_POLICY_URL_EN = "https://dinsangun.github.io/clear-ledger/privacy-policy"
+private const val PRIVACY_POLICY_URL_HE = "https://dinsangun.github.io/clear-ledger/privacy-policy-he"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +49,10 @@ fun AboutScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val openPrivacyPolicyFailedMessage = stringResource(R.string.about_open_privacy_policy_failed)
+    val privacyPolicyUrl = remember(context) {
+        val language = LanguagePreferenceManager(context).getCurrentLanguage()
+        if (language == "he") PRIVACY_POLICY_URL_HE else PRIVACY_POLICY_URL_EN
+    }
     val versionName = remember(context) {
         try {
             @Suppress("DEPRECATION")
@@ -117,7 +123,7 @@ fun AboutScreen(
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(privacyPolicyUrl))
                     try {
                         context.startActivity(intent)
                     } catch (_: ActivityNotFoundException) {

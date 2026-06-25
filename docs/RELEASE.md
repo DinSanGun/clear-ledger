@@ -132,16 +132,17 @@ Signing is configured in **S15** (internal testing setup), not here.
 - Export and manual backup are user-initiated; files go only where the user saves them via SAF
 - **Android system backup (v1.0.0):** `allowBackup=true` with explicit rules — Room database (`clear_ledger_database`) and SharedPreferences (`language_prefs`, `seeding_prefs`) included; cache excluded. Android/Google may back up or transfer this data per the user's device and Google Account settings — not developer-initiated; developer has no access
 
-See [`docs/privacy-policy.md`](privacy-policy.md) for the full policy (hosted at `https://dinsangun.github.io/clear-ledger/privacy-policy`) and [`docs/PLAY_STORE_MATERIALS.md`](PLAY_STORE_MATERIALS.md) for store listing copy and Data Safety guidance.
+See [`docs/privacy-policy.md`](privacy-policy.md) for the full English policy (canonical Play Store URL: `https://dinsangun.github.io/clear-ledger/privacy-policy`), [`docs/privacy-policy-he.md`](privacy-policy-he.md) for Hebrew (`https://dinsangun.github.io/clear-ledger/privacy-policy-he`), and [`docs/PLAY_STORE_MATERIALS.md`](PLAY_STORE_MATERIALS.md) for store listing copy and Data Safety guidance. The About screen opens the language-appropriate policy URL.
 
 ### Documentation deliverables
 
-- [x] `docs/privacy-policy.md` — full privacy policy
+- [x] `docs/privacy-policy.md` — full privacy policy (English; canonical Play Store URL)
+- [x] `docs/privacy-policy-he.md` — Hebrew privacy policy (in-app + hosted; Play Console URL remains English)
 - [x] `docs/PLAY_STORE_MATERIALS.md` — store listing copy, Data Safety guidance, asset checklist
 
 ### Remaining before Play submission
 
-- [ ] Verify hosted privacy policy URL is live — `https://dinsangun.github.io/clear-ledger/privacy-policy`
+- [ ] Verify hosted privacy policy URLs are live — English: `https://dinsangun.github.io/clear-ledger/privacy-policy`; Hebrew: `https://dinsangun.github.io/clear-ledger/privacy-policy-he`
 - [ ] Enter Play **short description** and **full description** in Play Console (copy in `docs/PLAY_STORE_MATERIALS.md`)
 - [x] Phone screenshots captured (7 total: EN × 6, HE × 1) — `docs/assets/screenshots/play-store/`
 - [ ] Optional demo video or GIF
