@@ -105,7 +105,7 @@ GitHub Actions workflow (`.github/workflows/android-ci.yml`) runs on push to `ma
 
 - [x] Loading/error states for export, backup, restore
 - [x] Guard against duplicate taps during long file operations
-- [x] Optional About screen (version, privacy note, GitHub, privacy policy link)
+- [ ] About screen (version, privacy note, GitHub, privacy policy link) — deferred; not in v1.0.0
 
 ---
 
@@ -115,7 +115,7 @@ GitHub Actions workflow (`.github/workflows/android-ci.yml`) runs on push to `ma
 - [x] Confirm package / application ID — `com.dinyairsadot.clearledger` (**no changes after production**)
 - [x] First-release versioning — `versionCode = 1`, `versionName = "1.0.0"` (S12C)
 - [x] Launcher + adaptive icon finalized (S12B)
-- [ ] Store listing copy and screenshots (S14)
+- [x] Store listing copy drafted in `docs/PLAY_STORE_MATERIALS.md` (S14)
 
 Signing is configured in **S15** (internal testing setup), not here.
 
@@ -132,17 +132,17 @@ Signing is configured in **S15** (internal testing setup), not here.
 - Export and backup are user-initiated; files go only where the user saves them via SAF
 - **Android Auto Backup note:** `allowBackup=true` — Android may back up app data to the user's own Google Account via the OS backup feature; this is not developer-initiated and the developer has no access to that backup
 
-See `docs/PRIVACY_POLICY.md` for the full policy and `docs/PLAY_STORE_MATERIALS.md` for the store listing draft and Data Safety form guidance.
+See [`docs/privacy-policy.md`](privacy-policy.md) for the full policy (hosted at `https://dinsangun.github.io/clear-ledger/privacy-policy`) and [`docs/PLAY_STORE_MATERIALS.md`](PLAY_STORE_MATERIALS.md) for store listing copy and Data Safety guidance.
 
 ### Documentation deliverables
 
-- [x] `docs/PRIVACY_POLICY.md` — full privacy policy
-- [x] `docs/PLAY_STORE_MATERIALS.md` — store listing draft, Data Safety draft, asset checklist
+- [x] `docs/privacy-policy.md` — full privacy policy
+- [x] `docs/PLAY_STORE_MATERIALS.md` — store listing copy, Data Safety guidance, asset checklist
 
 ### Remaining before Play submission
 
-- [ ] Publish privacy policy at a stable URL
-- [ ] Finalize and enter Play **short description** and **full description** in Play Console
+- [ ] Verify hosted privacy policy URL is live — `https://dinsangun.github.io/clear-ledger/privacy-policy`
+- [ ] Enter Play **short description** and **full description** in Play Console (copy in `docs/PLAY_STORE_MATERIALS.md`)
 - [x] Phone screenshots captured (7 total: EN × 6, HE × 1) — `docs/assets/screenshots/play-store/`
 - [ ] Optional demo video or GIF
 - [ ] **Data Safety** form completed in Play Console — verify against final AAB before submitting

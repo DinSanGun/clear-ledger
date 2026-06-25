@@ -1,6 +1,6 @@
 # Clear Ledger – Privacy Policy
 
-_Last updated: 2026-06-18_
+_Last updated: 2026-06-24_
 
 This privacy policy describes how Clear Ledger handles your data. It applies to the Android app published by the developer under the package `com.dinyairsadot.clearledger`.
 
@@ -109,6 +109,10 @@ For questions about this privacy policy, contact:
 
 ## Privacy policy URL
 
-This policy will be published at a stable public URL before Play Store submission. The URL will be linked from the Play Store listing.
+Canonical public URL (Play Store listing and external references):
 
 **https://dinsangun.github.io/clear-ledger/privacy-policy**
+
+Source of truth in this repository: [`docs/privacy-policy.md`](privacy-policy.md).
+
+> **Verify before Play submission:** confirm the hosted URL is live and shows the current policy text.

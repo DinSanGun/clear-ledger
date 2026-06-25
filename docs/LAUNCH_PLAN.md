@@ -1,5 +1,5 @@
 # Clear Ledger – LAUNCH_PLAN.md
-_Last updated: 2026-06-18_
+_Last updated: 2026-06-24_
 
 This document is the **single source of truth** for the pre-release execution plan.
 It is written for the developer and for AI assistants so context survives long deep-dives.
@@ -247,7 +247,7 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 ## Checklist
 - [x] Improve loading and error states for export, backup, and restore (clear feedback; no silent failures)
 - [x] Prevent duplicate taps during long SAF / file operations if not already handled
-- [x] Consider optional **About** screen: app version, privacy-first note, GitHub link, privacy policy link
+- [ ] Consider optional **About** screen — deferred; not in v1.0.0 (privacy policy URL documented in `docs/privacy-policy.md`)
 - [x] Manual sanity pass on export + backup + restore after polish
 
 ## Explicitly out of scope
@@ -333,10 +333,10 @@ Signing is deferred to **S15** (internal testing setup).
 - Note: Android Auto Backup (`allowBackup=true`) may back up app data to the user's own Google Account — this is OS-level, not developer-initiated
 
 ## Checklist
-- [x] `docs/PRIVACY_POLICY.md` created
-- [x] `docs/PLAY_STORE_MATERIALS.md` created (Data Safety draft, store listing, asset checklist)
-- [ ] Privacy policy published at a stable URL (required before Play submission)
-- [ ] Play **short description** and **full description** finalized in Play Console
+- [x] `docs/privacy-policy.md` created (canonical URL: `https://dinsangun.github.io/clear-ledger/privacy-policy`)
+- [x] `docs/PLAY_STORE_MATERIALS.md` created (store listing copy, Data Safety guidance, asset checklist)
+- [ ] Verify hosted privacy policy URL is live before Play submission
+- [ ] Enter Play **short description** and **full description** in Play Console (copy in `docs/PLAY_STORE_MATERIALS.md`)
 - [x] Phone screenshots captured (7 total: EN × 6, HE × 1) — `docs/assets/screenshots/play-store/`
 - [ ] Optional short demo video or GIF
 - [ ] **Data Safety** form completed in Play Console (verify against final AAB before submitting)
@@ -438,8 +438,8 @@ Signing is deferred to **S15** (internal testing setup).
 - **2026-06-15:** S10 GitHub Actions CI added (`.github/workflows/android-ci.yml` — Temurin 17, `test` / `lintDebug` / `assembleDebug`). Local verification passed. **Next: S11 release polish.**
 - **2026-06-18:** S12C release build preparation complete. Identity confirmed (`com.dinyairsadot.clearledger`), `versionCode = 1`, `versionName = "1.0.0"`, `isMinifyEnabled = false`. Unsigned `bundleRelease` documented; signing deferred to S15.
 - **2026-06-18:** S12D documentation polish complete. README CI badge, architecture/release doc updates, roadmap synced. **Next: S14 privacy policy and Play Store materials.**
-- **2026-06-18:** S14 in progress. `docs/PRIVACY_POLICY.md` and `docs/PLAY_STORE_MATERIALS.md` created (store listing draft, Data Safety draft, asset checklist). Privacy claims verified against codebase — no INTERNET permission, no analytics SDK. Remaining: host policy URL, capture screenshots, complete Play Console forms.
-- **2026-06-24:** Pre-release polish complete: dialog action color semantics (destructive=error, cancel=onSurface, positive=primary across all 7 dialogs); rapid-back blank-screen fix (`popIfSafe()` guard in Navigation.kt + BackHandler always enabled at CategoryList root, public APIs, lint passes); custom field UI clarity (OutlinedButton + icon in category form; invoice custom fields use standard floating label matching other fields); locale/seeding fixes (reset uses saved locale context; restore sets `last_applied_language` to prevent re-localization of backup names). 7 Play Store screenshots captured. Docs updated. **Next: S14 remaining — host privacy policy URL, complete Play Console forms.**
+- **2026-06-18:** S14 in progress. `docs/privacy-policy.md` and `docs/PLAY_STORE_MATERIALS.md` created. Privacy claims verified against codebase — no INTERNET permission, no analytics SDK. Remaining: verify hosted policy URL, complete Play Console forms.
+- **2026-06-24:** Pre-release polish complete: dialog action color semantics; rapid-back blank-screen fix; custom field UI clarity; locale/seeding fixes. 7 Play Store screenshots captured. Docs updated. **Next: S14 remaining — verify hosted privacy policy URL, complete Play Console forms (S15 signing + upload).**
 
 ---
 

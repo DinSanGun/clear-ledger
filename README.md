@@ -21,7 +21,7 @@ The app targets real-world billing and tax workflows, including Israel-specific 
 
 ## Screenshots
 
-7 screenshots captured at `docs/assets/screenshots/play-store/` (EN × 6, HE × 1) — pending upload to Play Console.
+7 screenshots at [`docs/assets/screenshots/play-store/`](docs/assets/screenshots/play-store/) (EN × 6, HE × 1). Upload to Play Console during S15.
 
 ---
 
@@ -196,6 +196,8 @@ See [`docs/LAUNCH_PLAN.md`](docs/LAUNCH_PLAN.md) for the full execution plan (S9
 | `docs/ai-context.md` | Concise context for AI-assisted development |
 | `docs/CHANGELOG.md` | User-facing development history |
 | `docs/LAUNCH_PLAN.md` | Pre-release execution plan (S9–S17) |
+| `docs/privacy-policy.md` | Privacy policy (hosted at `https://dinsangun.github.io/clear-ledger/privacy-policy`) |
+| `docs/PLAY_STORE_MATERIALS.md` | Play Store listing copy, Data Safety guidance, asset checklist |
 | `docs/ARCHITECTURE_SUMMARY.pdf` | Historical architecture snapshot — may be outdated; regenerate from current docs when needed |
 
 ---

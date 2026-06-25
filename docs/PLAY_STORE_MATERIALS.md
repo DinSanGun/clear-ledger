@@ -2,8 +2,8 @@
 
 _Last updated: 2026-06-24_
 
-Drafts for the Google Play Store listing, Data Safety form, content rating, and asset checklist.  
-All sections marked **[DRAFT]** must be reviewed and verified in Play Console before submission.
+Store listing copy, Data Safety guidance, content rating notes, and asset checklist for Google Play submission.
+Sections marked **[PLAY CONSOLE]** must be entered and verified in Play Console before submission.
 
 ---
 
@@ -90,20 +90,17 @@ invoice tracker, bill tracker, tax invoice, expense tracker, local-first, no clo
 
 ### Support contact
 
-**[Developer support email — to be added before submission]**
+**dinsadot@gmail.com**
 
 ### Privacy policy URL
 
-**[Stable URL where docs/PRIVACY_POLICY.md content is hosted — required before submission]**
+**https://dinsangun.github.io/clear-ledger/privacy-policy**
 
 ---
 
-## B. Data Safety Form — Draft
+## B. Data Safety Form
 
-> **[DRAFT — must be verified against the final APK/AAB in Play Console before submission]**
->
-> Play Console's Data Safety section has specific questions about data the app collects and shares.
-> Final answers must be verified by the developer using Play Console tooling and code review of the final release build.
+> **[PLAY CONSOLE]** Verify these answers against the final APK/AAB in Play Console before submission.
 
 ### Does your app collect or share any of the required user data types?
 
@@ -146,7 +143,7 @@ For Play Data Safety purposes:
 - The developer has no access to this backup data
 - Consult Play Console guidance on how to declare Auto Backup in the Data Safety form
 
-> Note: If you wish to restrict Android Auto Backup, configure `data_extraction_rules.xml` with explicit `<exclude>` rules before Play submission. The current file (`app/src/main/res/xml/data_extraction_rules.xml`) is a default stub with no exclusions.
+> Note: Backup policy is not finalized. `data_extraction_rules.xml` currently uses default cloud-backup rules with no explicit `<include>` or `<exclude>` entries. Review before Play submission if you want to restrict Android Auto Backup.
 
 ### Data Safety form answers (Play Console UI) — expected responses
 
@@ -159,9 +156,9 @@ Based on the app behavior, the expected answers in Play Console are:
 
 ---
 
-## C. Content Rating Questionnaire — Draft
+## C. Content Rating Questionnaire
 
-> **[DRAFT — complete the questionnaire in Play Console when submitting]**
+> **[PLAY CONSOLE]** Complete the IARC questionnaire in Play Console when submitting.
 
 ### Expected rating: Everyone (E)
 
@@ -186,7 +183,7 @@ Complete the questionnaire in Play Console — do not self-assign the rating.
 
 ## D. Screenshot and Asset Checklist
 
-> **[DRAFT — capture screenshots in S14/S15; screenshots not yet created]**
+Phone screenshots are captured. Remaining assets are optional or need verification before upload.
 
 ### Required by Play Console
 
@@ -222,11 +219,9 @@ Complete the questionnaire in Play Console — do not self-assign the rating.
 
 ## E. Play Store Submission Checklist
 
-> **[DRAFT — use as a final gate before submitting to Play Console]**
+Final gate before submitting to Play Console internal testing (S15):
 
-Before submitting to internal testing (S15):
-
-- [ ] Privacy policy published at a stable URL (required by Play)
+- [ ] **Verify hosted privacy policy URL is live** — `https://dinsangun.github.io/clear-ledger/privacy-policy` (source: `docs/privacy-policy.md`)
 - [ ] Privacy policy URL added to Play Console listing
 - [ ] Short description finalized (within 80 chars)
 - [ ] Full description finalized
@@ -244,7 +239,7 @@ Before submitting to internal testing (S15):
 
 | File | Purpose |
 |------|---------|
-| `docs/PRIVACY_POLICY.md` | Full privacy policy text |
+| `docs/privacy-policy.md` | Full privacy policy text (hosted at `https://dinsangun.github.io/clear-ledger/privacy-policy`) |
 | `docs/RELEASE.md` | Build and release checklist |
 | `docs/LAUNCH_PLAN.md` | Pre-release execution plan |
 | `docs/ARCHITECTURE.md` | Technical architecture for Data Safety reference |
