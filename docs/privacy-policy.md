@@ -129,6 +129,8 @@ Canonical public URL (Play Store listing and external references):
 
 **https://dinsangun.github.io/clear-ledger/privacy-policy**
 
+In the app, the same URL opens from **About** (category list overflow menu → About → Privacy Policy).
+
 Source of truth in this repository: [`docs/privacy-policy.md`](privacy-policy.md).
 
 > **Verify before Play submission:** confirm the hosted URL is live and shows the current policy text.

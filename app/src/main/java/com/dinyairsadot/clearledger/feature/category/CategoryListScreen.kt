@@ -99,6 +99,7 @@ fun CategoryListScreen(
     onEditCategoryClick: (Long) -> Unit,
     onDeleteCategory: (Long) -> Unit,
     onLanguageSettingsClick: () -> Unit,
+    onAboutClick: () -> Unit,
     isReorderMode: Boolean,
     onEnterReorderMode: () -> Unit,
     onExitReorderMode: () -> Unit,
@@ -304,6 +305,13 @@ fun CategoryListScreen(
                                 onClick = {
                                     isOverflowMenuExpanded = false
                                     onLanguageSettingsClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.about)) },
+                                onClick = {
+                                    isOverflowMenuExpanded = false
+                                    onAboutClick()
                                 }
                             )
                             DropdownMenuItem(

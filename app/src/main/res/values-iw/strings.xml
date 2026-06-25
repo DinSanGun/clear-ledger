@@ -320,6 +320,15 @@
     <string name="language_settings">הגדרות שפה</string>
     <string name="select_language">בחר שפה</string>
 
+    <!-- About -->
+    <string name="about">אודות</string>
+    <string name="about_tagline">מעקב פשוט לחשבוניות ומסים</string>
+    <string name="about_version">גרסה %1$s</string>
+    <string name="about_short_description">אפליקציה מקומית למעקב אחר חשבוניות, מסים, תשלומים ורישומים לפי קטגוריה.</string>
+    <string name="about_privacy_summary">Clear Ledger אינה מפעילה שירות ענן משלה ואינה שולחת את הנתונים שלך למפתח. גיבוי מערכת Android עשוי לחול בהתאם להגדרות המכשיר וחשבון Google שלך.</string>
+    <string name="about_privacy_policy">מדיניות פרטיות</string>
+    <string name="about_open_privacy_policy_failed">לא ניתן לפתוח את מדיניות הפרטיות</string>
+
     <!-- Reset All Data -->
     <string name="reset_all_data">איפוס כל הנתונים</string>
     <string name="reset_all_data_dialog_title">לאפס את כל הנתונים?</string>

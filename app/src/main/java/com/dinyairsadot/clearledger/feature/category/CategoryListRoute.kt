@@ -9,6 +9,7 @@ fun CategoryListRoute(
     onCategoryClick: (Long) -> Unit,
     onEditCategoryClick: (Long) -> Unit,
     onLanguageSettingsClick: () -> Unit,
+    onAboutClick: () -> Unit,
     viewModel: CategoryListViewModel,
     showCategoryAddedMessage: Boolean = false,
     onCategoryAddedMessageShown: () -> Unit = {}
@@ -32,6 +33,7 @@ fun CategoryListRoute(
             viewModel.deleteCategory(id)
         },
         onLanguageSettingsClick = onLanguageSettingsClick,
+        onAboutClick = onAboutClick,
         isReorderMode = uiState.isReorderMode,
         onEnterReorderMode = { viewModel.enterReorderMode() },
         onExitReorderMode = { viewModel.exitReorderMode() },

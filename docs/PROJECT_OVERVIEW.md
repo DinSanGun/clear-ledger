@@ -115,6 +115,7 @@ com.dinyairsadot.clearledger/
 | `invoice_details/{invoiceId}` | Read-only details |
 | `edit_invoice/{invoiceId}` | Edit invoice |
 | `language_settings` | Manual language switch |
+| `about` | App info and privacy policy link |
 
 **ViewModel sharing:** Child screens resolve the parent back-stack entry (e.g. `invoice_list/{categoryId}`) and reuse the same ViewModel instance.
 
@@ -202,7 +203,7 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 ## H. UI Conventions
 
 ### Top app bars
-- Category list: default theme, title “Bills & Taxes”, overflow menu (reorder, language, export all data, create backup, restore backup)
+- Category list: default theme, title “Bills & Taxes”, overflow menu (reorder, language, about, export all data, create backup, restore backup)
 - Invoice flows: category-colored bar via `categoryTopAppBarColors()` with contrast-aware text/icons
 - Edit Category: top-bar Save action; discard warning for unsaved changes
 - Invoice list: overflow Export; active filter indication and clear-filters action

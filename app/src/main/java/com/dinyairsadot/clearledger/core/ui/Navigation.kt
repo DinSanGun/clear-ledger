@@ -60,6 +60,7 @@ import com.dinyairsadot.clearledger.core.domain.CategoryRepository
 import com.dinyairsadot.clearledger.core.domain.InvoiceRepository
 import com.dinyairsadot.clearledger.feature.category.CategoryListViewModelFactory
 import com.dinyairsadot.clearledger.feature.invoice.InvoiceListViewModelFactory
+import com.dinyairsadot.clearledger.feature.settings.AboutScreen
 import com.dinyairsadot.clearledger.feature.settings.LanguageSettingsScreen
 import androidx.activity.ComponentActivity
 
@@ -91,6 +92,7 @@ sealed class Screen(val route: String) {
     }
 
     object LanguageSettings : Screen("language_settings")
+    object About : Screen("about")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -139,6 +141,9 @@ fun ClearLedgerNavHost(
                 },
                 onLanguageSettingsClick = {
                     navController.navigate(Screen.LanguageSettings.route)
+                },
+                onAboutClick = {
+                    navController.navigate(Screen.About.route)
                 },
                 viewModel = viewModel,
                 showCategoryAddedMessage = categoryAdded,
@@ -566,6 +571,14 @@ fun ClearLedgerNavHost(
             LanguageSettingsScreen(
                 onNavigateBack = { navController.popIfSafe() },
                 activity = activity
+            )
+        }
+        // -------------------------
+        // About screen
+        // -------------------------
+        composable(Screen.About.route) {
+            AboutScreen(
+                onNavigateBack = { navController.popIfSafe() }
             )
         }
     }

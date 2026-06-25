@@ -105,7 +105,7 @@ GitHub Actions workflow (`.github/workflows/android-ci.yml`) runs on push to `ma
 
 - [x] Loading/error states for export, backup, restore
 - [x] Guard against duplicate taps during long file operations
-- [ ] About screen (version, privacy note, GitHub, privacy policy link) — deferred; not in v1.0.0
+- [x] About screen (version, privacy note, privacy policy link) — category list overflow → About
 
 ---
 

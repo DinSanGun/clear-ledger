@@ -247,7 +247,7 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 ## Checklist
 - [x] Improve loading and error states for export, backup, and restore (clear feedback; no silent failures)
 - [x] Prevent duplicate taps during long SAF / file operations if not already handled
-- [ ] Consider optional **About** screen — deferred; not in v1.0.0 (privacy policy URL documented in `docs/privacy-policy.md`)
+- [x] Consider optional **About** screen — app name, version, privacy summary, privacy policy link (category list overflow → About)
 - [x] Manual sanity pass on export + backup + restore after polish
 
 ## Explicitly out of scope
