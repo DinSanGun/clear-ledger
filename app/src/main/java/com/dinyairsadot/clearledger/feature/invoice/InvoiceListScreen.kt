@@ -1,13 +1,5 @@
 package com.dinyairsadot.clearledger.feature.invoice
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
@@ -40,7 +32,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,7 +53,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
@@ -100,8 +90,10 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import com.dinyairsadot.clearledger.core.util.InvoiceCsvExportLabels
 import com.dinyairsadot.clearledger.core.util.Utf8CsvWriter
+import com.dinyairsadot.clearledger.core.ui.AnimatedDropdownMenu
 import com.dinyairsadot.clearledger.core.ui.SwipeDismissSnackbarHost
 import com.dinyairsadot.clearledger.core.ui.categoryTopAppBarColors
+import com.dinyairsadot.clearledger.core.ui.rememberAnimatedDropdownMenuState
 import com.dinyairsadot.clearledger.feature.invoice.SortOption
 import com.dinyairsadot.clearledger.feature.invoice.formatServicePeriodForDisplay
 import com.dinyairsadot.clearledger.R
@@ -111,7 +103,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private const val SORT_MENU_ANIM_MS = 420
 private val LIST_DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
 /** Same width for From/To so the date strips start on one vertical line (LTR/RTL). */
@@ -161,9 +152,8 @@ fun InvoiceListScreen(
     val exportFailedMessage = stringResource(R.string.export_failed)
     var pendingDeleteInvoiceId by remember { mutableStateOf<Long?>(null) }
     var isExporting by remember { mutableStateOf(false) }
-    var showSortMenu by remember { mutableStateOf(false) }
-    var overflowMenuExpanded by remember { mutableStateOf(false) }
-    val sortMenuVisibility = remember { MutableTransitionState(false) }
+    val sortMenuState = rememberAnimatedDropdownMenuState()
+    val overflowMenuState = rememberAnimatedDropdownMenuState()
     var showFilterSheet by remember { mutableStateOf(false) }
     val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -175,13 +165,6 @@ fun InvoiceListScreen(
         uiState.servicePeriodStartFilter != null ||
             uiState.servicePeriodEndFilter != null ||
             uiState.statusFilter != null
-    }
-
-    LaunchedEffect(sortMenuVisibility.isIdle, sortMenuVisibility.currentState, showSortMenu) {
-        // Keep popup mounted while exiting; dismiss only after exit animation completes.
-        if (showSortMenu && sortMenuVisibility.isIdle && !sortMenuVisibility.currentState) {
-            showSortMenu = false
-        }
     }
 
     DisposableEffect(Unit) {
@@ -233,99 +216,72 @@ fun InvoiceListScreen(
                 actions = {
                     // Sort menu
                     Box {
-                        IconButton(onClick = {
-                            showSortMenu = true
-                            sortMenuVisibility.targetState = true
-                        }) {
+                        IconButton(onClick = { sortMenuState.open() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Sort,
                                 contentDescription = stringResource(R.string.sort)
                             )
                         }
-                        DropdownMenu(
-                            expanded = showSortMenu,
-                            onDismissRequest = { sortMenuVisibility.targetState = false },
-                            containerColor = Color.Transparent,
-                            tonalElevation = 0.dp,
-                            shadowElevation = 0.dp
+                        AnimatedDropdownMenu(
+                            state = sortMenuState,
+                            onDismissRequest = {}
                         ) {
-                            AnimatedVisibility(
-                                visibleState = sortMenuVisibility,
-                                enter = slideInVertically(
-                                    initialOffsetY = { -it },
-                                    animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)
-                                ) + fadeIn(animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)),
-                                exit = slideOutVertically(
-                                    targetOffsetY = { -it },
-                                    animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing)
-                                ) + fadeOut(animationSpec = tween(SORT_MENU_ANIM_MS, easing = FastOutSlowInEasing))
-                            ) {
-                                Surface(
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    shadowElevation = 2.dp,
-                                    tonalElevation = 2.dp
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = stringResource(R.string.sort_by),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 6.dp)
-                                        )
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(horizontal = 8.dp),
-                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                        )
-                                        DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.date_newest_first)) },
-                                        onClick = {
-                                            onSortOptionChange(SortOption.DATE_DESCENDING)
-                                            sortMenuVisibility.targetState = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.date_oldest_first)) },
-                                        onClick = {
-                                            onSortOptionChange(SortOption.DATE_ASCENDING)
-                                            sortMenuVisibility.targetState = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.amount_highest_first)) },
-                                        onClick = {
-                                            onSortOptionChange(SortOption.AMOUNT_DESCENDING)
-                                            sortMenuVisibility.targetState = false
-                                        }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.amount_lowest_first)) },
-                                        onClick = {
-                                            onSortOptionChange(SortOption.AMOUNT_ASCENDING)
-                                            sortMenuVisibility.targetState = false
-                                        }
-                                    )
-                                    }
+                            Text(
+                                text = stringResource(R.string.sort_by),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 6.dp)
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.date_newest_first)) },
+                                onClick = {
+                                    onSortOptionChange(SortOption.DATE_DESCENDING)
+                                    sortMenuState.dismiss()
                                 }
-                            }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.date_oldest_first)) },
+                                onClick = {
+                                    onSortOptionChange(SortOption.DATE_ASCENDING)
+                                    sortMenuState.dismiss()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.amount_highest_first)) },
+                                onClick = {
+                                    onSortOptionChange(SortOption.AMOUNT_DESCENDING)
+                                    sortMenuState.dismiss()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.amount_lowest_first)) },
+                                onClick = {
+                                    onSortOptionChange(SortOption.AMOUNT_ASCENDING)
+                                    sortMenuState.dismiss()
+                                }
+                            )
                         }
                     }
                     Box {
-                        IconButton(onClick = { overflowMenuExpanded = true }) {
+                        IconButton(onClick = { overflowMenuState.open() }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = stringResource(R.string.more_options)
                             )
                         }
-                        DropdownMenu(
-                            expanded = overflowMenuExpanded,
-                            onDismissRequest = { overflowMenuExpanded = false }
+                        AnimatedDropdownMenu(
+                            state = overflowMenuState,
+                            onDismissRequest = {}
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.export)) },
                                 enabled = !isExporting,
                                 onClick = {
-                                    overflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     if (uiState.visibleInvoices.isEmpty()) {
                                         coroutineScope.launch {
                                             snackbarHostState.showSnackbar(noInvoicesToExportMessage)
@@ -340,7 +296,7 @@ fun InvoiceListScreen(
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.edit_category)) },
                                 onClick = {
-                                    overflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     onEditCategoryClick()
                                 }
                             )
@@ -536,7 +492,7 @@ private fun SearchBar(
         )
     }
 
-    var showModeMenu by remember { mutableStateOf(false) }
+    val modeMenuState = rememberAnimatedDropdownMenuState()
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -570,7 +526,7 @@ private fun SearchBar(
                         Box {
                             Row(
                                 modifier = Modifier
-                                    .clickable { showModeMenu = true }
+                                    .clickable { modeMenuState.open() }
                                     .padding(start = 4.dp)
                                     .heightIn(min = 32.dp)
                                     .wrapContentHeight(),
@@ -603,9 +559,9 @@ private fun SearchBar(
                                     }
                                 }
                             }
-                            DropdownMenu(
-                                expanded = showModeMenu,
-                                onDismissRequest = { showModeMenu = false }
+                            AnimatedDropdownMenu(
+                                state = modeMenuState,
+                                onDismissRequest = {}
                             ) {
                                 Text(
                                     text = stringResource(R.string.search_by_label),
@@ -621,14 +577,14 @@ private fun SearchBar(
                                     text = { Text(stringResource(R.string.search_mode_invoice_number)) },
                                     onClick = {
                                         onSearchModeChange(SearchMode.INVOICE_NUMBER)
-                                        showModeMenu = false
+                                        modeMenuState.dismiss()
                                     }
                                 )
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.search_mode_amount)) },
                                     onClick = {
                                         onSearchModeChange(SearchMode.AMOUNT)
-                                        showModeMenu = false
+                                        modeMenuState.dismiss()
                                     }
                                 )
                             }
@@ -1118,26 +1074,26 @@ private fun InvoiceItem(
                 }
             }
 
-            var isMenuExpanded by remember { mutableStateOf(false) }
+            val itemMenuState = rememberAnimatedDropdownMenuState()
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .padding(end = 4.dp)
             ) {
-                IconButton(onClick = { isMenuExpanded = true }) {
+                IconButton(onClick = { itemMenuState.open() }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = stringResource(R.string.more_options)
                     )
                 }
-                DropdownMenu(
-                    expanded = isMenuExpanded,
-                    onDismissRequest = { isMenuExpanded = false }
+                AnimatedDropdownMenu(
+                    state = itemMenuState,
+                    onDismissRequest = {}
                 ) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.edit_invoice)) },
                         onClick = {
-                            isMenuExpanded = false
+                            itemMenuState.dismiss()
                             onEditClick()
                         }
                     )
@@ -1149,7 +1105,7 @@ private fun InvoiceItem(
                             )
                         },
                         onClick = {
-                            isMenuExpanded = false
+                            itemMenuState.dismiss()
                             onDeleteClick()
                         }
                     )

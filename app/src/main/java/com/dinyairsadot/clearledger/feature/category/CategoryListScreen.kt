@@ -33,7 +33,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -65,7 +64,9 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
+import com.dinyairsadot.clearledger.core.ui.AnimatedDropdownMenu
 import com.dinyairsadot.clearledger.core.ui.AppSnackbar
+import com.dinyairsadot.clearledger.core.ui.rememberAnimatedDropdownMenuState
 import com.dinyairsadot.clearledger.core.util.AllDataZipExporter
 import com.dinyairsadot.clearledger.core.util.backup.BackupPayload
 import com.dinyairsadot.clearledger.core.util.backup.BackupValidationResult
@@ -113,7 +114,7 @@ fun CategoryListScreen(
     var pendingRestorePayload by remember { mutableStateOf<BackupPayload?>(null) }
     var showResetConfirmDialog by remember { mutableStateOf(false) }
     var isFileOperationInProgress by remember { mutableStateOf(false) }
-    var isOverflowMenuExpanded by remember { mutableStateOf(false) }
+    val overflowMenuState = rememberAnimatedDropdownMenuState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -283,34 +284,34 @@ fun CategoryListScreen(
                             Text(text = stringResource(R.string.done))
                         }
                     } else {
-                        IconButton(onClick = { isOverflowMenuExpanded = true }) {
+                        IconButton(onClick = { overflowMenuState.open() }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = stringResource(R.string.more_options)
                             )
                         }
-                        DropdownMenu(
-                            expanded = isOverflowMenuExpanded,
-                            onDismissRequest = { isOverflowMenuExpanded = false }
+                        AnimatedDropdownMenu(
+                            state = overflowMenuState,
+                            onDismissRequest = {}
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.reorder_categories)) },
                                 onClick = {
-                                    isOverflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     onEnterReorderMode()
                                 }
                             )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.language_settings)) },
                                 onClick = {
-                                    isOverflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     onLanguageSettingsClick()
                                 }
                             )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.about)) },
                                 onClick = {
-                                    isOverflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     onAboutClick()
                                 }
                             )
@@ -318,7 +319,7 @@ fun CategoryListScreen(
                                 text = { Text(exportAllDataMessage) },
                                 enabled = !isFileOperationInProgress,
                                 onClick = {
-                                    isOverflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     if (categories.isEmpty()) {
                                         coroutineScope.launch {
                                             snackbarHostState.showSnackbar(noDataToExportMessage)
@@ -334,7 +335,7 @@ fun CategoryListScreen(
                                 text = { Text(createBackupMessage) },
                                 enabled = !isFileOperationInProgress,
                                 onClick = {
-                                    isOverflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     val filename = "clear_ledger_backup_${LocalDate.now()}.zip"
                                     backupLauncher.launch(filename)
                                 }
@@ -343,7 +344,7 @@ fun CategoryListScreen(
                                 text = { Text(restoreBackupMessage) },
                                 enabled = !isFileOperationInProgress,
                                 onClick = {
-                                    isOverflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     restoreLauncher.launch(arrayOf("application/zip"))
                                 }
                             )
@@ -356,7 +357,7 @@ fun CategoryListScreen(
                                 },
                                 enabled = !isFileOperationInProgress,
                                 onClick = {
-                                    isOverflowMenuExpanded = false
+                                    overflowMenuState.dismiss()
                                     showResetConfirmDialog = true
                                 }
                             )
@@ -741,33 +742,33 @@ private fun CategoryItem(
                     }
                 }
             } else {
-                var isMenuExpanded by remember { mutableStateOf(false) }
+                val itemMenuState = rememberAnimatedDropdownMenuState()
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(end = 8.dp)
                 ) {
-                    IconButton(onClick = { isMenuExpanded = true }) {
+                    IconButton(onClick = { itemMenuState.open() }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = stringResource(R.string.category_options)
                         )
                     }
-                    DropdownMenu(
-                        expanded = isMenuExpanded,
-                        onDismissRequest = { isMenuExpanded = false }
+                    AnimatedDropdownMenu(
+                        state = itemMenuState,
+                        onDismissRequest = {}
                     ) {
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.edit)) },
                             onClick = {
-                                isMenuExpanded = false
+                                itemMenuState.dismiss()
                                 onEditClick()
                             }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.delete)) },
                             onClick = {
-                                isMenuExpanded = false
+                                itemMenuState.dismiss()
                                 onDeleteClick()
                             }
                         )
