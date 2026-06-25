@@ -319,8 +319,9 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 - Cloud sync, encryption, automatic backup, selective merge restore
 
 **Pre-release focus (see `docs/LAUNCH_PLAN.md` S9–S17):**
-- **Done:** S9 tests, S10 CI, S11 release polish, S12 docs, S13 release identity
-- **Next:** S14 remaining — verify hosted privacy policy URL (`https://dinsangun.github.io/clear-ledger/privacy-policy`), complete Play Console forms; then S15 internal Play testing (signing + upload)
+- **Done:** S9 tests, S10 CI, S11 release polish, S12 docs, S13 release identity, S14 repo deliverables (privacy policy, store materials, screenshots, icon)
+- **S14:** Complete except Play Console external tasks — verify hosted privacy policy URL (`https://dinsangun.github.io/clear-ledger/privacy-policy`), enter store listing, complete Data Safety + content rating in Play Console
+- **Next:** S15 internal Play testing (signing + upload)
 
 **Known improvement areas (non-blocking follow-ups):**
 - In-memory filter/sort may need DAO queries at scale
@@ -334,4 +335,4 @@ ViewModels expose immutable `UiState` data classes via `StateFlow`.
 
 ## Summary
 
-Clear Ledger is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **Next focus:** S14 remaining (verify hosted privacy policy URL, complete Play Console forms), then S15 internal Play testing (signing). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.
+Clear Ledger is a Kotlin + Jetpack Compose Android app using MVVM, Room, and Navigation Compose. Categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. The invoice list recomputes visible results through a single ViewModel pipeline. The app supports Hebrew and English with manual switching and locale-aware seeded data. User-facing export and restore-ready backup/restore are implemented via Storage Access Framework. **S14 repo deliverables are complete;** remaining external tasks are hosted privacy policy URL verification and Play Console entry. **Next focus:** S15 internal Play testing (signing). See `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.

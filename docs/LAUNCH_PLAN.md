@@ -78,7 +78,7 @@ S9 → S10 → S11 → S12 → S13 → S14 → S15 → S16 → S17
 | **S11** | Release polish (export / backup / restore UX) | **Done** |
 | **S12** | Project documentation (README, architecture, release) | **Done** |
 | **S13** | Release identity (name, package, version, icon) | **Done** |
-| **S14** | Privacy policy and Play Store materials | **Next** |
+| **S14** | Privacy policy and Play Store materials | **Complete except Play Console external tasks** |
 | **S15** | Internal Play Store testing | Pending |
 | **S16** | Launch blocker fixes only | Pending |
 | **S17** | Production release + GitHub / interview presentation | Pending |
@@ -315,14 +315,14 @@ Adaptive launcher icon finalized and referenced in `AndroidManifest.xml`.
 - [x] Confirm package / application ID — `com.dinyairsadot.clearledger` (no late ID changes)
 - [x] First-release `versionName` / `versionCode` — `1.0.0` / `1` (S12C)
 - [x] Launcher icon and adaptive icon (S12B)
-- [ ] Confirm store listing aligns with finalized identity (S14)
+- [x] Confirm store listing aligns with finalized identity (S14 — copy drafted in `docs/PLAY_STORE_MATERIALS.md`)
 
 Signing is deferred to **S15** (internal testing setup).
 
 ---
 
 # S14 – Privacy Policy and Play Store Materials
-**Status:** In progress (Jun 2026)  
+**Status:** Complete except Play Console external tasks (Jun 2026)  
 **Goal:** Satisfy Play policy and communicate the privacy-first design.
 
 ## Privacy-first messaging (verified against codebase)
@@ -405,7 +405,7 @@ Signing is deferred to **S15** (internal testing setup).
 - S11 → Release polish — **Done**
 - S12 → Project documentation — **Done**
 - S13 → Release identity — **Done**
-- S14 → Privacy policy + Play Store materials — **Next**
+- S14 → Privacy policy + Play Store materials — **Complete except Play Console external tasks**
 - S15 → Internal Play testing
 - S16 → Launch blocker fixes
 - S17 → Production release
@@ -441,6 +441,7 @@ Signing is deferred to **S15** (internal testing setup).
 - **2026-06-18:** S12D documentation polish complete. README CI badge, architecture/release doc updates, roadmap synced. **Next: S14 privacy policy and Play Store materials.**
 - **2026-06-18:** S14 in progress. `docs/privacy-policy.md` and `docs/PLAY_STORE_MATERIALS.md` created. Privacy claims verified against codebase — no INTERNET permission, no analytics SDK. Remaining: verify hosted policy URL, complete Play Console forms.
 - **2026-06-24:** Pre-release polish complete: dialog action color semantics; rapid-back blank-screen fix; custom field UI clarity; locale/seeding fixes. 7 Play Store screenshots captured. Docs updated. **Next: S14 remaining — verify hosted privacy policy URL, complete Play Console forms (S15 signing + upload).**
+- **2026-06-25:** S14 repo deliverables complete — privacy policy, Play Store materials, backup rules, screenshots, and hi-res icon (512×512) verified. Android system backup kept enabled with explicit rules; privacy and store-listing wording updated to distinguish manual export/backup from OS-level backup. **Remaining (external):** verify hosted privacy policy URL is live, enter store listing and complete Data Safety + content rating in Play Console. **Next: S15** (signing + internal testing upload).
 
 ---
 

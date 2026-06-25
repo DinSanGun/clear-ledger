@@ -67,7 +67,8 @@ BACKUP AND RESTORE
 - Create a full backup as a ZIP file containing a structured backup.json
 - Restore from a backup: the app validates the file, asks for confirmation, and
   performs a full replacement of local data
-- Backup and restore are user-initiated — no automatic cloud upload
+- Backup and restore are user-initiated; Clear Ledger does not operate its own cloud service.
+  Android system backup may apply depending on your device and Google Account settings
 
 HEBREW AND ENGLISH SUPPORT
 Full Hebrew and English localization with proper right-to-left (RTL) layout.
@@ -198,7 +199,7 @@ Phone screenshots are captured. Remaining assets are optional or need verificati
 
 ### Required by Play Console
 
-- [ ] **Hi-res icon** — 512×512 PNG, 32-bit, no alpha required by Play (check dimensions of existing `app/src/main/ic_launcher-playstore.png` — file is present; verify it is exactly 512×512 before upload)
+- [x] **Hi-res icon** — 512×512 PNG verified (`app/src/main/ic_launcher-playstore.png`)
 - [x] **Phone screenshots** — 7 captured (EN × 6, HE × 1); files at `docs/assets/screenshots/play-store/` (screens 01–07; suggested screen 8 not captured)
 
 ### Suggested screenshot flow
@@ -236,7 +237,7 @@ Final gate before submitting to Play Console internal testing (S15):
 - [ ] Privacy policy URL added to Play Console listing
 - [ ] Short description finalized (within 80 chars)
 - [ ] Full description finalized
-- [ ] Hi-res icon verified (512×512)
+- [x] Hi-res icon verified (512×512 — `app/src/main/ic_launcher-playstore.png`)
 - [ ] At least 2 phone screenshots uploaded
 - [ ] Data Safety form completed and submitted in Play Console
 - [ ] Content rating questionnaire completed in Play Console

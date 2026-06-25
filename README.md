@@ -172,7 +172,7 @@ Clear Ledger is **feature-complete** for MVP and in late pre-release preparation
 | S10 — GitHub Actions CI | Done |
 | S11 — Release polish | Done |
 | S12 — Project documentation & release identity (S12A–C) | Done |
-| **S14 — Privacy policy & Play Store materials** | **In progress** |
+| **S14 — Privacy policy & Play Store materials** | **Complete except Play Console external tasks** |
 | S15 — Internal Play Store testing (signing + upload) | Pending |
 | S16 — Launch blocker fixes | Pending |
 | S17 — Production release | Pending |

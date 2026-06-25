@@ -201,7 +201,7 @@ Ask before: DB migrations, conflating export with backup, allowing CSV restore, 
 3. **S11** — Release polish — **Done**
 4. **S12** — Project docs — **Done**
 5. **S13** — Release identity — **Done**
-6. **S14** — Privacy policy and Play Store materials — **In progress** (screenshots done; store copy drafted; remaining: verify hosted policy URL, complete Play Console forms)
+6. **S14** — Privacy policy and Play Store materials — **Complete except Play Console external tasks** (repo deliverables done; remaining: verify hosted policy URL, enter listing, complete Data Safety + content rating in Play Console)
 7. **S15** — Internal Play testing (signing deferred here)
 8. **S16** — Launch blocker fixes only
 9. **S17** — Production release + GitHub/interview presentation
