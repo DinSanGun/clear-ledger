@@ -36,13 +36,9 @@ Run before each release candidate:
 For release builds:
 
 ```bash
-# Unsigned AAB (S12C — signing configured in S15):
+# Signed release AAB (requires keystore.properties at repo root — see S15A):
 ./gradlew bundleRelease
 # Output: app/build/outputs/bundle/release/app-release.aab
-
-# Signed release (after S15 signing is configured):
-./gradlew assembleRelease
-./gradlew bundleRelease
 ```
 
 - [ ] All unit tests pass
@@ -50,7 +46,7 @@ For release builds:
 - [ ] Debug and release builds succeed
 - [ ] Manual smoke test on device/emulator
 
-**Secrets policy:** Never commit keystores, signing passwords, or `signingConfig` blocks. `.gitignore` excludes `local.properties`, `*.jks`, and `*.keystore`. Document signing details in a private secure note only.
+**Secrets policy:** Never commit keystores, signing passwords, or `keystore.properties`. `.gitignore` excludes `keystore.properties`, `*.jks`, and `*.keystore`. The upload keystore must live outside the repo. Document keystore location in a private secure note only.
 
 ### S12C — Release build preparation (Jun 2026)
 
@@ -70,15 +66,17 @@ Release Gradle config reviewed and documented. Signing deferred to S15.
 - `isMinifyEnabled = false` for v1.0.0 — R8/minify deferred (Room, Gson, Compose need keep rules if enabled later)
 - No `signingConfig` in committed Gradle files
 
-**Signing (deferred to S15):**
-- Do **not** commit keystores, passwords, or `signingConfig` blocks
-- Create upload keystore and configure signing privately before internal testing
+**Signing (configured in S15):**
+- Upload keystore lives outside the repo (`~/dev/android-apps/clear-ledger-secrets/`)
+- `keystore.properties` is local-only and listed in `.gitignore` — never committed
+- `app/build.gradle.kts` loads signing values from `keystore.properties` at build time
+- Release build type is only signed when `keystore.properties` is present and complete
+- Debug builds and CI builds are unaffected (no `keystore.properties` → unsigned release)
 - Use **Play App Signing** when uploading to Play Console
-- Document keystore location in a **private** secure note only
 
-**Unsigned release AAB:**
-- `./gradlew bundleRelease` produces an unsigned AAB without signing config
-- Signing is required before Play Console upload (S15)
+**Signed release AAB:**
+- `./gradlew bundleRelease` produces a signed AAB when `keystore.properties` is present
+- Output: `app/build/outputs/bundle/release/app-release.aab`
 
 ### S9 — Targeted tests *(done)*
 
@@ -153,14 +151,42 @@ See [`docs/privacy-policy.md`](privacy-policy.md) for the full English policy (c
 
 ## Internal testing (S15)
 
-- [ ] Create release upload keystore and back it up securely (private — not in repo)
-- [ ] Configure release `signingConfig` via `local.properties` or CI secrets (never commit passwords)
-- [ ] Enable Play App Signing
+### Release signing (S15A — configured)
+
+Release signing is loaded at build time from a root-level `keystore.properties` file that is
+**local-only and never committed**.
+
+**Setup summary:**
+
+- Upload keystore (`*.jks`) lives **outside** the repo — e.g. `~/dev/android-apps/clear-ledger-secrets/`
+- Create `keystore.properties` at the repo root (already in `.gitignore`):
+
+```
+storeFile=/absolute/path/to/your-upload-key.jks
+storePassword=your-store-password
+keyAlias=your-key-alias
+keyPassword=your-key-password
+```
+
+- `app/build.gradle.kts` loads this file automatically; when absent, the release build type
+  remains unsigned (safe for CI and development)
+- Secrets must **not** be committed — document keystore location in a private secure note only
+
+**Build signed release AAB:**
+
+```bash
+./gradlew bundleRelease
+# Output: app/build/outputs/bundle/release/app-release.aab
+```
+
+### S15 checklist
+
+- [x] Create release upload keystore and back it up securely (private — not in repo)
+- [x] Configure release signing via root-level `keystore.properties` (never committed)
+- [ ] Enable Play App Signing in Play Console
 - [ ] Build signed release AAB (`./gradlew bundleRelease`)
 - [ ] Upload signed AAB to **internal testing** track
 - [ ] Testers install from Play link (not sideload-only)
-
-Document keystore location and signing config in a **private** secure note — not in the public repo.
 
 ### Manual QA on Play-installed build
 

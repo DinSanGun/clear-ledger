@@ -39,6 +39,7 @@ Thumbs.db
 # Keystore (DO NOT commit secrets)
 *.jks
 *.keystore
+keystore.properties
 
 # Kotlin metadata
 *.kotlin_metadata
