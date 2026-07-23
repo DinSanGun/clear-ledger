@@ -18,10 +18,8 @@ Clear Ledger
 ### Short description (80 characters max)
 
 ```
-Simple bill & tax tracker. Local-first. No account needed.
+Simple bill & tax tracker. Local storage. No account needed.
 ```
-
-Character count: 59 — within limit.
 
 ### Full description
 
@@ -86,11 +84,11 @@ system backup (per your device settings) and manual export/backup you control.
 
 ### Category
 
-**Finance**
+**Productivity**
 
 ### Tags / keywords (suggested)
 
-invoice tracker, bill tracker, tax invoice, expense tracker, local-first, no cloud, Hebrew, RTL, CSV export, backup
+Productivity
 
 ### Support contact
 

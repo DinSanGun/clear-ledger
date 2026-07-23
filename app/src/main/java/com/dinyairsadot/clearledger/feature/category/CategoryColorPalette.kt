@@ -10,11 +10,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.layout.Column
@@ -33,23 +39,22 @@ import androidx.compose.ui.res.stringResource
 import com.dinyairsadot.clearledger.R
 
 
-
-
 private data class PresetCategoryColor(
     val hex: String,
     val color: Color
 )
 
-// Shared preset colors for categories.
+// Shared preset colors for categories (balanced middle shades from the extended palette).
 // Hex values are valid #RRGGBB and work with existing validation.
+// Spectrum order: red → orange → yellow → green → cyan → blue → purple.
 private val presetCategoryColors = listOf(
-    PresetCategoryColor("#F8BBD0", Color(0xFFF8BBD0)), // pastel pink
-    PresetCategoryColor("#E1BEE7", Color(0xFFE1BEE7)), // pastel purple
-    PresetCategoryColor("#BBDEFB", Color(0xFFBBDEFB)), // pastel blue
-    PresetCategoryColor("#B2EBF2", Color(0xFFB2EBF2)), // pastel cyan
-    PresetCategoryColor("#C8E6C9", Color(0xFFC8E6C9)), // pastel green
-    PresetCategoryColor("#FFF9C4", Color(0xFFFFF9C4)), // pastel yellow
-    PresetCategoryColor("#FFE0B2", Color(0xFFFFE0B2))  // pastel orange
+    PresetCategoryColor("#EF5350", Color(0xFFEF5350)), // red
+    PresetCategoryColor("#FFA726", Color(0xFFFFA726)), // orange
+    PresetCategoryColor("#FFEE58", Color(0xFFFFEE58)), // yellow
+    PresetCategoryColor("#66BB6A", Color(0xFF66BB6A)), // green
+    PresetCategoryColor("#26C6DA", Color(0xFF26C6DA)), // cyan
+    PresetCategoryColor("#42A5F5", Color(0xFF42A5F5)), // blue
+    PresetCategoryColor("#AB47BC", Color(0xFFAB47BC))  // purple
 )
 
 // 7x7 predefined extended palette (49 colors)
@@ -70,7 +75,49 @@ private val extendedCategoryColorHexes = listOf(
     "#E1BEE7", "#CE93D8", "#BA68C8", "#AB47BC", "#9C27B0", "#8E24AA", "#7B1FA2"
 )
 
+private fun selectionIndicatorColor(backgroundColor: Color): Color {
+    return if (backgroundColor.luminance() > 0.5f) {
+        Color(0xFF2B2B2B)
+    } else {
+        Color.White
+    }
+}
 
+@Composable
+private fun CategoryColorCircle(
+    color: Color,
+    selected: Boolean,
+    checkIconSize: Dp,
+    modifier: Modifier = Modifier,
+    content: (@Composable () -> Unit)? = null,
+) {
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val indicatorColor = selectionIndicatorColor(color)
+
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(color)
+            .border(
+                width = if (selected) 2.dp else 1.dp,
+                color = if (selected) indicatorColor else outlineColor,
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            selected -> {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = indicatorColor,
+                    modifier = Modifier.size(checkIconSize)
+                )
+            }
+            content != null -> content()
+        }
+    }
+}
 
 @Composable
 fun CategoryColorOptionsRow(
@@ -79,12 +126,17 @@ fun CategoryColorOptionsRow(
     modifier: Modifier = Modifier
 ) {
     var showMoreColors by remember { mutableStateOf(false) }
-    
+
     // Check if selected color is from extended palette (not in preset colors)
-    val isExtendedPaletteSelected = selectedColorHex.isNotBlank() && 
+    val isExtendedPaletteSelected = selectedColorHex.isNotBlank() &&
         !presetCategoryColors.any { it.hex.equals(selectedColorHex, ignoreCase = true) } &&
         extendedCategoryColorHexes.any { it.equals(selectedColorHex, ignoreCase = true) }
-    
+    val selectedExtendedColor = if (isExtendedPaletteSelected) {
+        parseCategoryColorOrNull(selectedColorHex)
+    } else {
+        null
+    }
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -92,41 +144,29 @@ fun CategoryColorOptionsRow(
         presetCategoryColors.forEach { preset ->
             val isSelected = selectedColorHex.equals(preset.hex, ignoreCase = true)
 
-            Box(
+            CategoryColorCircle(
+                color = preset.color,
+                selected = isSelected,
+                checkIconSize = 18.dp,
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
-                    .clip(CircleShape)
-                    .background(preset.color)
-                    .border(
-                        width = if (isSelected) 5.dp else 1.dp,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                        shape = CircleShape
-                    )
                     .clickable { onColorSelected(preset.hex) }
             )
         }
         // Extra circle to open extended palette
-        Box(
+        CategoryColorCircle(
+            color = selectedExtendedColor ?: MaterialTheme.colorScheme.surfaceVariant,
+            selected = isExtendedPaletteSelected,
+            checkIconSize = 18.dp,
             modifier = Modifier
                 .weight(1f)
                 .aspectRatio(1f)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .border(
-                    width = if (isExtendedPaletteSelected) 5.dp else 1.dp,
-                    color = if (isExtendedPaletteSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                    shape = CircleShape
-                )
-                .clickable { showMoreColors = true }
-        ) {
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.matchParentSize(),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ) {
+                .clickable { showMoreColors = true },
+            content = {
                 Text(stringResource(R.string.plus))
             }
-        }
+        )
     }
     if (showMoreColors) {
         AlertDialog(
@@ -144,20 +184,12 @@ fun CategoryColorOptionsRow(
                             val color = parseCategoryColorOrNull(hex) ?: return@items
                             val isSelected = selectedColorHex.equals(hex, ignoreCase = true)
 
-                            Box(
+                            CategoryColorCircle(
+                                color = color,
+                                selected = isSelected,
+                                checkIconSize = 16.dp,
                                 modifier = Modifier
                                     .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(color)
-                                    .border(
-                                        width = if (isSelected) 5.dp else 1.dp,
-                                        color = if (isSelected) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            MaterialTheme.colorScheme.outline
-                                        },
-                                        shape = CircleShape
-                                    )
                                     .clickable {
                                         onColorSelected(hex)
                                         showMoreColors = false
@@ -209,4 +241,3 @@ fun CategoryColorPreview(
             )
     )
 }
-

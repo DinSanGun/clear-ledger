@@ -668,7 +668,7 @@ private fun CategoryItem(
             .fillMaxWidth(),
         border = BorderStroke(
             width = 2.2.dp,
-            color = parseColor(category.colorHex).copy(alpha = 0.4f),
+            color = parseColor(category.colorHex).copy(alpha = 0.65f),
         ),
         colors = CardDefaults.cardColors(
             containerColor = cardContainerColor
@@ -683,7 +683,7 @@ private fun CategoryItem(
                 modifier = Modifier
                     .width(8.dp)
                     .height(IntrinsicSize.Min)
-                    .background(parseColor(category.colorHex).copy(alpha = 0.25f))
+                    .background(parseColor(category.colorHex))
             )
 
             Column(
