@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.dinyairsadot.clearledger.core.ui.SwipeDismissSnackbarHost
+import com.dinyairsadot.clearledger.core.ui.UnsavedChangesDialog
 import com.dinyairsadot.clearledger.core.ui.categoryTopAppBarColors
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -36,40 +37,10 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dinyairsadot.clearledger.core.domain.Category
-import com.dinyairsadot.clearledger.feature.category.CategoryListViewModel
 import com.dinyairsadot.clearledger.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-private data class EditableCategorySnapshot(
-    val name: String,
-    val colorHex: String,
-    val description: String,
-    val customFieldTitles: List<String>
-)
-
-private fun editableSnapshot(
-    name: String,
-    colorHex: String,
-    description: String,
-    customFieldTitles: List<String>,
-    pendingNewFieldName: String = ""
-): EditableCategorySnapshot {
-    val resolved = resolveCustomFieldTitlesForSave(
-        customFieldTitles = customFieldTitles,
-        pendingNewFieldName = pendingNewFieldName,
-        onDuplicatePendingField = {}
-    ) ?: customFieldTitles.map { it.trim() }.filter { it.isNotBlank() }
-    return EditableCategorySnapshot(
-        name = name.trim(),
-        colorHex = colorHex.trim(),
-        description = description.trim(),
-        customFieldTitles = resolved
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,7 +72,7 @@ fun EditCategoryScreen(
     var showPendingNewFieldInput by rememberSaveable { mutableStateOf(false) }
     var newFieldName by rememberSaveable { mutableStateOf("") }
     var selectedTopicId by rememberSaveable { mutableStateOf<String?>(null) }
-    var showDiscardChangesDialog by rememberSaveable { mutableStateOf(false) }
+    var showUnsavedChangesDialog by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -231,14 +202,14 @@ fun EditCategoryScreen(
         initialDescription,
         initialCustomFieldTitles
     ) {
-        editableSnapshot(
+        editableCategorySnapshot(
             name = initialName,
             colorHex = initialColorHex,
             description = initialDescription.orEmpty(),
             customFieldTitles = initialCustomFieldTitles
         )
     }
-    val hasUnsavedChanges = editableSnapshot(
+    val hasUnsavedChanges = editableCategorySnapshot(
         name = name,
         colorHex = colorHex,
         description = description,
@@ -248,7 +219,7 @@ fun EditCategoryScreen(
 
     fun onBackRequested() {
         if (hasUnsavedChanges) {
-            showDiscardChangesDialog = true
+            showUnsavedChangesDialog = true
         } else {
             onNavigateBack()
         }
@@ -337,34 +308,17 @@ fun EditCategoryScreen(
             )
         }
     ) { innerPadding ->
-        if (showDiscardChangesDialog) {
-            AlertDialog(
-                onDismissRequest = { showDiscardChangesDialog = false },
-                title = { Text(stringResource(R.string.discard_changes_title)) },
-                text = { Text(stringResource(R.string.discard_changes_message)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showDiscardChangesDialog = false
-                            onNavigateBack()
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text(stringResource(R.string.discard))
-                    }
+        if (showUnsavedChangesDialog) {
+            UnsavedChangesDialog(
+                onSave = {
+                    showUnsavedChangesDialog = false
+                    onSaveClicked()
                 },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showDiscardChangesDialog = false },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
-                    ) {
-                        Text(stringResource(R.string.keep_editing))
-                    }
-                }
+                onDiscard = {
+                    showUnsavedChangesDialog = false
+                    onNavigateBack()
+                },
+                onDismiss = { showUnsavedChangesDialog = false }
             )
         }
         if (pendingRemoveFieldIndex != null) {

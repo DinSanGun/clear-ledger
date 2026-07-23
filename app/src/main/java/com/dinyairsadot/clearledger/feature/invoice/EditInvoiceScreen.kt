@@ -37,6 +37,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,7 @@ import com.dinyairsadot.clearledger.core.domain.PaymentMethodOption
 import com.dinyairsadot.clearledger.core.domain.PaymentStatus
 import com.dinyairsadot.clearledger.core.domain.ServicePeriodMode
 import com.dinyairsadot.clearledger.core.ui.SwipeDismissSnackbarHost
+import com.dinyairsadot.clearledger.core.ui.UnsavedChangesDialog
 import com.dinyairsadot.clearledger.core.ui.categoryTopAppBarColors
 import androidx.compose.material3.LocalContentColor
 import java.time.LocalDate
@@ -189,6 +191,7 @@ fun EditInvoiceScreen(
             }
         )
     }
+    var showUnsavedChangesDialog by rememberSaveable { mutableStateOf(false) }
 
     var documentNumberError by rememberSaveable { mutableStateOf<String?>(null) }
     var amountError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -350,6 +353,107 @@ fun EditInvoiceScreen(
         onNavigateBack()
     }
 
+    val originalPaymentMethod = when (initialPaymentMethod) {
+        null, "" -> PaymentMethodOption.NOT_SPECIFIED.value
+        PaymentMethodOption.CREDIT.value,
+        PaymentMethodOption.BANK_TRANSFER.value,
+        PaymentMethodOption.CASH.value,
+        PaymentMethodOption.CHECK.value,
+        PaymentMethodOption.DIGITAL_WALLET.value,
+        PaymentMethodOption.OTHER.value -> initialPaymentMethod
+        else -> PaymentMethodOption.OTHER.value
+    }
+    val originalPaymentMethodOtherText = when (initialPaymentMethod) {
+        null, "" -> ""
+        PaymentMethodOption.CREDIT.value,
+        PaymentMethodOption.BANK_TRANSFER.value,
+        PaymentMethodOption.CASH.value,
+        PaymentMethodOption.CHECK.value,
+        PaymentMethodOption.DIGITAL_WALLET.value,
+        PaymentMethodOption.OTHER.value -> ""
+        else -> initialPaymentMethod
+    }
+    val originalSnapshot = remember(
+        initialDocumentNumber,
+        initialAmount,
+        initialPaymentStatus,
+        initialServicePeriodMode,
+        initialServicePeriodStartText,
+        initialServicePeriodEndText,
+        initialPaymentDateText,
+        initialDueDateText,
+        initialPaymentMethod,
+        initialNumberOfPayments,
+        initialConfirmationNumber,
+        initialVendorName,
+        initialNotes,
+        initialCustomFieldValues,
+        initialAmountCurrency,
+        categoryCustomFieldTitles
+    ) {
+        editableInvoiceSnapshot(
+            documentNumber = initialDocumentNumber,
+            amount = initialAmount,
+            currencyCode = initialAmountCurrency.name,
+            paymentStatus = initialPaymentStatus,
+            servicePeriodMode = initialServicePeriodMode,
+            servicePeriodStartText = initialServicePeriodStartText,
+            servicePeriodEndText = initialServicePeriodEndText,
+            startYear = parsedStart.year,
+            startMonth = parsedStart.monthValue,
+            showEndMonth = parsedEnd.year != parsedStart.year ||
+                parsedEnd.monthValue != parsedStart.monthValue,
+            endYear = parsedEnd.year,
+            endMonth = parsedEnd.monthValue,
+            paymentDateText = initialPaymentDateText.orEmpty(),
+            dueDateText = initialDueDateText.orEmpty(),
+            paymentMethod = originalPaymentMethod,
+            paymentMethodOtherText = originalPaymentMethodOtherText,
+            numberOfPayments = initialNumberOfPayments.orEmpty(),
+            confirmationNumber = initialConfirmationNumber.orEmpty(),
+            vendorName = initialVendorName.orEmpty(),
+            notes = initialNotes,
+            customFieldValues = categoryCustomFieldTitles.mapIndexed { index, _ ->
+                initialCustomFieldValues.getOrNull(index) ?: ""
+            }
+        )
+    }
+    val hasUnsavedChanges = editableInvoiceSnapshot(
+        documentNumber = documentNumberText,
+        amount = amountText,
+        currencyCode = amountCurrencyCode,
+        paymentStatus = paymentStatus,
+        servicePeriodMode = servicePeriodMode,
+        servicePeriodStartText = servicePeriodStartText,
+        servicePeriodEndText = servicePeriodEndText,
+        startYear = startYear,
+        startMonth = startMonth,
+        showEndMonth = showEndMonth,
+        endYear = endYear,
+        endMonth = endMonth,
+        paymentDateText = paymentDateText,
+        dueDateText = dueDateText,
+        paymentMethod = paymentMethod,
+        paymentMethodOtherText = paymentMethodOtherText,
+        numberOfPayments = numberOfPayments,
+        confirmationNumber = confirmationNumber,
+        vendorName = vendorName,
+        notes = notes,
+        customFieldValues = customFieldValues
+    ) != originalSnapshot
+
+    fun onBackRequested() {
+        if (hasUnsavedChanges) {
+            showUnsavedChangesDialog = true
+        } else {
+            onNavigateBack()
+        }
+    }
+
+    BackHandler {
+        onBackRequested()
+    }
+
     val showPaidGroup = paymentStatus == PaymentStatus.PAID
     val showDueDateGroup = paymentStatus == PaymentStatus.NOT_PAID
 
@@ -361,7 +465,7 @@ fun EditInvoiceScreen(
                 title = { Text(stringResource(R.string.edit_invoice_title)) },
                 colors = categoryTopAppBarColors(categoryColorHex),
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = ::onBackRequested) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
@@ -381,6 +485,19 @@ fun EditInvoiceScreen(
             )
         }
     ) { paddingValues ->
+        if (showUnsavedChangesDialog) {
+            UnsavedChangesDialog(
+                onSave = {
+                    showUnsavedChangesDialog = false
+                    handleSave()
+                },
+                onDiscard = {
+                    showUnsavedChangesDialog = false
+                    onNavigateBack()
+                },
+                onDismiss = { showUnsavedChangesDialog = false }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()

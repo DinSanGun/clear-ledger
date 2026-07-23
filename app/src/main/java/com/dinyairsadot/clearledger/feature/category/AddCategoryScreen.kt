@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -18,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import com.dinyairsadot.clearledger.core.domain.Category
 import com.dinyairsadot.clearledger.core.ui.SwipeDismissSnackbarHost
+import com.dinyairsadot.clearledger.core.ui.UnsavedChangesDialog
 import com.dinyairsadot.clearledger.core.ui.categoryTopAppBarColors
 import com.dinyairsadot.clearledger.R
 import kotlinx.coroutines.delay
@@ -63,6 +64,7 @@ fun AddCategoryScreen(
     var showPendingNewFieldInput by rememberSaveable { mutableStateOf(false) }
     var newFieldName by rememberSaveable { mutableStateOf("") }
     var selectedTopicId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showUnsavedChangesDialog by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -181,6 +183,34 @@ fun AddCategoryScreen(
         onNavigateBack()
     }
 
+    val originalSnapshot = remember {
+        editableCategorySnapshot(
+            name = "",
+            colorHex = "",
+            description = "",
+            customFieldTitles = emptyList()
+        )
+    }
+    val hasUnsavedChanges = editableCategorySnapshot(
+        name = name,
+        colorHex = colorHex,
+        description = description,
+        customFieldTitles = customFieldTitles,
+        pendingNewFieldName = newFieldName
+    ) != originalSnapshot
+
+    fun onBackRequested() {
+        if (hasUnsavedChanges) {
+            showUnsavedChangesDialog = true
+        } else {
+            onNavigateBack()
+        }
+    }
+
+    BackHandler {
+        onBackRequested()
+    }
+
     val formState = CategoryFormState(
         name = name,
         nameError = nameError,
@@ -240,7 +270,7 @@ fun AddCategoryScreen(
                 title = { Text(stringResource(R.string.add_category_title)) },
                 colors = categoryTopAppBarColors(colorHex.takeIf { it.isNotBlank() }),
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = ::onBackRequested) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
@@ -250,6 +280,19 @@ fun AddCategoryScreen(
             )
         }
     ) { innerPadding ->
+        if (showUnsavedChangesDialog) {
+            UnsavedChangesDialog(
+                onSave = {
+                    showUnsavedChangesDialog = false
+                    onSaveClicked()
+                },
+                onDiscard = {
+                    showUnsavedChangesDialog = false
+                    onNavigateBack()
+                },
+                onDismiss = { showUnsavedChangesDialog = false }
+            )
+        }
         if (pendingRemoveFieldIndex != null) {
             val fieldIndex = pendingRemoveFieldIndex!!
             val fieldTitle = customFieldTitles.getOrNull(fieldIndex)?.takeIf { it.isNotBlank() }
