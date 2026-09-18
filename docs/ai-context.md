@@ -1,6 +1,6 @@
 # Clear Ledger (Android) — AI Context (Cursor)
 
-_Last updated: 2026-08-26_
+_Last updated: 2026-09-18_
 
 Concise working context for AI-assisted development. For the full overview see `docs/PROJECT_OVERVIEW.md`; for architecture patterns see `docs/ARCHITECTURE.md`; for release planning see `docs/LAUNCH_PLAN.md` and `docs/RELEASE.md`.
 
@@ -19,6 +19,8 @@ Supports **Hebrew and English** with manual language switching and RTL/LTR layou
 
 **Invoice attachments (implemented, local-only):** one optional image/PDF attachment per invoice via SAF `OpenDocument`, immediately copied into app-private storage (`filesDir/invoice_attachments/`) so the original source file can be deleted/moved afterwards without breaking it. **Not yet included in backup/restore** — that's the next launch-prep stage.
 
+**Play Integrity (Android prepare layer only, Sep 2026):** dependency + `core/integrity/PlayIntegrityClient` can prepare a Standard Integrity token provider against the production Google Cloud project number (`BuildConfig.PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER`). Not wired to scan/UI/backend yet; token request, `requestHash`, and server-side verify are still pending.
+
 ---
 
 ## 2) Tech stack
@@ -30,6 +32,7 @@ Supports **Hebrew and English** with manual language switching and RTL/LTR layou
 - Export/backup: pure Kotlin in `core/util/` and `core/util/backup/`; SAF + file I/O in Compose screens
 - Share Sheet: `androidx.core.content.FileProvider` (manifest + `res/xml/file_paths.xml`) + `core/util/ShareExportUtil.kt`; `Intent.ACTION_SEND` / `Intent.createChooser` in Compose screens
 - Invoice attachments: SAF `OpenDocument` → copy into app-private storage, `core/util/AttachmentStorage.kt`; open via the same `FileProvider` + `core/util/AttachmentUtil.kt`; `Intent.ACTION_VIEW` to open via external viewer
+- Play Integrity (unused by UI yet): `com.google.android.play:integrity:1.6.0`, `core/integrity/PlayIntegrityClient` (Standard API prepare only)
 - Gradle KTS with version catalog (`libs.*`)
 
 ---
@@ -59,6 +62,8 @@ Supports **Hebrew and English** with manual language switching and RTL/LTR layou
 | `core/util/backup/BackupMapper.kt` | Domain ↔ backup DTO mapping |
 | `core/data/repositories/RoomBackupRestoreRepository.kt` | Transactional full-replace restore |
 | `core/data/SeedingPreferenceManager.kt` | Seeding flags updated after restore |
+| `core/integrity/PlayIntegrityClient.kt` | Standard Integrity token-provider prepare (not wired yet) |
+| `core/integrity/PlayIntegrityException.kt` | Typed prepare failures for callers |
 
 ---
 

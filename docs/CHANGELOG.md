@@ -5,6 +5,16 @@ Entries are ordered from newest to oldest and correspond to tested, committed ch
 
 > **Note (2026-06-15):** The app was renamed from "Tax Tracker" / "Tax Invoice Tracker" to **Clear Ledger** (`com.dinyairsadot.clearledger`). Historical entries below retain the original development names for continuity.
 
+## 18/09/2026
+
+### Play Integrity (Android prepare layer only)
+- Added Play Integrity Android library `com.google.android.play:integrity:1.6.0`
+- Added `core/integrity/PlayIntegrityClient` to prepare/warm a Standard Integrity token provider (`IntegrityManagerFactory.createStandard`) and cache it in memory
+- Cloud project number exposed as `BuildConfig.PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER` (not a secret; set the production value before use)
+- Not wired to UI, AI invoice scan, or backend; token request / `requestHash` / server verify still pending
+
+---
+
 ## 11/06/2026
 
 ### Backup and Restore

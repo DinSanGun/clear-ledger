@@ -34,6 +34,15 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Play Integrity Standard API — Google Cloud project number (not a secret).
+        // Set this to the production numeric project number from Google Cloud Console →
+        // Project info (replace 0L) before calling prepare / requesting integrity tokens.
+        buildConfigField(
+            "long",
+            "PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER",
+            "28593971438" // PROJECT NUMBER HERE
+        )
     }
 
     signingConfigs {
@@ -68,6 +77,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -104,4 +114,7 @@ dependencies {
     
     // --- Gson for type converters ---
     implementation(libs.gson)
+
+    // --- Play Integrity (Standard API; client not wired to product flows yet) ---
+    implementation(libs.play.integrity)
 }

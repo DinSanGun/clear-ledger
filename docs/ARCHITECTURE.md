@@ -3,7 +3,7 @@
 Concise architecture reference for developers, code review, and interview prep.  
 For user flows and package layout detail, see `docs/PROJECT_OVERVIEW.md`. For release planning, see `docs/LAUNCH_PLAN.md`.
 
-_Last updated: 2026-08-26_
+_Last updated: 2026-09-18_
 
 ---
 
@@ -12,6 +12,8 @@ _Last updated: 2026-08-26_
 Clear Ledger is a **local-first** Android app: categories define optional custom field schemas; invoices store aligned value lists and explicit service period modes. Clear Ledger does not send your data to the developer or operate its own cloud service; data is stored locally. User-initiated export and manual backup use Storage Access Framework (SAF). Android system backup may apply per device settings.
 
 **Stack:** Kotlin · Jetpack Compose (Material 3) · Navigation Compose · Room v16 · MVVM-style separation
+
+A minimal Play Integrity **Standard** client (`core/integrity/`) exists for a future online attestation path; it is **not** wired into UI or product flows yet (prepare-only; no token/`requestHash`/backend verify in this stage).
 
 ---
 
@@ -37,6 +39,8 @@ Clear Ledger is a **local-first** Android app: categories define optional custom
 **Data flow:** `UI → ViewModel → Repository → Room → Repository → ViewModel → UI`
 
 **ViewModel scoping:** Related screens share a parent `NavBackStackEntry` (e.g. invoice list, add/edit, details share `InvoiceListViewModel`). Repositories are wired in `MainActivity` and ViewModel factories — no DI framework.
+
+**Play Integrity (prepare-only, Sep 2026):** `core/integrity/PlayIntegrityClient` wraps `StandardIntegrityManager` and can warm up a `StandardIntegrityTokenProvider` using `BuildConfig.PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER`. Not constructed from `MainActivity` yet; token request + `requestHash` + backend verification are later stages.
 
 ---
 
