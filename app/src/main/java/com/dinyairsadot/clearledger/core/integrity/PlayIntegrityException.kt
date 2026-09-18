@@ -15,6 +15,12 @@ sealed class PlayIntegrityException(
         cause: Throwable? = null,
     ) : PlayIntegrityException(kind, cause)
 
+    /** Standard Integrity token request ([PlayIntegrityClient.requestIntegrityToken]) failed. */
+    class TokenRequestFailed(
+        kind: Kind,
+        cause: Throwable? = null,
+    ) : PlayIntegrityException(kind, cause)
+
     enum class Kind {
         /** Device offline or Play Integrity could not reach Google servers. */
         NETWORK,
@@ -25,7 +31,7 @@ sealed class PlayIntegrityException(
         /** Client called too frequently (Play Integrity rate limits). */
         RATE_LIMITED,
 
-        /** Cloud project number missing/invalid or API not enabled for this app. */
+        /** Cloud project number missing/invalid, API not enabled, or bad requestHash. */
         CONFIGURATION,
 
         /** Anything else; treat as a generic integrity failure. */

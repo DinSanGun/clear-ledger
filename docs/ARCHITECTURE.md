@@ -13,7 +13,7 @@ Clear Ledger is a **local-first** Android app: categories define optional custom
 
 **Stack:** Kotlin · Jetpack Compose (Material 3) · Navigation Compose · Room v16 · MVVM-style separation
 
-A minimal Play Integrity **Standard** client (`core/integrity/`) exists for a future online attestation path; it is **not** wired into UI or product flows yet (prepare-only; no token/`requestHash`/backend verify in this stage).
+A Play Integrity **Standard** client (`core/integrity/`) can prepare a token provider and request a token with `requestHash` (SHA-256 + URL-safe Base64 helper in `IntegrityRequestHash`). It is **not** wired into UI or product flows yet; backend verification and AI scan wiring are still pending.
 
 ---
 
@@ -40,7 +40,7 @@ A minimal Play Integrity **Standard** client (`core/integrity/`) exists for a fu
 
 **ViewModel scoping:** Related screens share a parent `NavBackStackEntry` (e.g. invoice list, add/edit, details share `InvoiceListViewModel`). Repositories are wired in `MainActivity` and ViewModel factories — no DI framework.
 
-**Play Integrity (prepare-only, Sep 2026):** `core/integrity/PlayIntegrityClient` wraps `StandardIntegrityManager` and can warm up a `StandardIntegrityTokenProvider` using `BuildConfig.PLAY_INTEGRITY_CLOUD_PROJECT_NUMBER`. Not constructed from `MainActivity` yet; token request + `requestHash` + backend verification are later stages.
+**Play Integrity (client token + hash, Sep 2026):** `core/integrity/PlayIntegrityClient` wraps `StandardIntegrityManager` — prepare/cache provider, `requestIntegrityToken(requestHash)`, single retry on `INTEGRITY_TOKEN_PROVIDER_INVALID`. `IntegrityRequestHash.sha256Base64Url` for SHA-256 → URL-safe Base64 (no padding). Not constructed from `MainActivity` yet; AI scan wiring + backend verification are later stages. Stage 6 hashes the deterministic **protected scan payload** only (integrity token excluded; hash before token request) — no canonical JSON invented here.
 
 ---
 

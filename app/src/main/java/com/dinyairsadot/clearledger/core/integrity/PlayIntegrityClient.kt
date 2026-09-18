@@ -8,26 +8,25 @@ import com.google.android.play.core.integrity.StandardIntegrityException
 import com.google.android.play.core.integrity.StandardIntegrityManager
 import com.google.android.play.core.integrity.StandardIntegrityManager.StandardIntegrityTokenProvider
 import com.google.android.play.core.integrity.model.StandardIntegrityErrorCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlinx.coroutines.CancellationException
-
 
 /**
  * Thin wrapper around Play Integrity **Standard** API.
  *
- * This stage only prepares (warms up) a [StandardIntegrityTokenProvider] and keeps it in
- * memory. Token requests and `requestHash` binding are intentionally not implemented yet —
- * add a coroutine-friendly `requestIntegrityToken(requestHash: String)` beside
- * [prepareTokenProvider] when the AI invoice scan / backend path lands.
- *
- * Not wired into UI or product flows — construct when a later stage needs it.
+ * Supports preparing a [StandardIntegrityTokenProvider] and requesting a Standard
+ * Integrity token bound to a caller-supplied `requestHash`. Not wired into UI or
+ * product flows yet — construct when a later stage needs it.
  *
  * Never log integrity tokens or other sensitive attestation payloads.
+ *
+ * Hashing the protected scan payload (excluding the integrity token) is separate:
+ * see [IntegrityRequestHash].
  */
 class PlayIntegrityClient(
     context: Context,
@@ -47,7 +46,7 @@ class PlayIntegrityClient(
      *
      * Safe to call repeatedly: concurrent callers share one in-flight prepare, and a
      * successful provider is reused until the process dies or [invalidatePreparedProvider]
-     * is used (e.g. after `INTEGRITY_TOKEN_PROVIDER_INVALID` in a later stage).
+     * is used (e.g. after `INTEGRITY_TOKEN_PROVIDER_INVALID`).
      *
      * @throws PlayIntegrityException.PreparationFailed on warm-up failure
      */
@@ -69,12 +68,52 @@ class PlayIntegrityClient(
                 provider
             } catch (e: PlayIntegrityException.PreparationFailed) {
                 throw e
-            } catch (e: PlayIntegrityException.PreparationFailed) {
-                throw e
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 throw PlayIntegrityException.PreparationFailed(mapFailureKind(e), e)
+            }
+        }
+    }
+
+    /**
+     * Requests a Standard Integrity token for [requestHash].
+     *
+     * Reuses a prepared provider when available. If Play returns
+     * `INTEGRITY_TOKEN_PROVIDER_INVALID`, the cached provider is dropped and the flow
+     * performs **at most one** prepare + token retry. No unbounded retry loop.
+     *
+     * @return the integrity token string only (never logged by this client)
+     * @throws PlayIntegrityException.TokenRequestFailed if [requestHash] is blank or the
+     *   token request fails
+     * @throws PlayIntegrityException.PreparationFailed if warm-up fails
+     * @throws CancellationException if the coroutine is cancelled
+     */
+    suspend fun requestIntegrityToken(requestHash: String): String {
+        if (requestHash.isBlank()) {
+            throw PlayIntegrityException.TokenRequestFailed(
+                PlayIntegrityException.Kind.CONFIGURATION,
+            )
+        }
+        return try {
+            requestIntegrityTokenOnce(requestHash)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: PlayIntegrityException.PreparationFailed) {
+            throw e
+        } catch (e: Exception) {
+            if (!isProviderInvalid(e)) {
+                throw toTokenRequestFailed(e)
+            }
+            invalidatePreparedProvider()
+            try {
+                requestIntegrityTokenOnce(requestHash)
+            } catch (retry: CancellationException) {
+                throw retry
+            } catch (retry: PlayIntegrityException.PreparationFailed) {
+                throw retry
+            } catch (retry: Exception) {
+                throw toTokenRequestFailed(retry)
             }
         }
     }
@@ -87,10 +126,29 @@ class PlayIntegrityClient(
 
     /**
      * Drops the cached provider so the next [prepareTokenProvider] call warms up again.
-     * Reserved for later stages (e.g. provider expiry).
      */
     fun invalidatePreparedProvider() {
         tokenProvider = null
+    }
+
+    private suspend fun requestIntegrityTokenOnce(requestHash: String): String {
+        val provider = prepareTokenProvider()
+        val tokenResponse = provider.request(
+            StandardIntegrityManager.StandardIntegrityTokenRequest.builder()
+                .setRequestHash(requestHash)
+                .build(),
+        ).await()
+        return tokenResponse.token()
+    }
+
+    private fun toTokenRequestFailed(throwable: Throwable): PlayIntegrityException.TokenRequestFailed {
+        if (throwable is PlayIntegrityException.TokenRequestFailed) return throwable
+        return PlayIntegrityException.TokenRequestFailed(mapFailureKind(throwable), throwable)
+    }
+
+    private fun isProviderInvalid(throwable: Throwable): Boolean {
+        val integrity = findStandardIntegrityException(throwable) ?: return false
+        return integrity.errorCode == StandardIntegrityErrorCode.INTEGRITY_TOKEN_PROVIDER_INVALID
     }
 
     private fun mapFailureKind(throwable: Throwable): PlayIntegrityException.Kind {
@@ -120,7 +178,12 @@ class PlayIntegrityClient(
             StandardIntegrityErrorCode.APP_NOT_INSTALLED,
             StandardIntegrityErrorCode.APP_UID_MISMATCH,
             StandardIntegrityErrorCode.API_NOT_AVAILABLE,
+            StandardIntegrityErrorCode.REQUEST_HASH_TOO_LONG,
             -> PlayIntegrityException.Kind.CONFIGURATION
+
+            // After the single prepare+retry is exhausted, surface as UNKNOWN.
+            StandardIntegrityErrorCode.INTEGRITY_TOKEN_PROVIDER_INVALID,
+            -> PlayIntegrityException.Kind.UNKNOWN
 
             else -> PlayIntegrityException.Kind.UNKNOWN
         }

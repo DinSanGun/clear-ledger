@@ -7,6 +7,11 @@ Entries are ordered from newest to oldest and correspond to tested, committed ch
 
 ## 18/09/2026
 
+### Play Integrity (Android client: token request + requestHash helper)
+- `PlayIntegrityClient.requestIntegrityToken(requestHash)` — Standard token bound to hash; single prepare+retry on `INTEGRITY_TOKEN_PROVIDER_INVALID`
+- `IntegrityRequestHash.sha256Base64Url` — SHA-256 → URL-safe Base64 without padding (no AI scan DTO / canonical JSON yet; Stage 6 hashes protected scan payload only — integrity token excluded from hashed bytes)
+- Still not wired to UI, AI invoice scan, or backend verification
+
 ### Play Integrity (Android prepare layer only)
 - Added Play Integrity Android library `com.google.android.play:integrity:1.6.0`
 - Added `core/integrity/PlayIntegrityClient` to prepare/warm a Standard Integrity token provider (`IntegrityManagerFactory.createStandard`) and cache it in memory
