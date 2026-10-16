@@ -1,6 +1,6 @@
 # Clear Ledger – Play Store Materials
 
-_Last updated: 2026-06-25_
+_Last updated: 2026-10-16_
 
 Store listing copy, Data Safety guidance, content rating notes, and asset checklist for Google Play submission.
 Sections marked **[PLAY CONSOLE]** must be entered and verified in Play Console before submission.
@@ -30,10 +30,11 @@ No developer cloud sync. No ads.
 
 PRIVACY-FIRST DESIGN
 Clear Ledger does not send your data to the developer or operate its own cloud service.
-Your records are stored locally on your device. If Android system backup is enabled on
-your device, Android/Google may back up app data according to your device settings.
-You can also export records or create manual backups you control. No backend server.
-No analytics.
+Your records, including any images or PDFs you attach to invoices, are stored locally on
+your device. If Android system backup is enabled on your device, Android/Google may back up
+app data according to your device settings (attached files are not part of Android system
+backup). You can also export records or create manual backups you control, which include
+your attachments. No backend server. No analytics.
 
 ORGANIZE BY CATEGORY
 Create categories for your recurring bills: electricity, water, municipal tax,
@@ -48,6 +49,8 @@ For each category, track individual invoices with:
 - Payment method and credit payment tracking
 - Custom fields specific to the category
 - Notes
+- One optional image or PDF attachment per invoice (for example a scanned bill or
+  receipt), stored privately on your device and opened with the viewer app of your choice
 
 SEARCH, FILTER, AND SORT
 Find what you need quickly:
@@ -62,9 +65,11 @@ EXPORT YOUR RECORDS
 - Files are written via Android's file picker to any location you choose
 
 BACKUP AND RESTORE
-- Create a full backup as a ZIP file containing a structured backup.json
+- Create a full backup as a ZIP file containing a structured backup.json plus your
+  attached invoice images and PDFs. If an attached file is missing from the device, the
+  backup still completes and tells you that some attachments were left out
 - Restore from a backup: the app validates the file, asks for confirmation, and
-  performs a full replacement of local data
+  performs a full replacement of local data, including the attachments stored in the backup
 - Backup and restore are user-initiated; Clear Ledger does not operate its own cloud service.
   Android system backup may apply depending on your device and Google Account settings
 
@@ -79,16 +84,19 @@ SUITABLE FOR:
 - Anyone who wants structured, private, local financial records
 
 No account. No ads. No developer cloud sync. Local storage with optional Android
-system backup (per your device settings) and manual export/backup you control.
+system backup (per your device settings) and manual export/backup, including
+attachments, that you control.
 ```
 
 ### Category
 
-**Productivity**
+**Finance** — matches the product positioning ("Simple Bill & Tax Tracker": invoices, bills, and tax-related expenses). Productivity was previously listed here but is less accurate for the core use case.
+
+> **[PLAY CONSOLE]** Finance-category apps may need to complete the Financial features declaration in App content. Clear Ledger does not provide payments, lending, banking, trading, or similar financial services — confirm the correct declaration choices in Play Console; do not guess.
 
 ### Tags / keywords (suggested)
 
-Productivity
+Finance, invoices, bills, expenses (select from the tags Play Console offers)
 
 ### Support contact
 
@@ -113,7 +121,9 @@ Hebrew version (in-app and hosted): **https://dinsangun.github.io/clear-ledger/p
 Technical basis:
 - No `INTERNET` permission declared in `AndroidManifest.xml`
 - No analytics, advertising, or data-collection SDK included
-- All app data (categories, invoices, preferences) is stored locally on the device; the developer does not receive it
+- All app data (categories, invoices, invoice image/PDF attachments, preferences) is stored locally on the device; the developer does not receive it
+- Attachments are copied into the app's private storage (`filesDir/invoice_attachments/`); backup ZIPs, CSV exports, and the Share Sheet only write or hand over files at the user's explicit request
+- The user-initiated Share Sheet and "Open attachment" actions hand a file to an app the user chooses; the developer does not receive it. Confirm against Play's current definitions of "collect" and "share" before submitting
 
 ### Is all user data collected by your app encrypted in transit?
 
@@ -122,8 +132,8 @@ Technical basis:
 ### Do you provide a way for users to request that their data be deleted?
 
 **Yes** — users can:
-- Delete individual invoices and categories within the app
-- Uninstall the app, which removes all local data
+- Delete individual invoices and categories within the app, and remove an invoice's attachment (the app's private copy is deleted)
+- Uninstall the app, which removes all local data, including attached files in private app storage
 
 ### Data types collected — matrix
 
@@ -131,6 +141,7 @@ Technical basis:
 |-----------|------------------------|---------------------------|-------|
 | Personal information (name, email, etc.) | No | No | Not entered or stored |
 | Financial info | No | No | Stored locally on device; not sent to developer |
+| Photos / files (invoice attachments) | No | No | Images/PDFs the user attaches are copied to private app storage; not sent to developer; included in manual backup ZIPs the user saves |
 | Location | No | No | Not accessed |
 | Contacts | No | No | Not accessed |
 | Device identifiers | No | No | Not accessed |
@@ -145,7 +156,7 @@ Clear Ledger uses `android:allowBackup="true"`. Android system backup is **enabl
 Backup rules intentionally include:
 
 - Room database (`clear_ledger_database` and WAL files)
-- SharedPreferences for language and seeding flags (`language_prefs`, `seeding_prefs`)
+- SharedPreferences for language, text size, and seeding flags (`language_prefs`, `text_size_prefs`, `seeding_prefs`)
 
 Cache and other non-listed app data are not included. Invoice attachment files (`invoice_attachments/`) are **not** included, so a system restore can bring back invoice records without their attached files; manual backup ZIPs include available attachments.
 
@@ -231,7 +242,7 @@ Phone screenshots are captured. Remaining assets are optional or need verificati
 
 ## E. Play Store Submission Checklist
 
-Final gate before submitting to Play Console internal testing (S15):
+Final gate before submitting this build (`versionCode 2`) to Play Console (closed testing and production):
 
 - [ ] **Verify hosted privacy policy URL is live** — `https://dinsangun.github.io/clear-ledger/privacy-policy` (source: `docs/privacy-policy.md`); also verify Hebrew page at `https://dinsangun.github.io/clear-ledger/privacy-policy-he` (`docs/privacy-policy-he.md`)
 - [ ] Privacy policy URL added to Play Console listing
@@ -241,7 +252,7 @@ Final gate before submitting to Play Console internal testing (S15):
 - [ ] At least 2 phone screenshots uploaded
 - [ ] Data Safety form completed and submitted in Play Console
 - [ ] Content rating questionnaire completed in Play Console
-- [ ] App category set to Finance
+- [ ] App category set to Finance (and Financial features declaration completed, if Play Console requires it)
 - [ ] Support contact email added
 - [ ] Signing keystore created and release AAB uploaded (S15)
 

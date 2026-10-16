@@ -17,7 +17,7 @@ The app targets real-world billing and tax workflows, including Israel-specific 
 - **Android system backup** — if enabled on your device, Android/Google may back up app data per your device and Google Account settings (see `docs/privacy-policy.md`)
 - **Manual export and backup via Storage Access Framework (SAF)** — files go only where you save them
 - **Optional sharing via the standard Android Share Sheet** — after an export completes, you may choose to share that exact file through any app you already have installed (email, messaging, cloud drives, etc.); the app has no direct Gmail/Drive integration and does not share anything automatically
-- **Backup files are plaintext JSON** — treat them like private financial documents
+- **Backup files are unencrypted** (plaintext JSON plus attachment files) — treat them like private financial documents
 
 ---
 
@@ -43,7 +43,7 @@ The app targets real-world billing and tax workflows, including Israel-specific 
 - Separate payment date and due date from service period
 - Document type, payment method (including custom “Other”), and credit payment count
 - Currency stored and displayed as metadata (ILS / USD); amounts are not converted
-- **One optional image/PDF attachment per invoice** — attach, replace, or remove from the add/edit form; view from Invoice Details via the device's own viewer app; picked with Android's Storage Access Framework and immediately copied into the app's own private storage, so **the original source file can be deleted or moved afterwards without breaking the attachment** (no broad storage permission, no MediaStore, no public/cloud storage). **Local to the device only** — not yet included in backup/restore (see Data Portability below)
+- **One optional image/PDF attachment per invoice** — attach, replace, or remove from the add/edit form; view from Invoice Details via the device's own viewer app; picked with Android's Storage Access Framework and immediately copied into the app's own private storage, so **the original source file can be deleted or moved afterwards without breaking the attachment** (no broad storage permission, no MediaStore, no public/cloud storage). **Stored on the device only** — included in manual backup ZIPs and restored from them, but **not** in Android system backup or CSV exports (see Data Portability below)
 
 ### Invoice List Productivity
 - Search by invoice number or amount with mode selector
@@ -78,8 +78,8 @@ The app offers three distinct data portability features. **Do not confuse them:*
 |---------|---------------|--------|---------|
 | **Export** (invoice list) | Invoice overflow → Export | Localized CSV | Human-readable spreadsheet of currently visible invoices |
 | **Export all data** | Category list overflow → Export | ZIP with CSV files | Human-readable archive for review, accountants, or records |
-| **Backup** | Category list → Settings → Create backup | ZIP with `backup.json` | Restore-ready app data snapshot |
-| **Restore** | Category list → Settings → Restore from backup | Reads backup ZIP | Full replacement of local app data from a backup |
+| **Backup** | Category list → Settings → Create backup | ZIP with `backup.json` + `attachments/` | Restore-ready app data snapshot, including available invoice attachment files |
+| **Restore** | Category list → Settings → Restore from backup | Reads backup ZIP | Full replacement of local app data (and attachment files) from a backup |
 
 #### Export (human-readable)
 - **Invoice list:** exports currently visible invoices (after search, filter, and sort) to localized CSV via Storage Access Framework (SAF)
@@ -90,19 +90,21 @@ The app offers three distinct data portability features. **Do not confuse them:*
 - **Share the exported file:** after a successful export, the confirmation snackbar includes a **Share** action that opens the standard Android Share Sheet for that exact file (`text/csv` or `application/zip`), via a secure temporary `content://` link — no separate Gmail/Drive integration, no broad storage permission
 
 #### Backup and restore (app data)
-- **Create backup:** writes a ZIP containing a single `backup.json` with restore-oriented data (categories, invoices, IDs, order, colors, custom fields, service period modes, currencies, raw enum values, ISO dates, metadata, format version)
-- **Restore backup:** user selects a backup ZIP via SAF; app validates `backup.json`, shows a destructive confirmation dialog, then **fully replaces** current local categories and invoices
+- **Create backup:** writes a ZIP containing `backup.json` with restore-oriented data (categories, invoices, IDs, order, colors, custom fields, service period modes, currencies, raw enum values, ISO dates, metadata, format version) plus an `attachments/` folder with each invoice's image/PDF attachment file that is available on the device (backup format version 2)
+- **Missing attachment files:** if an attachment file cannot be found or read on the device (for example after an Android system restore brought back the database but not app files), the backup still completes without that file and a warning dialog reports that some attachments were omitted
+- **Restore backup:** user selects a backup ZIP via SAF; app validates `backup.json` and the attachment entries, shows a destructive confirmation dialog, then **fully replaces** current local categories and invoices and restores the attachment files contained in the backup
+- **Older backups:** backups created before attachment support (format version 1, no attachments) can still be restored
 - Restore is **full replace only** — not merge, not selective
 - Validation runs **before** any data is deleted; if validation fails, current data stays unchanged
 - Restore uses a Room transaction (delete + insert) and preserves original category and invoice IDs
 - After a successful restore, seeding flags are updated so first-run default seeding does not duplicate restored data
 - After restore, `last_applied_language` is updated to prevent the next launch from re-localizing seeded backup category names
 - Language preference is **not** restored or modified
-- Backup files are **plaintext JSON** and contain sensitive financial/user data — treat them like private documents
+- Backup files are **unencrypted** (plaintext JSON plus the original attachment files) and contain sensitive financial/user data — treat them like private documents
 
 > **Before restoring:** create a fresh backup of your current data if you may want to return to the present state. Restore cannot be undone unless you have another backup.
 
-> **Attachment limitation:** invoice attachments (image/PDF) are copied into the app's own private storage on-device, but that copy itself is local to the device only. Backup, restore, CSV export, and Export all data do **not** yet include attachment files — this is planned for a follow-up stage.
+> **Attachments and data portability:** invoice attachments (image/PDF) are copied into the app's own private storage on-device. Manual backup ZIPs include the attachment files that are available and restore brings them back. CSV export and Export all data contain no attachment files, and Android system backup does not include them either — after an Android system restore or device transfer, invoice records can return without their attachments (Invoice Details then shows that the file is not available). Use the manual **Backup** and **Restore** to move complete data, attachments included.
 
 ### Local Persistence
 - Offline-first design with Room (SQLite), currently at schema version 16
@@ -123,7 +125,7 @@ The app offers three distinct data portability features. **Do not confuse them:*
 - **Build:** Gradle (KTS), version catalog
 - **CI:** GitHub Actions (Temurin 17) — `test`, `lintDebug`, `assembleDebug`
 
-**Package:** `com.dinyairsadot.clearledger` · **Version:** `1.0.0` (versionCode 1)
+**Package:** `com.dinyairsadot.clearledger` · **Version:** `1.0.0` (versionCode 2)
 
 ---
 
@@ -178,11 +180,11 @@ Clear Ledger is **feature-complete** for MVP and in late pre-release preparation
 | S11 — Release polish | Done |
 | S12 — Project documentation & release identity (S12A–C) | Done |
 | **S14 — Privacy policy & Play Store materials** | **Complete except Play Console external tasks** |
-| S15 — Internal Play Store testing (signing + upload) | Pending |
+| S15 — Play Store testing (signing + upload) | In progress — closed-testing build with `versionCode 1` was released; the `versionCode 2` build is pending upload |
 | S16 — Launch blocker fixes | Pending |
 | S17 — Production release | Pending |
 
-**Release build:** `versionName = 1.0.0`, unsigned `./gradlew bundleRelease` documented; signing deferred to S15.
+**Release build:** `versionName = 1.0.0`, `versionCode = 2`; `./gradlew bundleRelease` is signed with the upload key when a local, untracked `keystore.properties` is present (see `docs/RELEASE.md`).
 
 See [`docs/LAUNCH_PLAN.md`](docs/LAUNCH_PLAN.md) for the full execution plan (S9–S17).
 

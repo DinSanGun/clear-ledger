@@ -4,7 +4,7 @@ English | [עברית](privacy-policy-he)
 
 _Simple Bill & Tax Tracker_
 
-_Last updated: 2026-06-25_
+_Last updated: 2026-10-16_
 
 This privacy policy describes how Clear Ledger handles your data. It applies to the Android app published by the developer under the package `com.dinyairsadot.clearledger`.
 
@@ -12,22 +12,25 @@ This privacy policy describes how Clear Ledger handles your data. It applies to 
 
 ## Summary
 
-Clear Ledger is a local-first app. **Clear Ledger does not operate its own cloud service and does not send your data to the developer.** Your categories, invoices, and preferences are stored locally on your device.
+Clear Ledger is a local-first app. **Clear Ledger does not operate its own cloud service and does not send your data to the developer.** Your categories, invoices, attached images and PDFs, and preferences are stored locally on your device.
 
 If **Android system backup** is enabled on your device, Android/Google may back up or transfer app data according to your device, Google Account, and backup settings. This is handled by Android, not by Clear Ledger.
 
-You can also use Clear Ledger's **manual export and backup** features to create files you control (CSV, ZIP, or restore-ready backup ZIP).
+You can also use Clear Ledger's **manual export and backup** features to create files you control (CSV, ZIP, or restore-ready backup ZIP that also includes your attached image and PDF files).
 
 ---
 
 ## What data the app stores
 
-All data the app creates is stored **locally on your device** in a Room (SQLite) database and in Android SharedPreferences. This includes:
+All data the app creates is stored **locally on your device** in a Room (SQLite) database, in Android SharedPreferences, and in the app's private storage (for attached files). This includes:
 
 - Category names, colors, descriptions, and custom field definitions you create
 - Invoice records, amounts, dates, custom field values, and other billing data you enter
+- **Attached images and PDFs:** you can attach one image or PDF file to an invoice. When you pick a file, Clear Ledger copies it into the app's **private storage** on your device. Other apps cannot browse this storage, and the copy does not depend on the original file, which you can delete or move afterwards. Removing the attachment or deleting the invoice removes the app's copy
 - Your language preference (Hebrew or English)
 - App initialization flags (e.g. whether default categories have been seeded)
+
+When you tap **Open** on an attachment, Clear Ledger gives the viewer app you choose on your device temporary read access to that one file. This only happens when you ask for it, and what that app does with the file is governed by that app's own privacy practices.
 
 This data is **not transmitted to the developer**, to any server operated by the developer, or to any third party by Clear Ledger itself.
 
@@ -55,9 +58,11 @@ Clear Ledger lets you export data and create backups. These operations are **ent
 - **Invoice export (CSV):** exports currently visible invoices to a CSV file at a location you choose via Android's file picker (Storage Access Framework)
 - **All-data export (ZIP):** exports all categories and invoices as CSV files inside a ZIP at a location you choose
 - **Backup (ZIP):** creates a restore-ready ZIP file containing a `backup.json` snapshot of all app data, plus the image/PDF files attached to your invoices that are available on the device, at a location you choose. If some attached files cannot be found on the device, they are left out of the backup and the app tells you after the backup is created
-- **Restore:** reads a backup ZIP file from a location you choose and replaces local app data
+- **Restore:** reads a backup ZIP file from a location you choose and replaces local app data, including restoring the attachment files contained in the backup
 
-Clear Ledger does not upload these files anywhere. Files are written only to a path that you select. **You are responsible for the security of exported and backup files.** These files contain your financial and billing data and should be treated as private documents.
+After an export completes, the app may offer a **Share** action that opens the standard Android Share Sheet. Sharing is always your choice: the file is only handed to the app you pick, which then handles it under its own privacy practices.
+
+Clear Ledger does not upload these files anywhere. Files are written only to a path that you select (or shared only with an app that you choose). **You are responsible for the security of exported and backup files.** These files contain your financial and billing data and should be treated as private documents.
 
 ---
 
@@ -102,8 +107,8 @@ None of these libraries send data to external servers as part of Clear Ledger's 
 
 App data is stored locally on your device and remains under your control:
 
-- You can delete individual invoices and categories within the app
-- Uninstalling the app removes locally stored app data from the device
+- You can delete individual invoices and categories within the app, and remove or replace an invoice's attachment; the app's private copy of a removed attachment is deleted
+- Uninstalling the app removes locally stored app data, including attached files in the app's private storage, from the device
 - Exported or manual backup files you saved elsewhere remain wherever you stored them — Clear Ledger does not track or manage those files after they are written
 - Android system backup copies (if enabled) are managed by Android/Google under your account settings
 

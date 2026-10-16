@@ -5,6 +5,46 @@ Entries are ordered from newest to oldest and correspond to tested, committed ch
 
 > **Note (2026-06-15):** The app was renamed from "Tax Tracker" / "Tax Invoice Tracker" to **Clear Ledger** (`com.dinyairsadot.clearledger`). Historical entries below retain the original development names for continuity.
 
+## 16/10/2026 — v1.0.0 (`versionCode 2`)
+
+Summary of the major features of Clear Ledger v1.0 (`versionName 1.0.0`, `versionCode 2`), including work completed after the 11/06/2026 backup/restore milestone below. `versionCode 1` was used for the earlier Google Play closed-testing build; `versionCode 2` is the next upload. Branch: `release/v1.0`.
+
+### Core features
+- **Categories and invoices:** customizable categories (colors, manual reorder, category-specific custom fields) and structured invoice tracking (document number, amount, vendor, payment status, payment/due dates, service period, document type, payment method, credit payments, ILS/USD currency metadata)
+- **Search, filter, and sort** on the invoice list
+- **Hebrew and English** UI with RTL support and manual language switching
+- **Export:** invoice-list CSV and all-data ZIP (CSV per category), written via the Storage Access Framework, with an optional Share Sheet action after export
+
+### Invoice attachments
+- **One optional image or PDF attachment per invoice:** attach, replace, or remove from the add/edit invoice form; open from Invoice Details with the device's own viewer app
+- **Private managed copies:** a picked file is copied once into the app's private storage (`filesDir/invoice_attachments/`), so the invoice no longer depends on the original file, which can be deleted or moved afterwards
+- **Safe sharing:** attachments are exposed to viewer apps only through a `FileProvider` with temporary read access; no broad storage permission is requested
+- **Cleanup:** removing or replacing an attachment, deleting an invoice, or restoring a backup deletes managed files that are no longer referenced
+- **Missing files:** if the file is unavailable (for example after an Android system restore), Invoice Details shows an "attached file is not available" message and the attachment can be removed by editing the invoice
+- Legacy attachments (stored earlier as persisted external `content://` Uris during development) are migrated lazily to managed copies
+
+### Complete manual backup and restore
+- **Backup ZIP (format version 2)** now contains `backup.json` plus an `attachments/` folder with the managed attachment files, streamed to avoid loading files into memory
+- **Missing attachment files do not fail a backup:** the backup completes without them and a warning dialog (English and Hebrew) reports that some attachments were omitted
+- **Restore** validates the whole ZIP (including attachment entries, with size and entry-count limits and safe file-name checks) before replacing local data, then restores the attachment files together with the database in a full replace
+- **Backward compatible:** version-1 backups (no attachments) remain restorable
+- **Android system backup** (`allowBackup=true`, scoped rules) still covers only the Room database and preference files; attachment files are intentionally excluded, so a system restore can bring back invoice records without their attachments. Manual backup ZIPs are the recommended way to transfer complete data
+- Unit tests cover attachment backup/export and restore round trips
+
+### Settings and usability
+- **Settings screen** (language, app text size, data actions, About); simplified main menu
+- **Configurable app text size** with improved large-text layouts
+- **Reset all data** action; unsaved-changes dialogs on all forms; fixed app theme (no dynamic colors); navigation stability fixes
+
+### Release and privacy
+- App identity **Clear Ledger** (`com.dinyairsadot.clearledger`), launcher and adaptive icon, Hebrew and English strings
+- **No `INTERNET` permission**; no analytics, advertising, or crash-reporting SDKs; no storage permissions (SAF only)
+- **About** screen with in-app link to the language-appropriate hosted privacy policy
+- Privacy policies (English and Hebrew) and Play Store materials updated to describe attachments, attachment inclusion in manual backups, and their exclusion from Android system backup
+- Release signing is configured locally through an untracked `keystore.properties`; Play Console steps (Play App Signing, Data Safety form, content rating, upload, Play-installed QA) remain to be completed — see `docs/RELEASE.md`
+
+---
+
 ## 11/06/2026
 
 ### Backup and Restore

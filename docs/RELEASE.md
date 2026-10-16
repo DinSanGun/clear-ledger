@@ -3,7 +3,7 @@
 Practical checklist for building, testing, and publishing to Google Play.  
 Execution order and step IDs follow `docs/LAUNCH_PLAN.md` (S9–S17).
 
-_Last updated: 2026-06-24_
+_Last updated: 2026-10-16_
 
 ---
 
@@ -16,7 +16,7 @@ Work in this sequence — do not skip ahead:
 3. **S11** — Release polish *(done)*  
 4. **S12** — Project documentation *(done)*  
 5. **S13** — Release identity *(done — S12A–C)*  
-6. **S14** — Privacy policy and store materials  
+6. **S14** — Privacy policy and store materials *(repo docs updated for attachments 2026-10-16; hosted URL check and Play Console entries pending)*  
 7. **S15** — Internal Play Store testing  
 8. **S16** — Launch blocker fixes only *(feature freeze)*  
 9. **S17** — Production release  
@@ -41,6 +41,8 @@ For release builds:
 # Output: app/build/outputs/bundle/release/app-release.aab
 ```
 
+> **Always rebuild the AAB from the final `release/v1.0` commit before uploading.** An AAB built before the attachment backup/restore work is out of date and must not be uploaded. Confirm the output file's timestamp after `bundleRelease`.
+
 - [ ] All unit tests pass
 - [ ] `lintDebug` has no new blocking issues
 - [ ] Debug and release builds succeed
@@ -57,14 +59,14 @@ Release Gradle config reviewed and documented. Signing deferred to S15.
 - Launcher name: **Clear Ledger** (EN + HE)
 - Adaptive launcher icon in place
 
-**Versioning (first release):**
-- `versionCode = 1` — increment on every Play upload
-- `versionName = "1.0.0"` — semver for first public release
+**Versioning:**
+- `versionCode = 2` — must increase on every Play upload. `versionCode 1` was used for the earlier Google Play closed-testing build, so the next upload uses `2`
+- `versionName = "1.0.0"` — semver for the first public release (unchanged)
 
 **Release build settings:**
 - `minSdk = 26`, `targetSdk = 36`, `compileSdk = 36`
 - `isMinifyEnabled = false` for v1.0.0 — R8/minify deferred (Room, Gson, Compose need keep rules if enabled later)
-- No `signingConfig` in committed Gradle files
+- Signing credentials are never committed; the release `signingConfig` is created only when a local `keystore.properties` is present (see S15A)
 
 **Signing (configured in S15):**
 - Upload keystore lives outside the repo (`~/dev/android-apps/clear-ledger-secrets/`)
@@ -111,7 +113,7 @@ GitHub Actions workflow (`.github/workflows/android-ci.yml`) runs on push to `ma
 
 - [x] Finalize app name (launcher + store listing) — **Clear Ledger** (S12A)
 - [x] Confirm package / application ID — `com.dinyairsadot.clearledger` (**no changes after production**)
-- [x] First-release versioning — `versionCode = 1`, `versionName = "1.0.0"` (S12C)
+- [x] Release versioning — `versionName = "1.0.0"`; `versionCode` raised from 1 to 2 for the next Play upload (originally set in S12C)
 - [x] Launcher + adaptive icon finalized (S12B)
 - [x] Store listing copy drafted in `docs/PLAY_STORE_MATERIALS.md` (S14)
 
@@ -127,7 +129,8 @@ Signing is configured in **S15** (internal testing setup), not here.
 - No analytics, crash-reporting, or advertising SDK included
 - No developer-initiated data collection; no backend server
 - All app data stored locally on device (Room / SQLite + SharedPreferences)
-- Export and manual backup are user-initiated; files go only where the user saves them via SAF
+- Export and manual backup are user-initiated; files go only where the user saves them via SAF. After an export, an optional Share action opens the Android Share Sheet; the file goes only to the app the user picks
+- **Invoice attachments:** one optional image/PDF per invoice, copied into private app storage (`filesDir/invoice_attachments/`); opened via `FileProvider` with temporary read access; no storage permissions. Manual backup ZIPs (format version 2) include available attachment files under `attachments/`; missing files are omitted with a warning
 - **Android system backup (v1.0.0):** `allowBackup=true` with explicit rules — Room database (`clear_ledger_database`) and SharedPreferences (`language_prefs`, `seeding_prefs`) included; cache excluded. Invoice attachment files (`filesDir/invoice_attachments/`) are **not** included, so a system restore or device transfer can bring back invoice records without their attached files (the details screen shows an "attached file is not available" state and the attachment can be removed via Edit). Manual backup ZIPs include available attachments and are the recommended way to transfer complete data. Android/Google may back up or transfer this data per the user's device and Google Account settings — not developer-initiated; developer has no access
 
 See [`docs/privacy-policy.md`](privacy-policy.md) for the full English policy (canonical Play Store URL: `https://dinsangun.github.io/clear-ledger/privacy-policy`), [`docs/privacy-policy-he.md`](privacy-policy-he.md) for Hebrew (`https://dinsangun.github.io/clear-ledger/privacy-policy-he`), and [`docs/PLAY_STORE_MATERIALS.md`](PLAY_STORE_MATERIALS.md) for store listing copy and Data Safety guidance. The About screen opens the language-appropriate policy URL.
@@ -140,11 +143,12 @@ See [`docs/privacy-policy.md`](privacy-policy.md) for the full English policy (c
 
 ### Remaining before Play submission
 
-- [ ] Verify hosted privacy policy URLs are live — English: `https://dinsangun.github.io/clear-ledger/privacy-policy`; Hebrew: `https://dinsangun.github.io/clear-ledger/privacy-policy-he`
+- [ ] Publish the updated policies (last updated 2026-10-16: attachments, attachment backup, system-backup limitation) and verify hosted privacy policy URLs are live and show the new text — English: `https://dinsangun.github.io/clear-ledger/privacy-policy`; Hebrew: `https://dinsangun.github.io/clear-ledger/privacy-policy-he`
+- [ ] Set app category to **Finance** in Play Console (consistent with `docs/PLAY_STORE_MATERIALS.md`) and complete any required Financial features declaration
 - [ ] Enter Play **short description** and **full description** in Play Console (copy in `docs/PLAY_STORE_MATERIALS.md`)
 - [x] Phone screenshots captured (7 total: EN × 6, HE × 1) — `docs/assets/screenshots/play-store/`
 - [ ] Optional demo video or GIF
-- [ ] **Data Safety** form completed in Play Console — verify against final AAB before submitting
+- [ ] **Data Safety** form completed in Play Console — verify against final AAB before submitting (including the Auto Backup question and attachment/file handling; see `docs/PLAY_STORE_MATERIALS.md` section B)
 - [ ] **Content rating** questionnaire completed in Play Console
 
 ---
@@ -181,11 +185,13 @@ keyPassword=your-key-password
 
 ### S15 checklist
 
+> A closed-testing build with `versionCode 1` was previously released to Google Play (reported by the developer; not verifiable from this repository). The items below track the **`versionCode 2`** build, which has not been uploaded yet.
+
 - [x] Create release upload keystore and back it up securely (private — not in repo)
 - [x] Configure release signing via root-level `keystore.properties` (never committed)
 - [ ] Enable Play App Signing in Play Console
 - [ ] Build signed release AAB (`./gradlew bundleRelease`)
-- [ ] Upload signed AAB to **internal testing** track
+- [ ] Upload the signed `versionCode 2` AAB to the target Play track (closed testing and/or production)
 - [ ] Testers install from Play link (not sideload-only)
 
 ### Manual QA on Play-installed build
@@ -193,6 +199,7 @@ keyPassword=your-key-password
 - [ ] First launch; seeded categories
 - [ ] Category CRUD and reorder
 - [ ] Invoice CRUD and details
+- [ ] Invoice attachments: attach image and PDF, replace, remove, open in a viewer app; Share Sheet after an export
 - [ ] Search, filter, sort
 - [ ] Invoice CSV export; all-data ZIP export
 - [ ] Create backup; restore backup (round-trip), including invoices with attachments
@@ -200,6 +207,7 @@ keyPassword=your-key-password
 - [ ] Invalid restore (non-ZIP, wrong ZIP, CSV export, unsupported format version)
 - [ ] Hebrew and English UI and export
 - [ ] Rapid back press from invoice list to category list — no blank screen
+- [ ] Android system restore / device transfer (if testable): invoice records return without attachment files and Invoice Details shows the "attached file not available" state
 - [ ] Upgrade from previous internal version
 
 ---
