@@ -8,6 +8,7 @@ import com.dinyairsadot.clearledger.core.data.ClearLedgerDatabase
 import com.dinyairsadot.clearledger.core.data.repositories.RoomBackupRestoreRepository
 import com.dinyairsadot.clearledger.core.domain.CategoryRepository
 import com.dinyairsadot.clearledger.core.domain.InvoiceRepository
+import com.dinyairsadot.clearledger.core.util.AttachmentStorage
 
 class CategoryListViewModelFactory(
     private val categoryRepository: CategoryRepository,
@@ -20,7 +21,8 @@ class CategoryListViewModelFactory(
             val database = ClearLedgerDatabase.getDatabase(context)
             val backupRestoreRepository = RoomBackupRestoreRepository(
                 database = database,
-                seedingPreferenceManager = SeedingPreferenceManager(context)
+                seedingPreferenceManager = SeedingPreferenceManager(context),
+                attachmentsDir = AttachmentStorage.managedDirectory(context)
             )
             return CategoryListViewModel(
                 categoryRepository,

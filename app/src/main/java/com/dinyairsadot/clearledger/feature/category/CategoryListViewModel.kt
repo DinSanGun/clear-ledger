@@ -9,7 +9,6 @@ import com.dinyairsadot.clearledger.core.domain.CategoryRepository
 import com.dinyairsadot.clearledger.core.domain.InvoiceRepository
 import com.dinyairsadot.clearledger.core.util.AllExportData
 import com.dinyairsadot.clearledger.core.util.backup.BackupData
-import com.dinyairsadot.clearledger.core.util.backup.BackupPayload
 import com.dinyairsadot.clearledger.core.util.backup.BackupValidationResult
 import com.dinyairsadot.clearledger.core.util.backup.BackupValidator
 import com.dinyairsadot.clearledger.core.util.backup.BackupZipImporter
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 import android.content.Context
 import android.content.res.Configuration
 import com.dinyairsadot.clearledger.R
@@ -302,8 +302,16 @@ class CategoryListViewModel(
         }
     }
 
-    suspend fun performRestore(payload: BackupPayload) {
-        backupRestoreRepository.restoreFromBackup(payload)
+    /**
+     * Restores from the backup ZIP at [uri]. The ZIP is re-opened and fully re-validated here
+     * (the check done when the user picked the file is not trusted); on any failure existing
+     * data and attachments are left untouched and an exception is thrown.
+     */
+    suspend fun performRestore(uri: Uri) {
+        backupRestoreRepository.restoreFromBackup {
+            context.contentResolver.openInputStream(uri)
+                ?: throw IOException("Failed to open backup file")
+        }
         // Prevent MainActivity's LaunchedEffect from re-localizing restored backup category names
         // on the very next activity recreate. Backup contents must be preserved exactly.
         // Future explicit language switches will still relocalize only unedited seeded categories.

@@ -41,9 +41,9 @@ class BackupZipExporterTest {
     }
 
     @Test
-    fun writeZip_formatVersionIs1() {
+    fun writeZip_formatVersionIs2() {
         val payload = writeAndParse(sampleBackupData())
-        assertEquals(1, payload.formatVersion)
+        assertEquals(2, payload.formatVersion)
     }
 
     @Test
@@ -265,7 +265,7 @@ class BackupZipExporterTest {
 
         assertTrue(payload.categories.isEmpty())
         assertTrue(payload.invoices.isEmpty())
-        assertEquals(1, payload.formatVersion)
+        assertEquals(2, payload.formatVersion)
     }
 
     @Test

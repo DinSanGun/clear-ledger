@@ -1,5 +1,7 @@
 package com.dinyairsadot.clearledger.feature.settings
 
+import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -52,13 +54,16 @@ import com.dinyairsadot.clearledger.R
 import com.dinyairsadot.clearledger.core.domain.AppTextSize
 import com.dinyairsadot.clearledger.core.ui.AppSnackbar
 import com.dinyairsadot.clearledger.core.ui.SwipeDismissSnackbarHost
+import com.dinyairsadot.clearledger.core.util.AttachmentStorage
 import com.dinyairsadot.clearledger.core.util.backup.BackupPayload
 import com.dinyairsadot.clearledger.core.util.backup.BackupValidationResult
 import com.dinyairsadot.clearledger.core.util.backup.BackupZipExporter
+import com.dinyairsadot.clearledger.core.util.backup.DirectoryBackupAttachmentSource
 import com.dinyairsadot.clearledger.feature.category.CategoryListViewModel
 import java.io.IOException
 import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -87,6 +92,8 @@ fun SettingsScreen(
 
     var showTextSizeDialog by remember { mutableStateOf(false) }
     var pendingRestorePayload by remember { mutableStateOf<BackupPayload?>(null) }
+    // The picked ZIP: restore re-opens and re-validates it (attachments are read from it too).
+    var pendingRestoreUri by remember { mutableStateOf<Uri?>(null) }
     var showResetConfirmDialog by remember { mutableStateOf(false) }
     var isFileOperationInProgress by remember { mutableStateOf(false) }
 
@@ -116,13 +123,25 @@ fun SettingsScreen(
             isFileOperationInProgress = true
             try {
                 val backupData = viewModel.loadAllDataForBackup()
+                val attachmentSource = DirectoryBackupAttachmentSource(
+                    AttachmentStorage.managedDirectory(context)
+                )
                 withContext(Dispatchers.IO) {
                     context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                        BackupZipExporter.writeZip(outputStream, backupData)
+                        BackupZipExporter.writeZip(
+                            outputStream,
+                            backupData,
+                            attachmentSource = attachmentSource
+                        )
                     } ?: throw IOException("Failed to open output stream")
                 }
                 snackbarHostState.showSnackbar(backupCreatedMessage)
             } catch (_: Exception) {
+                // Don't leave an empty/incomplete file behind that could be mistaken for a
+                // valid backup (best effort; not every document provider allows deletion).
+                withContext(NonCancellable + Dispatchers.IO) {
+                    runCatching { DocumentsContract.deleteDocument(context.contentResolver, uri) }
+                }
                 snackbarHostState.showSnackbar(backupFailedMessage)
             } finally {
                 isFileOperationInProgress = false
@@ -141,7 +160,10 @@ fun SettingsScreen(
                     viewModel.validateAndParseBackup(uri)
                 }
                 when (result) {
-                    is BackupValidationResult.Valid -> pendingRestorePayload = result.payload
+                    is BackupValidationResult.Valid -> {
+                        pendingRestoreUri = uri
+                        pendingRestorePayload = result.payload
+                    }
                     is BackupValidationResult.UnsupportedVersion -> {
                         snackbarHostState.showSnackbar(restoreUnsupportedVersionMessage)
                     }
@@ -276,19 +298,25 @@ fun SettingsScreen(
             )
         }
 
-        pendingRestorePayload?.let { payload ->
+        pendingRestorePayload?.let {
             AlertDialog(
-                onDismissRequest = { pendingRestorePayload = null },
+                onDismissRequest = {
+                    pendingRestorePayload = null
+                    pendingRestoreUri = null
+                },
                 title = { Text(restoreBackupDialogTitle) },
                 text = { Text(restoreBackupDialogMessage) },
                 confirmButton = {
                     TextButton(
                         onClick = {
+                            val restoreUri = pendingRestoreUri
                             pendingRestorePayload = null
+                            pendingRestoreUri = null
+                            if (restoreUri == null) return@TextButton
                             coroutineScope.launch {
                                 isFileOperationInProgress = true
                                 try {
-                                    viewModel.performRestore(payload)
+                                    viewModel.performRestore(restoreUri)
                                     viewModel.refresh()
                                     snackbarHostState.showSnackbar(restoreCompletedMessage)
                                 } catch (_: Exception) {
@@ -307,7 +335,10 @@ fun SettingsScreen(
                 },
                 dismissButton = {
                     TextButton(
-                        onClick = { pendingRestorePayload = null },
+                        onClick = {
+                            pendingRestorePayload = null
+                            pendingRestoreUri = null
+                        },
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.onSurface
                         )

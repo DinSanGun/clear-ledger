@@ -16,9 +16,121 @@ class BackupValidatorTest {
     }
 
     @Test
-    fun validate_formatVersion2_returnsUnsupportedVersion() {
+    fun validate_formatVersion3_returnsUnsupportedVersion() {
+        val result = BackupValidator.validate(validPayload().copy(formatVersion = 3))
+        assertEquals(BackupValidationResult.UnsupportedVersion(3), result)
+    }
+
+    @Test
+    fun validate_formatVersion1_stillSupported() {
+        val result = BackupValidator.validate(validPayload().copy(formatVersion = 1))
+        assertTrue(result is BackupValidationResult.Valid)
+    }
+
+    @Test
+    fun validate_formatVersion2_supported() {
         val result = BackupValidator.validate(validPayload().copy(formatVersion = 2))
-        assertEquals(BackupValidationResult.UnsupportedVersion(2), result)
+        assertTrue(result is BackupValidationResult.Valid)
+    }
+
+    @Test
+    fun validate_validAttachment_returnsValid() {
+        val invoice = validInvoice().copy(
+            attachment = BackupAttachmentDto("attachments/abc.pdf", "bill.pdf", "application/pdf")
+        )
+        val result = BackupValidator.validate(validPayload().copy(invoices = listOf(invoice)))
+        assertTrue(result is BackupValidationResult.Valid)
+    }
+
+    @Test
+    fun validate_attachmentWithNullMetadata_returnsValid() {
+        val invoice = validInvoice().copy(
+            attachment = BackupAttachmentDto("attachments/abc", null, null)
+        )
+        val result = BackupValidator.validate(validPayload().copy(invoices = listOf(invoice)))
+        assertTrue(result is BackupValidationResult.Valid)
+    }
+
+    @Test
+    fun validate_twoInvoicesSharingAttachmentEntry_returnsValid() {
+        val attachment = BackupAttachmentDto("attachments/shared.pdf", "a.pdf", "application/pdf")
+        val payload = validPayload().copy(
+            invoices = listOf(
+                validInvoice().copy(id = 10L, attachment = attachment),
+                validInvoice().copy(id = 11L, attachment = attachment)
+            )
+        )
+        assertTrue(BackupValidator.validate(payload) is BackupValidationResult.Valid)
+    }
+
+    @Test
+    fun validate_unsafeAttachmentEntryNames_returnInvalid() {
+        val unsafeNames = listOf(
+            "",
+            "   ",
+            "abc.pdf",
+            "attachments/",
+            "attachments/..",
+            "attachments/../evil.pdf",
+            "attachments/sub/abc.pdf",
+            "attachments\\abc.pdf",
+            "attachments/a\\b.pdf",
+            "/attachments/abc.pdf",
+            "../attachments/abc.pdf",
+            "attachments/abc\u0000.pdf",
+            "backup.json",
+            "attachments/" + "a".repeat(300)
+        )
+        for (name in unsafeNames) {
+            val invoice = validInvoice().copy(
+                attachment = BackupAttachmentDto(name, "x.pdf", "application/pdf")
+            )
+            val result = BackupValidator.validate(validPayload().copy(invoices = listOf(invoice)))
+            assertTrue("Expected Invalid for entry name '$name'", result is BackupValidationResult.Invalid)
+        }
+    }
+
+    @Test
+    fun validate_attachmentWithNullEntryName_returnsInvalid() {
+        val json = gson.toJson(
+            validPayload().copy(
+                invoices = listOf(
+                    validInvoice().copy(
+                        attachment = BackupAttachmentDto("attachments/a.pdf", null, null)
+                    )
+                )
+            )
+        ).replace("\"entryName\":\"attachments/a.pdf\"", "")
+        assertTrue(json.contains("\"attachment\":{}"))
+        val payload = gson.fromJson(json, BackupPayload::class.java)
+        assertTrue(BackupValidator.validate(payload) is BackupValidationResult.Invalid)
+    }
+
+    @Test
+    fun validate_attachmentOverlongDisplayNameOrMime_returnsInvalid() {
+        val longName = validInvoice().copy(
+            attachment = BackupAttachmentDto("attachments/a.pdf", "n".repeat(256), null)
+        )
+        val longMime = validInvoice().copy(
+            attachment = BackupAttachmentDto("attachments/a.pdf", null, "m".repeat(128))
+        )
+        assertTrue(
+            BackupValidator.validate(validPayload().copy(invoices = listOf(longName)))
+                is BackupValidationResult.Invalid
+        )
+        assertTrue(
+            BackupValidator.validate(validPayload().copy(invoices = listOf(longMime)))
+                is BackupValidationResult.Invalid
+        )
+    }
+
+    @Test
+    fun validate_version1PayloadWithoutAttachmentField_returnsValid() {
+        val json = gson.toJson(validPayload().copy(formatVersion = 1))
+            .replace(Regex(",\\s*\"attachment\":null"), "")
+        assertTrue(!json.contains("attachment"))
+        val payload = gson.fromJson(json, BackupPayload::class.java)
+        assertTrue(BackupValidator.validate(payload) is BackupValidationResult.Valid)
     }
 
     @Test
@@ -29,7 +141,7 @@ class BackupValidatorTest {
 
     @Test
     fun validate_missingFormatVersion_returnsUnsupportedVersion() {
-        val json = gson.toJson(validPayload()).replace("\"formatVersion\":1,", "")
+        val json = gson.toJson(validPayload()).replace("\"formatVersion\":2,", "")
         val payload = gson.fromJson(json, BackupPayload::class.java)
         val result = BackupValidator.validate(payload)
         assertEquals(BackupValidationResult.UnsupportedVersion(0), result)
@@ -345,6 +457,7 @@ class BackupValidatorTest {
         consumptionUnit = null,
         notes = null,
         customFieldValues = emptyList(),
-        pinnedSnapshot = emptyMap()
+        pinnedSnapshot = emptyMap(),
+        attachment = null
     )
 }

@@ -6,7 +6,6 @@ import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.UUID
 
 /**
  * Manages the app-private, on-device copies backing invoice attachments.
@@ -18,7 +17,8 @@ import java.util.UUID
  * attachment. No broad storage permission or `MediaStore` access is used; only a plain
  * app-private files subdirectory.
  *
- * Attachment files are not yet included in backup/restore (see `core/util/backup/BackupMapper.kt`).
+ * Managed files are included in manual backups and re-created under new names on restore
+ * (see `core/util/backup/`). Android Auto Backup does not include them.
  */
 object AttachmentStorage {
 
@@ -37,6 +37,9 @@ object AttachmentStorage {
         if (!dir.exists()) dir.mkdirs()
         return dir
     }
+
+    /** The app-private directory holding all managed attachment files (created if missing). */
+    fun managedDirectory(context: Context): File = attachmentsDir(context)
 
     /** The managed [File] for [fileName], or null if [fileName] is blank. Does not check existence. */
     fun fileFor(context: Context, fileName: String?): File? {
@@ -86,21 +89,6 @@ object AttachmentStorage {
         runCatching { fileFor(context, fileName)?.takeIf { it.exists() }?.delete() }
     }
 
-    private fun generateFileName(displayName: String?, mimeType: String?): String {
-        val extension = displayName
-            ?.substringAfterLast('.', missingDelimiterValue = "")
-            ?.takeIf { it.isNotBlank() && it.length <= 10 && it.all(Char::isLetterOrDigit) }
-            ?: extensionForMimeType(mimeType)
-        val base = UUID.randomUUID().toString()
-        return if (extension != null) "$base.$extension" else base
-    }
-
-    private fun extensionForMimeType(mimeType: String?): String? = when (mimeType) {
-        "application/pdf" -> "pdf"
-        "image/jpeg" -> "jpg"
-        "image/png" -> "png"
-        "image/webp" -> "webp"
-        "image/gif" -> "gif"
-        else -> null
-    }
+    private fun generateFileName(displayName: String?, mimeType: String?): String =
+        AttachmentFileNames.generate(displayName, mimeType)
 }

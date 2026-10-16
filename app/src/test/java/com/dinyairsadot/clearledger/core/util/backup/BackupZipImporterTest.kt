@@ -25,7 +25,7 @@ class BackupZipImporterTest {
 
         val payload = BackupZipImporter.readPayload(ByteArrayInputStream(zipBytes))
 
-        assertEquals(1, payload.formatVersion)
+        assertEquals(2, payload.formatVersion)
         assertNotNull(payload.metadata)
         assertEquals(1, payload.categories.size)
         assertEquals(1, payload.invoices.size)

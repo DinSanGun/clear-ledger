@@ -15,15 +15,22 @@ import java.time.format.DateTimeFormatter
  * [LocalDate.parse]. Invalid input returns [BackupValidationResult.Invalid], never throws.
  *
  * [BackupMetadata.dbSchemaVersion] is informational only; restore is allowed when
- * [BackupPayload.formatVersion] matches [BackupFormat.FORMAT_VERSION].
+ * [BackupPayload.formatVersion] is between [BackupFormat.MIN_SUPPORTED_FORMAT_VERSION] and
+ * [BackupFormat.FORMAT_VERSION]. Attachment references (if any) must name safe
+ * `attachments/<file>` ZIP entries; whether those entries really exist and are intact is
+ * verified while the files are staged during restore.
  */
 object BackupValidator {
 
     private val isoDateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     private val colorHexRegex = Regex("^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$")
+    private const val MAX_DISPLAY_NAME_LENGTH = 255
+    private const val MAX_MIME_TYPE_LENGTH = 127
 
     fun validate(payload: BackupPayload): BackupValidationResult {
-        if (payload.formatVersion != BackupFormat.FORMAT_VERSION) {
+        if (payload.formatVersion < BackupFormat.MIN_SUPPORTED_FORMAT_VERSION ||
+            payload.formatVersion > BackupFormat.FORMAT_VERSION
+        ) {
             return BackupValidationResult.UnsupportedVersion(payload.formatVersion)
         }
 
@@ -67,6 +74,7 @@ object BackupValidator {
         }
 
         val invoiceIds = mutableSetOf<Long>()
+        val attachmentEntryNames = mutableSetOf<String>()
         for (invoice in invoices) {
             if (invoice.id <= 0) {
                 return BackupValidationResult.Invalid("Invalid invoice id: ${invoice.id}")
@@ -138,6 +146,28 @@ object BackupValidator {
             if (invoice.pinnedSnapshot == null) {
                 return BackupValidationResult.Invalid("Invoice pinnedSnapshot is required")
             }
+            val attachment = invoice.attachment
+            if (attachment != null) {
+                if (!BackupFormat.isSafeAttachmentEntryName(attachment.entryName)) {
+                    return BackupValidationResult.Invalid(
+                        "Invalid attachment entry for invoice ${invoice.id}"
+                    )
+                }
+                if (attachment.displayName != null &&
+                    attachment.displayName.length > MAX_DISPLAY_NAME_LENGTH
+                ) {
+                    return BackupValidationResult.Invalid("Attachment display name too long")
+                }
+                if (attachment.mimeType != null &&
+                    attachment.mimeType.length > MAX_MIME_TYPE_LENGTH
+                ) {
+                    return BackupValidationResult.Invalid("Attachment MIME type too long")
+                }
+                attachmentEntryNames.add(attachment.entryName)
+            }
+        }
+        if (attachmentEntryNames.size > BackupFormat.MAX_ZIP_ENTRIES) {
+            return BackupValidationResult.Invalid("Too many attachments")
         }
 
         return BackupValidationResult.Valid(payload)

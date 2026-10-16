@@ -146,8 +146,8 @@ data class Invoice(
      * the invoice no longer depends on the original external document: it can be deleted or
      * moved by the user without breaking the attachment.
      *
-     * Local-only for now: managed attachment files are not yet included in backup/restore
-     * (see `core/util/backup/BackupMapper.kt`); only these reference fields are persisted.
+     * Managed attachment files are included in manual backups and restored under newly
+     * generated names (see `core/util/backup/BackupRestoreEngine.kt`).
      */
     val attachmentFileName: String? = null,
     /** Original display name of the attachment, kept for UI display since [attachmentFileName] is an internal identifier. */

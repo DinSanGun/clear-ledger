@@ -18,22 +18,27 @@ import java.time.format.DateTimeFormatter
  * defaults to legacy [Invoice.amount] when the DB column is null) are exported as their
  * effective values.
  *
- * [Invoice.attachmentUri], [Invoice.attachmentFileName], [Invoice.attachmentDisplayName] and
- * [Invoice.attachmentMimeType] are deliberately **not** mapped to/from [BackupInvoiceDto].
- * Invoice attachments (including the managed app-private copy) are local to the device;
- * attachment-aware backup/restore remains the next stage. Restoring an old or new backup
- * simply leaves all attachment fields null, i.e. the restored invoice has no attachment.
+ * Attachments: [toInvoiceDto] writes a [BackupAttachmentDto] when the caller supplies the ZIP
+ * entry name of the invoice's managed file. [fromInvoiceDto] deliberately leaves all four
+ * attachment fields ([Invoice.attachmentUri], [Invoice.attachmentFileName],
+ * [Invoice.attachmentDisplayName], [Invoice.attachmentMimeType]) null: the restore engine
+ * fills them in only after the file has been staged under a new managed name. The legacy
+ * `attachmentUri` is never exported or restored.
  */
 object BackupMapper {
 
     private val isoDateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
-    fun toPayload(data: BackupData, metadata: BackupMetadata): BackupPayload {
+    fun toPayload(
+        data: BackupData,
+        metadata: BackupMetadata,
+        attachmentEntryNameFor: (Invoice) -> String? = { null }
+    ): BackupPayload {
         return BackupPayload(
             formatVersion = BackupFormat.FORMAT_VERSION,
             metadata = metadata,
             categories = data.categories.map(::toCategoryDto),
-            invoices = data.invoices.map(::toInvoiceDto)
+            invoices = data.invoices.map { toInvoiceDto(it, attachmentEntryNameFor(it)) }
         )
     }
 
@@ -52,7 +57,7 @@ object BackupMapper {
         )
     }
 
-    fun toInvoiceDto(invoice: Invoice): BackupInvoiceDto {
+    fun toInvoiceDto(invoice: Invoice, attachmentEntryName: String? = null): BackupInvoiceDto {
         return BackupInvoiceDto(
             id = invoice.id,
             categoryId = invoice.categoryId,
@@ -77,7 +82,14 @@ object BackupMapper {
             consumptionUnit = invoice.consumptionUnit,
             notes = invoice.notes,
             customFieldValues = invoice.customFieldValues,
-            pinnedSnapshot = invoice.pinnedSnapshot
+            pinnedSnapshot = invoice.pinnedSnapshot,
+            attachment = attachmentEntryName?.let {
+                BackupAttachmentDto(
+                    entryName = it,
+                    displayName = invoice.attachmentDisplayName,
+                    mimeType = invoice.attachmentMimeType
+                )
+            }
         )
     }
 

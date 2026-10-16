@@ -38,13 +38,23 @@ data class BackupCategoryDto(
 )
 
 /**
- * Intentionally does **not** include any of [com.dinyairsadot.clearledger.core.domain.Invoice]'s
- * attachment fields (`attachmentUri`, `attachmentFileName`, `attachmentDisplayName`,
- * `attachmentMimeType`). Invoice attachments — including the managed app-private copies
- * introduced alongside these fields — are local to the device; attachment-aware backup/restore
- * (including packaging the managed files themselves into the backup ZIP) remains the next
- * stage. Existing backups created before the attachment feature remain restorable unchanged;
- * new backups simply omit attachment info for now.
+ * Reference from an invoice to its attachment file inside the backup ZIP (format version 2+).
+ *
+ * [entryName] is the ZIP entry (`attachments/<name>`) holding the file's bytes. It is only a
+ * lookup key: on restore the file is re-created under a newly generated managed name, and the
+ * entry name is never used to build a filesystem path. Several invoices may share an
+ * [entryName]; they then share one restored file.
+ */
+data class BackupAttachmentDto(
+    val entryName: String,
+    val displayName: String?,
+    val mimeType: String?
+)
+
+/**
+ * Does not include the legacy `attachmentUri` (external `content://` references are neither
+ * backed up nor restored). The managed attachment is described by [attachment]; it is null
+ * for invoices without an attachment and absent in version-1 backups.
  */
 data class BackupInvoiceDto(
     val id: Long,
@@ -70,7 +80,8 @@ data class BackupInvoiceDto(
     val consumptionUnit: String?,
     val notes: String?,
     val customFieldValues: List<String>?,
-    val pinnedSnapshot: Map<String, String>?
+    val pinnedSnapshot: Map<String, String>?,
+    val attachment: BackupAttachmentDto? = null
 )
 
 data class BackupPayload(

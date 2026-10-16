@@ -20,8 +20,8 @@ import android.provider.OpenableColumns
  * (see `InvoiceListViewModel.migrateLegacyAttachmentIfNeeded`); until migrated (or if the
  * original document is no longer accessible), this legacy Uri is still opened directly.
  *
- * Attachment files are not yet included in backup/restore; only the reference is stored on the
- * invoice (see `core/util/backup/BackupMapper.kt`).
+ * Managed attachment files are included in manual backups (see `core/util/backup/`). Legacy
+ * external Uris are not: they are skipped by backup, and restored invoices never get one.
  *
  * Two different invoices can legitimately reference the exact same legacy Uri (the user picked
  * the same file twice, before this change). Permission release call sites must therefore
