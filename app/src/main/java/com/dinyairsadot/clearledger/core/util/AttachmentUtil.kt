@@ -85,6 +85,16 @@ object AttachmentUtil {
         }.getOrNull()
     }
 
+    /**
+     * Whether the managed attachment file [fileName] currently exists and is readable. False
+     * for a blank name. A referenced file can be absent, e.g. after an Android system restore
+     * brought back the database but not `filesDir`.
+     */
+    fun isManagedFileAvailable(context: Context, fileName: String?): Boolean {
+        val file = AttachmentStorage.fileFor(context, fileName) ?: return false
+        return file.isFile && file.canRead()
+    }
+
     sealed interface OpenResult {
         data object Opened : OpenResult
         /** The document is no longer accessible (deleted, moved, or permission revoked). */

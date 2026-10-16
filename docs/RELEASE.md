@@ -128,7 +128,7 @@ Signing is configured in **S15** (internal testing setup), not here.
 - No developer-initiated data collection; no backend server
 - All app data stored locally on device (Room / SQLite + SharedPreferences)
 - Export and manual backup are user-initiated; files go only where the user saves them via SAF
-- **Android system backup (v1.0.0):** `allowBackup=true` with explicit rules — Room database (`clear_ledger_database`) and SharedPreferences (`language_prefs`, `seeding_prefs`) included; cache excluded. Android/Google may back up or transfer this data per the user's device and Google Account settings — not developer-initiated; developer has no access
+- **Android system backup (v1.0.0):** `allowBackup=true` with explicit rules — Room database (`clear_ledger_database`) and SharedPreferences (`language_prefs`, `seeding_prefs`) included; cache excluded. Invoice attachment files (`filesDir/invoice_attachments/`) are **not** included, so a system restore or device transfer can bring back invoice records without their attached files (the details screen shows an "attached file is not available" state and the attachment can be removed via Edit). Manual backup ZIPs include available attachments and are the recommended way to transfer complete data. Android/Google may back up or transfer this data per the user's device and Google Account settings — not developer-initiated; developer has no access
 
 See [`docs/privacy-policy.md`](privacy-policy.md) for the full English policy (canonical Play Store URL: `https://dinsangun.github.io/clear-ledger/privacy-policy`), [`docs/privacy-policy-he.md`](privacy-policy-he.md) for Hebrew (`https://dinsangun.github.io/clear-ledger/privacy-policy-he`), and [`docs/PLAY_STORE_MATERIALS.md`](PLAY_STORE_MATERIALS.md) for store listing copy and Data Safety guidance. The About screen opens the language-appropriate policy URL.
 
@@ -195,7 +195,8 @@ keyPassword=your-key-password
 - [ ] Invoice CRUD and details
 - [ ] Search, filter, sort
 - [ ] Invoice CSV export; all-data ZIP export
-- [ ] Create backup; restore backup (round-trip)
+- [ ] Create backup; restore backup (round-trip), including invoices with attachments
+- [ ] Backup with a missing attachment file: backup completes, warning dialog shows omitted count (EN + HE); invoice details shows "attached file not available" instead of Open
 - [ ] Invalid restore (non-ZIP, wrong ZIP, CSV export, unsupported format version)
 - [ ] Hebrew and English UI and export
 - [ ] Rapid back press from invoice list to category list — no blank screen
@@ -235,7 +236,7 @@ Category list → add/edit category → invoice list → search/filter/sort → 
 | | Export | Backup | Restore |
 |---|--------|--------|---------|
 | Purpose | Human-readable records | Restore-ready snapshot | Full replace local data |
-| Format | CSV / ZIP of CSVs | ZIP with `backup.json` | Reads backup ZIP only |
+| Format | CSV / ZIP of CSVs | ZIP with `backup.json` + `attachments/` (missing files omitted with a warning) | Reads backup ZIP only |
 | Restore? | **No** | N/A | **Yes** (backup only) |
 
 ---

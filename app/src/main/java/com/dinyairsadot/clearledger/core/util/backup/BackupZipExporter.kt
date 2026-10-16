@@ -10,6 +10,16 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 /**
+ * Outcome of a successful [BackupZipExporter.writeZip].
+ *
+ * @property skippedAttachmentCount number of invoices whose managed attachment file was missing
+ * or unreadable and was therefore exported without its attachment (0 for a complete backup).
+ */
+data class BackupExportResult(val skippedAttachmentCount: Int) {
+    val isComplete: Boolean get() = skippedAttachmentCount == 0
+}
+
+/**
  * Pure Kotlin backup ZIP writer. No Android dependencies.
  *
  * Layout: `backup.json` (versioned JSON, written first) followed by one
@@ -17,9 +27,13 @@ import java.util.zip.ZipOutputStream
  * straight from [BackupAttachmentSource] without loading files into memory.
  *
  * Integrity: a backup must never silently lose a referenced document. Before anything is
- * written, every referenced attachment file is checked for readability; if any is missing or
- * unreadable, [writeZip] throws [IOException] and the backup fails. Invoices that only carry a
- * legacy `attachmentUri` (no managed file) are skipped by design.
+ * written, every referenced attachment file is checked for readability. A file that is simply
+ * missing or unreadable (e.g. after an Android system restore brought back the database but not
+ * `filesDir`) does not fail the backup: the affected invoices are exported without an
+ * attachment and counted in [BackupExportResult.skippedAttachmentCount] so the caller can warn
+ * the user. Unsafe file names, a file that vanishes mid-write, and any ZIP/stream error still
+ * throw [IOException]. Invoices that only carry a legacy `attachmentUri` (no managed file) are
+ * skipped by design and are not counted.
  */
 object BackupZipExporter {
 
@@ -34,24 +48,30 @@ object BackupZipExporter {
         data: BackupData,
         metadata: BackupMetadata = BackupMetadata.create(),
         attachmentSource: BackupAttachmentSource = BackupAttachmentSource.None
-    ) {
-        val fileNames = data.invoices
+    ): BackupExportResult {
+        val referencedFileNames = data.invoices
             .mapNotNull { it.attachmentFileName?.takeIf(String::isNotBlank) }
             .distinct()
 
-        // Pre-flight: fail before writing a single byte if any referenced file is unusable.
-        for (fileName in fileNames) {
+        // Pre-flight, before writing a single byte: an unsafe name is an integrity problem and
+        // fails the backup; a missing/unreadable file is omitted (and counted) instead.
+        val missingFileNames = mutableSetOf<String>()
+        for (fileName in referencedFileNames) {
             if (!BackupFormat.isSafeAttachmentFileName(fileName)) {
                 throw IOException("Unsafe attachment file name in database")
             }
             val probe = attachmentSource.open(fileName)
-                ?: throw IOException("Attachment file is missing or unreadable: $fileName")
-            probe.close()
+            if (probe == null) missingFileNames.add(fileName) else probe.close()
+        }
+        val fileNames = referencedFileNames.filterNot { it in missingFileNames }
+        val skippedAttachmentCount = data.invoices.count { invoice ->
+            val name = invoice.attachmentFileName
+            !name.isNullOrBlank() && name in missingFileNames
         }
 
         val payload = BackupMapper.toPayload(data, metadata) { invoice ->
             invoice.attachmentFileName
-                ?.takeIf(String::isNotBlank)
+                ?.takeIf { it.isNotBlank() && it !in missingFileNames }
                 ?.let(BackupFormat::attachmentEntryNameFor)
         }
         val json = gson.toJson(payload)
@@ -71,5 +91,6 @@ object BackupZipExporter {
                 }
             }
         }
+        return BackupExportResult(skippedAttachmentCount)
     }
 }

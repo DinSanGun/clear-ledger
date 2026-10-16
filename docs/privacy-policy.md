@@ -54,7 +54,7 @@ Clear Ledger lets you export data and create backups. These operations are **ent
 
 - **Invoice export (CSV):** exports currently visible invoices to a CSV file at a location you choose via Android's file picker (Storage Access Framework)
 - **All-data export (ZIP):** exports all categories and invoices as CSV files inside a ZIP at a location you choose
-- **Backup (ZIP):** creates a restore-ready ZIP file containing a `backup.json` snapshot of all app data, at a location you choose
+- **Backup (ZIP):** creates a restore-ready ZIP file containing a `backup.json` snapshot of all app data, plus the image/PDF files attached to your invoices that are available on the device, at a location you choose. If some attached files cannot be found on the device, they are left out of the backup and the app tells you after the backup is created
 - **Restore:** reads a backup ZIP file from a location you choose and replaces local app data
 
 Clear Ledger does not upload these files anywhere. Files are written only to a path that you select. **You are responsible for the security of exported and backup files.** These files contain your financial and billing data and should be treated as private documents.
@@ -71,6 +71,8 @@ If Android system backup is enabled on your device, Android/Google may automatic
 - SharedPreferences used for language and app initialization flags
 
 What is included is defined in the app's backup configuration (`backup_rules.xml` and `data_extraction_rules.xml`). Cache and other non-essential app data are not included.
+
+**Attached files are not part of Android system backup.** Image and PDF files attached to invoices are stored in the app's private storage and are not included. After restoring from Android system backup or moving to a new device, your invoice records may be restored **without their attached files**; such invoices show that the attached file is not available. To transfer complete invoice data including attachments, use Clear Ledger's manual **Backup (ZIP)** and **Restore** features, which include the attachments that are available on the device.
 
 Important points:
 

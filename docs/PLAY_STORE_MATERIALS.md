@@ -147,7 +147,7 @@ Backup rules intentionally include:
 - Room database (`clear_ledger_database` and WAL files)
 - SharedPreferences for language and seeding flags (`language_prefs`, `seeding_prefs`)
 
-Cache and other non-listed app data are not included.
+Cache and other non-listed app data are not included. Invoice attachment files (`invoice_attachments/`) are **not** included, so a system restore can bring back invoice records without their attached files; manual backup ZIPs include available attachments.
 
 If the user has Android backup enabled, Android/Google may back up or transfer this data to the **user's own Google Account** or during device transfer — not to the developer.
 

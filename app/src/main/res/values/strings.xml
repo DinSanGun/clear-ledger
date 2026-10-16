@@ -92,6 +92,8 @@
     <string name="create_backup">Create backup</string>
     <string name="backup_created">Backup created</string>
     <string name="backup_failed">Backup failed. Please try again.</string>
+    <string name="backup_incomplete_title">Backup created without some attachments</string>
+    <string name="backup_incomplete_message">Your invoice data was backed up, but some attachment files could not be found on this device, so they are not in this backup. This can happen after restoring the app from an Android system backup or moving to a new device. Attachments not included: %1$d.</string>
     <string name="restore_backup">Restore from backup</string>
     <string name="restore_backup_dialog_title">Restore backup?</string>
     <string name="restore_backup_dialog_message">This will replace all current categories and invoices with the backup data. This action cannot be undone.</string>
@@ -170,6 +172,7 @@
     <string name="attachment_open_action">Open</string>
     <string name="attachment_unknown_filename">Attached file</string>
     <string name="attachment_unavailable_message">This attachment can no longer be accessed</string>
+    <string name="attachment_file_missing">The attached file is not available on this device. You can remove the attachment by editing the invoice.</string>
     <string name="attachment_no_viewer_app_message">No app found to open this file</string>
     <string name="attachment_copy_failed_message">Couldn\'t attach this file. Please try again</string>
     

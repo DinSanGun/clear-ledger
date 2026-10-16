@@ -38,6 +38,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -95,6 +96,8 @@ fun SettingsScreen(
     // The picked ZIP: restore re-opens and re-validates it (attachments are read from it too).
     var pendingRestoreUri by remember { mutableStateOf<Uri?>(null) }
     var showResetConfirmDialog by remember { mutableStateOf(false) }
+    // Number of attachments omitted from the backup just created; > 0 shows the warning dialog.
+    var backupSkippedAttachmentCount by remember { mutableIntStateOf(0) }
     var isFileOperationInProgress by remember { mutableStateOf(false) }
 
     val createBackupMessage = stringResource(R.string.create_backup)
@@ -126,7 +129,7 @@ fun SettingsScreen(
                 val attachmentSource = DirectoryBackupAttachmentSource(
                     AttachmentStorage.managedDirectory(context)
                 )
-                withContext(Dispatchers.IO) {
+                val exportResult = withContext(Dispatchers.IO) {
                     context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                         BackupZipExporter.writeZip(
                             outputStream,
@@ -135,7 +138,12 @@ fun SettingsScreen(
                         )
                     } ?: throw IOException("Failed to open output stream")
                 }
-                snackbarHostState.showSnackbar(backupCreatedMessage)
+                if (exportResult.isComplete) {
+                    snackbarHostState.showSnackbar(backupCreatedMessage)
+                } else {
+                    // Not an ordinary success: some attachments are missing from the backup.
+                    backupSkippedAttachmentCount = exportResult.skippedAttachmentCount
+                }
             } catch (_: Exception) {
                 // Don't leave an empty/incomplete file behind that could be mistaken for a
                 // valid backup (best effort; not every document provider allows deletion).
@@ -288,6 +296,31 @@ fun SettingsScreen(
                 confirmButton = {
                     TextButton(
                         onClick = { showTextSizeDialog = false },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
+                        Text(stringResource(R.string.close))
+                    }
+                }
+            )
+        }
+
+        if (backupSkippedAttachmentCount > 0) {
+            AlertDialog(
+                onDismissRequest = { backupSkippedAttachmentCount = 0 },
+                title = { Text(stringResource(R.string.backup_incomplete_title)) },
+                text = {
+                    Text(
+                        stringResource(
+                            R.string.backup_incomplete_message,
+                            backupSkippedAttachmentCount
+                        )
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { backupSkippedAttachmentCount = 0 },
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.onSurface
                         )

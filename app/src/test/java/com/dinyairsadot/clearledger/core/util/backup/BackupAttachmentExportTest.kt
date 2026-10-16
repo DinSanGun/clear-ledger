@@ -19,6 +19,7 @@ import org.junit.rules.TemporaryFolder
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.io.OutputStream
 
 class BackupAttachmentExportTest {
 
@@ -118,7 +119,121 @@ class BackupAttachmentExportTest {
     }
 
     @Test
-    fun export_missingAttachmentFile_failsAndWritesNothing() {
+    fun export_allAttachmentsAvailable_reportsZeroSkipped() {
+        val dir = sourceDir()
+        File(dir, "aaa.pdf").writeBytes(pdfBytes)
+        File(dir, "bbb.png").writeBytes(pngBytes)
+        val data = BackupData(
+            listOf(BackupTestSupport.category()),
+            listOf(
+                invoice(1, "aaa.pdf", "a.pdf", "application/pdf"),
+                invoice(2, "bbb.png", "b.png", "image/png"),
+                invoice(3)
+            )
+        )
+        val output = ByteArrayOutputStream()
+
+        val result = BackupZipExporter.writeZip(
+            output, data, BackupTestSupport.metadata(), DirectoryBackupAttachmentSource(dir)
+        )
+
+        assertEquals(0, result.skippedAttachmentCount)
+        assertTrue(result.isComplete)
+        assertEquals(
+            listOf("backup.json", "attachments/aaa.pdf", "attachments/bbb.png"),
+            entryNames(output.toByteArray())
+        )
+    }
+
+    @Test
+    fun export_missingAttachmentFile_isOmittedCountedAndOthersExportedNormally() {
+        val dir = sourceDir()
+        File(dir, "present.pdf").writeBytes(pdfBytes)
+        File(dir, "also.png").writeBytes(pngBytes)
+        val data = BackupData(
+            listOf(BackupTestSupport.category()),
+            listOf(
+                invoice(1, "present.pdf", "a.pdf", "application/pdf"),
+                invoice(2, "gone.pdf", "b.pdf", "application/pdf"),
+                invoice(3, "also.png", "c.png", "image/png")
+            )
+        )
+        val output = ByteArrayOutputStream()
+
+        val result = BackupZipExporter.writeZip(
+            output, data, BackupTestSupport.metadata(), DirectoryBackupAttachmentSource(dir)
+        )
+
+        assertEquals(1, result.skippedAttachmentCount)
+        assertFalse(result.isComplete)
+        val zip = output.toByteArray()
+        assertEquals(
+            listOf("backup.json", "attachments/present.pdf", "attachments/also.png"),
+            entryNames(zip)
+        )
+        assertArrayEquals(pdfBytes, readEntry(zip, "attachments/present.pdf"))
+        assertArrayEquals(pngBytes, readEntry(zip, "attachments/also.png"))
+        val invoices = payloadOf(zip).invoices.associateBy { it.id }
+        assertEquals(3, invoices.size)
+        assertNotNull(invoices.getValue(1).attachment)
+        assertNull("Invoice data is kept, attachment omitted", invoices.getValue(2).attachment)
+        assertNotNull(invoices.getValue(3).attachment)
+        assertFalse(String(readEntry(zip, "backup.json")!!).contains("gone.pdf"))
+    }
+
+    @Test
+    fun export_missingSharedAttachment_countsEveryAffectedInvoice() {
+        val dir = sourceDir()
+        File(dir, "present.pdf").writeBytes(pdfBytes)
+        val data = BackupData(
+            listOf(BackupTestSupport.category()),
+            listOf(
+                invoice(1, "gone.pdf", "a.pdf", "application/pdf"),
+                invoice(2, "gone.pdf", "b.pdf", "application/pdf"),
+                invoice(3, "present.pdf", "c.pdf", "application/pdf"),
+                invoice(4, "gone2.png", "d.png", "image/png"),
+                invoice(5),
+                invoice(6, legacyUri = "content://docs/legacy/6")
+            )
+        )
+        val output = ByteArrayOutputStream()
+
+        val result = BackupZipExporter.writeZip(
+            output, data, BackupTestSupport.metadata(), DirectoryBackupAttachmentSource(dir)
+        )
+
+        // Invoices 1, 2 and 4 lost their attachment; legacy-only / no-attachment are not counted.
+        assertEquals(3, result.skippedAttachmentCount)
+        assertEquals(
+            listOf("backup.json", "attachments/present.pdf"),
+            entryNames(output.toByteArray())
+        )
+    }
+
+    @Test
+    fun export_allAttachmentsMissing_stillProducesValidDataOnlyBackup() {
+        val dir = sourceDir()
+        val data = BackupData(
+            listOf(BackupTestSupport.category()),
+            listOf(
+                invoice(1, "gone.pdf", "a.pdf", "application/pdf"),
+                invoice(2, "gone2.png", "b.png", "image/png")
+            )
+        )
+        val output = ByteArrayOutputStream()
+
+        val result = BackupZipExporter.writeZip(
+            output, data, BackupTestSupport.metadata(), DirectoryBackupAttachmentSource(dir)
+        )
+
+        assertEquals(2, result.skippedAttachmentCount)
+        val zip = output.toByteArray()
+        assertEquals(listOf("backup.json"), entryNames(zip))
+        assertTrue(payloadOf(zip).invoices.all { it.attachment == null })
+    }
+
+    @Test
+    fun export_underlyingOutputStreamFailure_stillFails() {
         val dir = sourceDir()
         File(dir, "present.pdf").writeBytes(pdfBytes)
         val data = BackupData(
@@ -128,17 +243,19 @@ class BackupAttachmentExportTest {
                 invoice(2, "gone.pdf", "b.pdf", "application/pdf")
             )
         )
-        val output = ByteArrayOutputStream()
+        val failing = object : OutputStream() {
+            override fun write(b: Int) = throw IOException("disk full")
+            override fun write(b: ByteArray, off: Int, len: Int) = throw IOException("disk full")
+        }
 
         try {
             BackupZipExporter.writeZip(
-                output, data, BackupTestSupport.metadata(), DirectoryBackupAttachmentSource(dir)
+                failing, data, BackupTestSupport.metadata(), DirectoryBackupAttachmentSource(dir)
             )
-            fail("Expected backup to fail for a missing attachment")
+            fail("Expected a genuine stream failure to fail the backup")
         } catch (_: IOException) {
             // expected
         }
-        assertEquals("No partial ZIP may be produced", 0, output.size())
     }
 
     @Test
@@ -164,17 +281,17 @@ class BackupAttachmentExportTest {
     }
 
     @Test
-    fun export_noSourceProvided_failsWhenInvoiceHasManagedAttachment() {
+    fun export_noSourceProvided_treatsManagedAttachmentAsMissing() {
         val data = BackupData(
             listOf(BackupTestSupport.category()),
             listOf(invoice(1, "x.pdf", "x.pdf", "application/pdf"))
         )
-        try {
-            BackupZipExporter.writeZip(ByteArrayOutputStream(), data, BackupTestSupport.metadata())
-            fail("Expected failure")
-        } catch (_: IOException) {
-            // expected
-        }
+        val output = ByteArrayOutputStream()
+
+        val result = BackupZipExporter.writeZip(output, data, BackupTestSupport.metadata())
+
+        assertEquals(1, result.skippedAttachmentCount)
+        assertEquals(listOf("backup.json"), entryNames(output.toByteArray()))
     }
 
     @Test

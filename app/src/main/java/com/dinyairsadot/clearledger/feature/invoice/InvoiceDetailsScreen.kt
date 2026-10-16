@@ -317,27 +317,44 @@ fun InvoiceDetailsScreen(
                                 overflow = TextOverflow.Ellipsis
                             )
                             Spacer(modifier = Modifier.padding(top = 2.dp))
-                            TextButton(
-                                onClick = {
-                                    coroutineScope.launch {
-                                        val result = AttachmentUtil.openAttachment(
-                                            context = context,
-                                            managedFileName = invoice.attachmentFileName,
-                                            managedMimeType = invoice.attachmentMimeType,
-                                            legacyUriString = invoice.attachmentUri
-                                        )
-                                        when (result) {
-                                            AttachmentUtil.OpenResult.Opened -> Unit
-                                            AttachmentUtil.OpenResult.NotAccessible ->
-                                                snackbarHostState.showSnackbar(attachmentUnavailableMessage)
-                                            AttachmentUtil.OpenResult.NoViewerApp ->
-                                                snackbarHostState.showSnackbar(attachmentNoViewerMessage)
+                            // A managed file can be missing (e.g. database restored by Android
+                            // system backup without its files); don't offer a dead Open action.
+                            val managedFileMissing = remember(invoice.attachmentFileName) {
+                                invoice.attachmentFileName != null &&
+                                    !AttachmentUtil.isManagedFileAvailable(
+                                        context,
+                                        invoice.attachmentFileName
+                                    )
+                            }
+                            if (managedFileMissing) {
+                                Text(
+                                    text = stringResource(R.string.attachment_file_missing),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            } else {
+                                TextButton(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            val result = AttachmentUtil.openAttachment(
+                                                context = context,
+                                                managedFileName = invoice.attachmentFileName,
+                                                managedMimeType = invoice.attachmentMimeType,
+                                                legacyUriString = invoice.attachmentUri
+                                            )
+                                            when (result) {
+                                                AttachmentUtil.OpenResult.Opened -> Unit
+                                                AttachmentUtil.OpenResult.NotAccessible ->
+                                                    snackbarHostState.showSnackbar(attachmentUnavailableMessage)
+                                                AttachmentUtil.OpenResult.NoViewerApp ->
+                                                    snackbarHostState.showSnackbar(attachmentNoViewerMessage)
+                                            }
                                         }
-                                    }
-                                },
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Text(stringResource(R.string.attachment_open_action))
+                                    },
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Text(stringResource(R.string.attachment_open_action))
+                                }
                             }
                         }
                     }
